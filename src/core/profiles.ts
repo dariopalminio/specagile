@@ -11,14 +11,28 @@ import type { Profile } from './global-config.js';
  * Core workflows included in the 'core' profile.
  * These provide the streamlined experience for new users.
  */
-export const CORE_WORKFLOWS = ['propose', 'explore', 'apply', 'update', 'sync', 'archive'] as const;
+export const CORE_WORKFLOWS = [
+  'propose',
+  'explore',
+  'specify',
+  'plan',
+  'apply',
+  'update',
+  'sync',
+  'archive',
+] as const;
 
 /**
  * All available workflows in the system.
+ *
+ * `specify` and `plan` are SpecAgile's own (see FORK.md). They ship as skills
+ * only and never had a command file, so they are absent from COMMAND_IDS.
  */
 export const ALL_WORKFLOWS = [
   'propose',
   'explore',
+  'specify',
+  'plan',
   'new',
   'continue',
   'apply',

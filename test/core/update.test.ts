@@ -423,7 +423,9 @@ describe('UpdateCommand', () => {
             'openspec-apply-change',
             'openspec-archive-change',
             'openspec-explore',
+            'openspec-plan',
             'openspec-propose',
+            'openspec-specify',
             'openspec-sync-specs',
             'openspec-update-change'
           );
@@ -1251,9 +1253,11 @@ metadata:
 
       await updateCommand.execute(testDir);
 
-      // Verify core profile skill files were created/updated (propose, explore, apply, update, sync, archive)
+      // Verify core profile skill files were created/updated (propose, explore, specify, plan, apply, update, sync, archive)
       const coreSkillNames = [
         'openspec-explore',
+        'openspec-specify',
+        'openspec-plan',
         'openspec-apply-change',
         'openspec-update-change',
         'openspec-sync-specs',
@@ -3574,7 +3578,7 @@ More user content after markers.
     it.each(['skills', 'commands', 'both'] as const)(
       'should repair an archive profile missing sync from a 1.x install with %s',
       async (surfaces) => {
-        const workflows = ['propose', 'explore', 'apply', 'archive'];
+        const workflows = ['propose', 'explore', 'specify', 'plan', 'apply', 'archive'];
         setMockConfig({ featureFlags: {}, profile: 'custom', delivery: 'both', workflows });
 
         const archiveSkill = path.join(
@@ -3627,7 +3631,7 @@ More user content after markers.
         featureFlags: {},
         profile: 'custom',
         delivery: 'both',
-        workflows: ['propose', 'explore', 'apply', 'sync', 'archive'],
+        workflows: ['propose', 'explore', 'specify', 'plan', 'apply', 'sync', 'archive'],
       });
 
       const initCommand = new InitCommand({ tools: 'claude', force: true });
@@ -3650,12 +3654,40 @@ More user content after markers.
       consoleSpy.mockRestore();
     });
 
+    it('should point a custom profile with the pre-specify core set at specify and plan without installing them', async () => {
+      setMockConfig({
+        featureFlags: {},
+        profile: 'custom',
+        delivery: 'both',
+        workflows: ['propose', 'explore', 'apply', 'update', 'sync', 'archive'],
+      });
+
+      const initCommand = new InitCommand({ tools: 'claude', force: true });
+      await initCommand.execute(testDir);
+
+      const consoleSpy = vi.spyOn(console, 'log');
+
+      await updateCommand.execute(testDir);
+
+      const calls = consoleSpy.mock.calls.map(call =>
+        call.map(arg => String(arg)).join(' ')
+      );
+      expect(calls.some(call =>
+        call.includes('Your custom profile is missing 2 core workflows: specify, plan')
+      )).toBe(true);
+      const skillsDir = path.join(testDir, '.claude', 'skills');
+      expect(await FileSystemUtils.fileExists(path.join(skillsDir, 'openspec-specify', 'SKILL.md'))).toBe(false);
+      expect(await FileSystemUtils.fileExists(path.join(skillsDir, 'openspec-plan', 'SKILL.md'))).toBe(false);
+
+      consoleSpy.mockRestore();
+    });
+
     it('should not display a missing-core note when custom profile covers core workflows', async () => {
       setMockConfig({
         featureFlags: {},
         profile: 'custom',
         delivery: 'both',
-        workflows: ['propose', 'explore', 'apply', 'update', 'sync', 'archive', 'verify'],
+        workflows: ['propose', 'explore', 'specify', 'plan', 'apply', 'update', 'sync', 'archive', 'verify'],
       });
 
       const initCommand = new InitCommand({ tools: 'claude', force: true });
@@ -3926,7 +3958,9 @@ More user content after markers.
         'openspec-apply-change',
         'openspec-archive-change',
         'openspec-explore',
+        'openspec-plan',
         'openspec-propose',
+        'openspec-specify',
         'openspec-sync-specs',
         'openspec-update-change',
       ]);

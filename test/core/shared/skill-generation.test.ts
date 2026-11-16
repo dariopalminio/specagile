@@ -8,9 +8,9 @@ import {
 
 describe('skill-generation', () => {
   describe('getSkillTemplates', () => {
-    it('should return all 12 skill templates', () => {
+    it('should return all 14 skill templates', () => {
       const templates = getSkillTemplates();
-      expect(templates).toHaveLength(12);
+      expect(templates).toHaveLength(14);
     });
 
     it('should have unique directory names', () => {
@@ -36,6 +36,8 @@ describe('skill-generation', () => {
       expect(dirNames).toContain('openspec-verify-change');
       expect(dirNames).toContain('openspec-onboard');
       expect(dirNames).toContain('openspec-propose');
+      expect(dirNames).toContain('openspec-specify');
+      expect(dirNames).toContain('openspec-plan');
     });
 
     it('should have valid template structure', () => {
@@ -92,6 +94,13 @@ describe('skill-generation', () => {
     it('should return all 12 command templates', () => {
       const templates = getCommandTemplates();
       expect(templates).toHaveLength(12);
+    });
+
+    it('should have no command template for the skill-only specify and plan workflows', () => {
+      const ids = getCommandTemplates().map(t => t.id);
+      expect(ids).not.toContain('specify');
+      expect(ids).not.toContain('plan');
+      expect(getCommandTemplates(['specify', 'plan'])).toHaveLength(0);
     });
 
     it('should have unique IDs', () => {

@@ -150,6 +150,8 @@ describe('transformToSkillReferences', () => {
       ['verify', '/openspec-verify-change'],
       ['onboard', '/openspec-onboard'],
       ['propose', '/openspec-propose'],
+      ['specify', '/openspec-specify'],
+      ['plan', '/openspec-plan'],
     ];
 
     for (const [cmd, skillRef] of mappings) {

@@ -10,7 +10,7 @@ describe('getOnboardingCommands', () => {
   it('omits commands the profile does not install', () => {
     const commands = getOnboardingCommands(CORE_WORKFLOWS).map((c) => c.command);
 
-    expect(commands).toEqual(['/opsx:propose', '/opsx:apply']);
+    expect(commands).toEqual(['/opsx:propose', '/opsx:specify', '/opsx:plan', '/opsx:apply']);
     expect(commands).not.toContain('/opsx:new');
     expect(commands).not.toContain('/opsx:continue');
   });
@@ -18,7 +18,27 @@ describe('getOnboardingCommands', () => {
   it('names the skill for each hint', () => {
     const skills = getOnboardingCommands(CORE_WORKFLOWS).map((c) => c.skill);
 
-    expect(skills).toEqual(['openspec-propose', 'openspec-apply-change']);
+    expect(skills).toEqual(['openspec-propose', 'openspec-specify', 'openspec-plan', 'openspec-apply-change']);
+  });
+
+  it('places the specify and plan stages right after propose', () => {
+    const commands = getOnboardingCommands(ALL_WORKFLOWS).map((c) => c.command);
+
+    expect(commands).toEqual([
+      '/opsx:propose',
+      '/opsx:specify',
+      '/opsx:plan',
+      '/opsx:new',
+      '/opsx:continue',
+      '/opsx:apply',
+    ]);
+  });
+
+  it('describes the specify and plan stages', () => {
+    const byWorkflow = new Map(getOnboardingCommands(['specify', 'plan']).map((c) => [c.workflow, c.description]));
+
+    expect(byWorkflow.get('specify')).toBe('Specify a change');
+    expect(byWorkflow.get('plan')).toBe('Plan a change');
   });
 
   it('includes expanded commands when a custom profile installs them', () => {

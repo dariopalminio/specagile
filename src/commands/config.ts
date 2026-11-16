@@ -189,6 +189,14 @@ export const WORKFLOW_PROMPT_META: Record<string, WorkflowPromptMeta> = {
     name: 'Explore ideas',
     description: 'Investigate a problem before implementation',
   },
+  specify: {
+    name: 'Specify change',
+    description: 'Create or edit proposal and specs',
+  },
+  plan: {
+    name: 'Plan change',
+    description: 'Create design and tasks from specs',
+  },
   new: {
     name: 'New change',
     description: 'Create a new change scaffold quickly',

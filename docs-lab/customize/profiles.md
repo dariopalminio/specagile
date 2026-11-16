@@ -6,18 +6,22 @@ A profile is your preference for which OpenSpec workflows (the [skills](../start
 
 ## The core set
 
-The `core` profile installs six workflows, covering the whole loop from idea to archive:
+The `core` profile installs eight workflows, covering the whole loop from idea to archive:
 
 | Workflow | What it's for |
 |---|---|
 | [`explore`](../reference/skills.md#openspec-explore) | Think through an idea before it becomes a change proposal |
 | [`propose`](../reference/skills.md#openspec-propose) | Create a change proposal and generate all its planning artifacts in one step |
+| [`specify`](../reference/skills.md#openspec-specify) | Write a change proposal's specification (proposal and spec deltas), stopping before the technical plan |
+| [`plan`](../reference/skills.md#openspec-plan) | Create or revise the technical plan (design and tasks) of a change proposal whose specification is complete |
 | [`apply`](../reference/skills.md#openspec-apply-change) | Implement a change proposal's tasks |
 | [`update`](../reference/skills.md#openspec-update-change) | Revise a change proposal's existing planning artifacts |
 | [`sync`](../reference/skills.md#openspec-sync-specs) | Merge a change proposal's spec updates into `specs/` without archiving it |
 | [`archive`](../reference/skills.md#openspec-archive-change) | Move a finished change proposal to the archive |
 
 Each links to its full contract: arguments, what it creates, and what it responds with.
+
+`specify` and `plan` split what `propose` does in one step into two stages: agree on *what* the change does, then plan *how* to build it, then `apply`. Use `propose` when you don't need the pause in between.
 
 ## Expanding the set: optional workflows
 
@@ -38,7 +42,7 @@ To change the set, run the interactive picker:
 openspec config profile
 ```
 
-The picker lists all twelve workflows as checkboxes, with the installed ones checked. Any selection that isn't exactly the core six is saved as the `custom` profile, so you can also uncheck core workflows you don't use.
+The picker lists all fourteen workflows as checkboxes, with the installed ones checked. Any selection that isn't exactly the core eight is saved as the `custom` profile, so you can also uncheck core workflows you don't use.
 
 ## Delivery (retired in 2.0)
 
@@ -54,7 +58,7 @@ Switching is two steps: change the profile on your machine, then update each pro
 
    ```bash
    openspec config profile        # interactive
-   openspec config profile core   # reset to the core six
+   openspec config profile core   # reset to the core eight
    ```
 
 2. Run the update in each project you work in:

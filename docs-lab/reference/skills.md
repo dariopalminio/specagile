@@ -50,6 +50,8 @@ Invoking a skill by name is always the second case. A project whose `openspec/co
 |---|---|---|
 | [openspec-explore](#openspec-explore) | Think through an idea before it becomes a change proposal | Core |
 | [openspec-propose](#openspec-propose) | Create a change proposal with all its planning artifacts in one step | Core |
+| [openspec-specify](#openspec-specify) | Write a change proposal's specification, stopping before the technical plan | Core |
+| [openspec-plan](#openspec-plan) | Create or revise the technical plan of a specified change proposal | Core |
 | [openspec-apply-change](#openspec-apply-change) | Implement a change proposal's tasks | Core |
 | [openspec-update-change](#openspec-update-change) | Revise a change proposal's plan | Core |
 | [openspec-sync-specs](#openspec-sync-specs) | Merge a change proposal's spec updates into `specs/` | Core |
@@ -82,6 +84,26 @@ Create a change proposal and generate all its planning artifacts in one step.
 | **Arguments** | A kebab-case name (`add-dark-mode`) or a plain description. Asks if you give neither. |
 | **Creates** | `openspec/changes/<name>/` with every artifact the schema defines, in dependency order (spec-driven: proposal, spec deltas, design, tasks). Never code. |
 | **Response** | The created artifacts, ready for review, and the next step. Stops there; implementation waits for `openspec-apply-change`. |
+
+## openspec-specify
+
+Write a change proposal's specification, the proposal and its spec deltas, and stop before the technical plan.
+
+| Contract | Description |
+|---|---|
+| **Arguments** | A plain description to start a new change proposal, or the name of an active one to continue or revise. Asks if you give neither. If the name derived from a description is already taken, it asks whether to continue that change proposal or start one under another name before writing anything. |
+| **Creates** | Only the specification artifacts (spec-driven: `proposal.md` and one `specs/<capability-path>/spec.md` per capability the proposal lists; the proposal alone when the change proposal declares `skip_specs`). A new change proposal goes in `openspec/changes/<name>/`. In an existing one it writes the missing artifacts and revises existing ones only after you confirm each, including deleting or moving the spec delta of a capability you removed or renamed. A schema with no `specs` artifact gets nothing; it points to `openspec-propose` instead. Never design, tasks, main specs, or code. |
+| **Response** | The artifacts created or revised, and a warning when an existing plan may now be out of date. A complete specification with nothing to change is summarized instead, and it asks what to revise. Stops there; planning waits for `openspec-plan`. |
+
+## openspec-plan
+
+Create or revise the technical plan of a change proposal whose specification is complete.
+
+| Contract | Description |
+|---|---|
+| **Arguments** | A change proposal name, optional. If the target is ambiguous it lists the active change proposals and asks you to pick. It never creates one: a name that matches none lists the active change proposals and points to `openspec-specify`. |
+| **Creates** | The artifacts the schema requires for implementation beyond the specification, in dependency order (spec-driven: `design.md`, unless its conditions do not apply, and `tasks.md`). Existing ones are revised against the current proposal and spec deltas only after you confirm each, and completed tasks keep their marks. Writes nothing while the specification is incomplete or inconsistent: a missing proposal, a capability without its spec delta, or a spec delta for a capability the proposal does not list. It points to `openspec-specify` instead. Never the proposal, spec deltas, main specs, or code. |
+| **Response** | The planning artifacts created, revised, or skipped and why, and that the change proposal is ready to implement. Problems it finds in the specification are reported, not fixed. Stops there; implementation waits for `openspec-apply-change`. |
 
 ## openspec-apply-change
 

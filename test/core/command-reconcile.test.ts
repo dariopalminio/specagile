@@ -136,6 +136,24 @@ describe('reconcileCommandFiles', () => {
     expect(result.removed.sort()).toEqual([...written].sort());
   });
 
+  it('leaves a user file at the command path of a workflow that never had a command', async () => {
+    // `plan` is skill-only: OpenSpec never wrote `.claude/commands/opsx/plan.md`,
+    // so a file there is the user's. It is neither deleted nor reported as kept.
+    const written = await writeGeneratedCommands(projectPath, 'claude', WORKFLOWS);
+    const userPath = path.join('.claude', 'commands', 'opsx', 'plan.md');
+    const userFull = path.join(projectPath, userPath);
+    await fs.mkdir(path.dirname(userFull), { recursive: true });
+    await fs.writeFile(userFull, 'My own plan command.\n');
+
+    const result = await reconcileCommandFiles(projectPath, 'claude', [...WORKFLOWS, 'specify', 'plan']);
+
+    expect(result.removed.sort()).toEqual([...written].sort());
+    expect(result.removed).not.toContain(userPath);
+    expect(result.kept).toEqual([]);
+    expect(result.unchecked).toEqual([]);
+    expect(await fs.readFile(userFull, 'utf-8')).toBe('My own plan command.\n');
+  });
+
   it('keeps and reports a file it cannot read rather than passing over it', async () => {
     // A file left on disk must always be named. Silently skipping an
     // unreadable one would tell the user the directory was cleared when it
