@@ -13,9 +13,8 @@ import {
   CommandAdapterRegistry,
 } from '../command-generation/index.js';
 import type { GeneratedCommand } from '../command-generation/types.js';
-import { ALL_WORKFLOWS } from '../profiles.js';
 import { getCommandContents } from './skill-generation.js';
-import { normalizeCommandContent } from './tool-detection.js';
+import { COMMAND_IDS, normalizeCommandContent } from './tool-detection.js';
 import { isReleasedGeneratedContent } from './generated-fingerprint.js';
 import { DISK_VIEW, type FileView } from '../file-view.js';
 
@@ -60,6 +59,10 @@ interface CommandFileClassification {
  * (the closest reconstruction of the original inputs), the set this run is
  * using, and the full set. A file written under a wider or narrower profile
  * than the one now configured still matches.
+ *
+ * Only the workflows that ever had a command file (COMMAND_IDS) are looked
+ * at, and they are the full set: a workflow added after 1.x never wrote one,
+ * so a file at its command path is the user's and is left alone unreported.
  */
 export function classifyCommandFiles(
   projectPath: string,
@@ -75,7 +78,7 @@ export function classifyCommandFiles(
   if (!adapter) return { generated, kept, unchecked };
 
   const present: (CommandFileEntry & { workflow: string })[] = [];
-  for (const workflow of ALL_WORKFLOWS) {
+  for (const workflow of COMMAND_IDS) {
     const cmdPath = adapter.getFilePath(workflow);
     let fullPath: string;
     try {
@@ -96,7 +99,11 @@ export function classifyCommandFiles(
 
   if (present.length === 0) return { generated, kept, unchecked };
 
-  const candidateSets = [present.map((entry) => entry.workflow), workflows, ALL_WORKFLOWS];
+  const candidateSets: readonly (readonly string[])[] = [
+    present.map((entry) => entry.workflow),
+    workflows,
+    COMMAND_IDS,
+  ];
   const generatedByPath = new Map<string, string[]>();
 
   for (const workflowSet of candidateSets) {

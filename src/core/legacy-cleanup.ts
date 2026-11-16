@@ -11,7 +11,8 @@ import chalk from 'chalk';
 import { FileSystemUtils, removeMarkerBlock as removeMarkerBlockUtil } from '../utils/file-system.js';
 import { OPENSPEC_MARKERS, findRetiredTool } from './config.js';
 import { hasReleasedOpenSpecBlock, isReleasedGeneratedContent } from './shared/generated-fingerprint.js';
-import { ALL_WORKFLOWS, type WorkflowId } from './profiles.js';
+import { type WorkflowId } from './profiles.js';
+import { COMMAND_IDS } from './shared/tool-detection.js';
 
 /**
  * Legacy config file names from the old ToolRegistry.
@@ -34,9 +35,14 @@ const LEGACY_DIRECTORY_COMMAND_FILES = ['proposal.md', 'apply.md', 'archive.md']
 /** The three commands every pre-opsx release wrote. */
 const LEGACY_THREE_COMMAND_NAMES = ['proposal', 'apply', 'archive'] as const;
 
-/** Exact Kilo workflow files written by OpenSpec before the command path moved. */
+/**
+ * Exact Kilo workflow files written by OpenSpec before the command path moved.
+ * Built from COMMAND_IDS, the workflows that ever had a command file: a
+ * workflow added since then never wrote one, so a file with its name is the
+ * user's.
+ */
 const LEGACY_KILOCODE_COMMAND_FILES = [
-  ...ALL_WORKFLOWS.map(workflow => `.kilocode/workflows/opsx-${workflow}.md`),
+  ...COMMAND_IDS.map(workflow => `.kilocode/workflows/opsx-${workflow}.md`),
   '.kilocode/workflows/openspec-proposal.md',
   '.kilocode/workflows/openspec-apply.md',
   '.kilocode/workflows/openspec-archive.md',

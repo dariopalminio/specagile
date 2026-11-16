@@ -28,6 +28,7 @@ import { OPENSPEC_MARKERS } from '../../src/core/config.js';
 import { CommandAdapterRegistry } from '../../src/core/command-generation/registry.js';
 import { resolveCommandSurfaceCapability } from '../../src/core/command-surface.js';
 import { ALL_WORKFLOWS } from '../../src/core/profiles.js';
+import { COMMAND_IDS } from '../../src/core/shared/tool-detection.js';
 import { releasedCodexPrompt } from '../helpers/released-codex-prompt.js';
 
 describe('legacy-cleanup', () => {
@@ -407,6 +408,29 @@ ${OPENSPEC_MARKERS.end}`);
       expect(result.files).toContain('.kilocode/workflows/openspec-apply.md');
       expect(result.files).not.toContain('.kilocode/workflows/opsx-custom.md');
       expect(result.files).not.toContain('.kilocode/workflows/openspec-custom.md');
+    });
+
+    it('should leave Kilo files named after workflows that never had a command file', async () => {
+      const dirPath = path.join(testDir, '.kilocode', 'workflows');
+      await fs.mkdir(dirPath, { recursive: true });
+      const legacyFile = path.join(dirPath, 'opsx-propose.md');
+      const userSpecify = path.join(dirPath, 'opsx-specify.md');
+      const userPlan = path.join(dirPath, 'opsx-plan.md');
+      await fs.writeFile(legacyFile, 'content');
+      await fs.writeFile(userSpecify, 'user content');
+      await fs.writeFile(userPlan, 'user content');
+
+      const detection = await detectLegacyArtifacts(testDir);
+      expect(detection.slashCommandFiles).toContain('.kilocode/workflows/opsx-propose.md');
+      expect(detection.slashCommandFiles).not.toContain('.kilocode/workflows/opsx-specify.md');
+      expect(detection.slashCommandFiles).not.toContain('.kilocode/workflows/opsx-plan.md');
+
+      const result = await cleanupLegacyArtifacts(testDir, detection);
+      expect(result.deletedFiles).not.toContain('.kilocode/workflows/opsx-specify.md');
+      expect(result.deletedFiles).not.toContain('.kilocode/workflows/opsx-plan.md');
+      await expect(fs.access(legacyFile)).rejects.toThrow();
+      await expect(fs.readFile(userSpecify, 'utf-8')).resolves.toBe('user content');
+      await expect(fs.readFile(userPlan, 'utf-8')).resolves.toBe('user content');
     });
 
     it('should detect legacy CoStrict command files without claiming their directory', async () => {
@@ -1361,7 +1385,7 @@ ${OPENSPEC_MARKERS.end}`);
       expect(LEGACY_SLASH_COMMAND_PATHS['kilocode']).toEqual({
         type: 'files',
         pattern: [
-          ...ALL_WORKFLOWS.map(workflow => `.kilocode/workflows/opsx-${workflow}.md`),
+          ...COMMAND_IDS.map(workflow => `.kilocode/workflows/opsx-${workflow}.md`),
           '.kilocode/workflows/openspec-proposal.md',
           '.kilocode/workflows/openspec-apply.md',
           '.kilocode/workflows/openspec-archive.md',

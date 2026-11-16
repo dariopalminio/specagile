@@ -33,7 +33,14 @@ export const SKILL_NAMES = OPENSPEC_SKILL_NAMES;
 export type SkillName = (typeof SKILL_NAMES)[number];
 
 /**
- * IDs of command templates created by openspec init.
+ * IDs of the workflows that had a command file in OpenSpec 1.x.
+ *
+ * Frozen: OpenSpec 2.0 installs skills only, so this list answers "which
+ * command files could an earlier OpenSpec have written?". Legacy cleanup and
+ * command reconciliation use it to decide which files are OpenSpec's to
+ * remove. Workflows added later (for example `specify` and `plan`) never had
+ * a command file and must not be added here, or a user's own file with the
+ * same name would be treated as OpenSpec output.
  */
 export const COMMAND_IDS = [
   'explore',

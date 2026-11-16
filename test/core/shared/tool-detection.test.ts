@@ -4,6 +4,7 @@ import path from 'path';
 import os from 'os';
 import {
   SKILL_NAMES,
+  COMMAND_IDS,
   getToolsWithSkillsDir,
   getToolSkillStatus,
   getToolStates,
@@ -43,6 +44,30 @@ describe('tool-detection', () => {
       expect(SKILL_NAMES).toContain('openspec-verify-change');
       expect(SKILL_NAMES).toContain('openspec-onboard');
       expect(SKILL_NAMES).toContain('openspec-propose');
+    });
+  });
+
+  describe('COMMAND_IDS', () => {
+    it('stays frozen at the workflows that had a command file in 1.x', () => {
+      expect([...COMMAND_IDS]).toEqual([
+        'explore',
+        'new',
+        'continue',
+        'apply',
+        'update',
+        'ff',
+        'sync',
+        'archive',
+        'bulk-archive',
+        'verify',
+        'onboard',
+        'propose',
+      ]);
+    });
+
+    it('does not include skill-only workflows added after 1.x', () => {
+      expect(COMMAND_IDS).not.toContain('specify');
+      expect(COMMAND_IDS).not.toContain('plan');
     });
   });
 
