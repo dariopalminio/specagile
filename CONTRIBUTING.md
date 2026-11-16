@@ -65,3 +65,9 @@ Editors, agents and OpenSpec Desktop run the CLI many times, and each call pays 
 - If a coding agent wrote the code, say which agent and model, and confirm you tested it. AI-generated code is welcome when it has been verified.
 
 Maintainers are listed in [MAINTAINERS.md](MAINTAINERS.md).
+
+## Known test failures on Windows
+
+The upstream test suite has known Windows-specific failures (path separators,
+Unix shell commands, permission tests, subprocess timeouts). These do not
+affect the CLI, schemas, or skills. For a clean baseline, run tests under WSL2.
