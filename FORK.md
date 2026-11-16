@@ -96,3 +96,14 @@ git remote add upstream https://github.com/Fission-AI/OpenSpec.git
 1. Remove its entry from `FORK_REMOVED_PATHS` and from the table above.
 2. Bring it back at upstream's current version with `git checkout upstream/main -- <path>`, or with `git revert` on the commit that removed it.
 3. Undo the related edits listed above, then commit.
+
+## Verification record
+
+| Platform | Scope | Result | Notes |
+|:---|:---|:---|:---|
+| Windows 11 (local) | `test/fork/` + full suite | ✅ Passed | PowerShell, Node 26.13.0, git 2.37.1, pnpm 10.34.5. `test/fork/` 25/25; full suite has no new failures, only upstream's known Windows failures |
+| Linux (Docker, `node:22-bookworm`) | `test/fork/` + full suite | ✅ Passed | Fresh clone of `98bfb6d7`, unprivileged user, Node 22.23.5, git 2.39.5, pnpm 10.34.5. `test/fork/` 25/25; full suite 7034 passed, 0 failed, 18 skipped |
+| CI (GitHub Actions) | Full suite | ⚪ Not run | Actions never triggered on the fork; would require pushing the branch |
+
+The fork's CI is not enabled. Verification is local only until the branch is
+pushed and Actions is configured for this fork.
