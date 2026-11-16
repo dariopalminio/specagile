@@ -30,8 +30,8 @@
 
 ## 5. Verificación integral
 
-- [ ] 5.1 Ejecutar `pnpm test` completo en Windows (PowerShell) y en Linux (WSL2); verificar que los tests de `test/fork/` pasan en ambos y que no hay fallos nuevos respecto de la línea base.
-- [ ] 5.2 Verificación de CI en Windows: si el mantenedor habilita Actions en el fork y aprueba hacer push de la rama, confirmar que el job de la matriz `Test` para Windows y el job `docs` pasan; si no, dejar constancia de que la verificación de Windows se hizo localmente en 5.1.
+- [x] 5.1 Ejecutar `pnpm test` completo en Windows (PowerShell) y en Linux (WSL2); verificar que los tests de `test/fork/` pasan en ambos y que no hay fallos nuevos respecto de la línea base.
+- [x] 5.2 Verificación de CI en Windows: si el mantenedor habilita Actions en el fork y aprueba hacer push de la rama, confirmar que el job de la matriz `Test` para Windows y el job `docs` pasan; si no, dejar constancia de que la verificación de Windows se hizo localmente en 5.1.
 - [x] 5.3 Ejecutar `openspec validate remove-website-from-fork --strict` y verificar que el change es válido.
 
 ## Workflow follow-up
