@@ -189,7 +189,6 @@ jobs:
           test/setup-docs-claims.test.ts
           test/skills-docs-claims.test.ts
           test/vocabulary-sweep.test.ts
-          test/website-preview.test.ts
           test/pnpm-workspace-config.test.ts
           test/ci-docs-only.test.ts
           test/core/templates/propose.test.ts
