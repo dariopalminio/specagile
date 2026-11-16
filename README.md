@@ -144,8 +144,9 @@ Now talk to your AI:
 
 - **Not sure what to build yet?** Start with `/openspec-explore`, a no-stakes thinking partner that reads your code, weighs options, and shapes a plan before any code gets written. ([Quickstart](https://openspec.dev/docs/quickstart))
 - **Already know what you want?** Go straight to `/openspec-propose <what-you-want-to-build>`.
+- **Want to agree on *what* before *how*?** Use the three-step flow: `/openspec-specify <what-you-want-to-build>` writes the proposal and specs and stops there, so your team can review them; then `/openspec-plan` writes the design and tasks, and `/openspec-apply-change` implements them. `/openspec-propose` remains the one-step shortcut for both planning stages.
 
-Both are in the default profile. If you want the expanded workflow (`openspec-new-change`, `openspec-continue-change`, `openspec-ff-change`, `openspec-verify-change`, `openspec-bulk-archive-change`, `openspec-onboard`), select it with `openspec config profile` and apply with `openspec update`.
+All of these are in the default profile. If you want the expanded workflow (`openspec-new-change`, `openspec-continue-change`, `openspec-ff-change`, `openspec-verify-change`, `openspec-bulk-archive-change`, `openspec-onboard`), select it with `openspec config profile` and apply with `openspec update`.
 
 These are skills. Most tools invoke them as `/openspec-propose` and Codex as `$openspec-propose`, or you can ask for the work in plain words. `openspec init` prints the right form for the tools you picked — see [Supported Tools](https://openspec.dev/docs/supported-tools). Coming from 1.x and its `/opsx:*` commands? See [Upgrade to 2.0](https://openspec.dev/docs/upgrade-to-2).
 

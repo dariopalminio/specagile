@@ -97,6 +97,26 @@ git remote add upstream https://github.com/Fission-AI/OpenSpec.git
 2. Bring it back at upstream's current version with `git checkout upstream/main -- <path>`, or with `git revert` on the commit that removed it.
 3. Undo the related edits listed above, then commit.
 
+## Workflows added by this fork
+
+The fork adds two workflows upstream does not have. Both ship as skills only and are part of the `core` profile. Their text lives in files of their own, so a sync never edits it:
+
+| Workflow | Skill | Template | Adapted from (upstream) |
+|---|---|---|---|
+| `specify` | `openspec-specify` | `src/core/templates/workflows/specify.ts` | `propose.ts`: context loading, schema selection, artifact loop |
+| `plan` | `openspec-plan` | `src/core/templates/workflows/plan.ts` | `continue-change.ts`: change selection; `propose.ts`: artifact loop; `update-change.ts`: confirm before revising |
+
+When a sync changes `propose.ts`, `continue-change.ts` or `update-change.ts` in `src/core/templates/workflows/`, review the matching passages in `specify.ts` and `plan.ts` and carry over the fixes that apply. Then regenerate and check:
+
+```bash
+pnpm build && pnpm regen:parity-hashes && pnpm generate:skills
+pnpm test -- --run test/core/templates
+```
+
+Registering them added one line each to these upstream lists, which can conflict when upstream adds or reorders a workflow: `ALL_WORKFLOWS` and `CORE_WORKFLOWS` (`src/core/profiles.ts`), `WORKFLOW_TO_SKILL_DIR` (`src/core/profile-sync-drift.ts`), `COMMAND_TO_SKILL_NAME` (`src/utils/command-references.ts`), `OPENSPEC_SKILL_NAMES` (`src/core/config.ts`), `WORKFLOW_PROMPT_META` (`src/commands/config.ts`), `ONBOARDING_COMMANDS` (`src/core/onboarding-commands.ts`) and `allSkillTemplates()` (`src/core/shared/skill-generation.ts`), plus the tests that pin those inventories.
+
+**`COMMAND_IDS` does not grow.** `COMMAND_IDS` (`src/core/shared/tool-detection.ts`) lists the workflows that had a command file in 1.x. Legacy cleanup (`src/core/legacy-cleanup.ts`) and command reconciliation (`src/core/shared/command-reconcile.ts`) use it to decide which files OpenSpec wrote. Adding a fork workflow there would make OpenSpec delete or report a user's own file with that name, such as `.kilocode/workflows/opsx-plan.md` or `.claude/commands/opsx/plan.md`. For the same reason fork workflows get no command template. `test/core/shared/tool-detection.test.ts` pins the list.
+
 ## Verification record
 
 | Platform | Scope | Result | Notes |
