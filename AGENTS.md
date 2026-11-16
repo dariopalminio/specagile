@@ -45,8 +45,20 @@ Si se añade una ruta, actualizar también la tabla de `FORK.md`:
 
 ## Alcance del fork
 
-- Cambios funcionales: esquema `three-step`, skills `specify`/`plan`/`implement`,
-  generación de `.feature` en `implement`, `archive --skip-specs`.
+Upstream 2.0.0 no trae `specify` ni `plan`. Estado del fork:
+
+- Implementado: skills `openspec-specify` y `openspec-plan` (solo skills, perfil
+  `core`; ver "Workflows added by this fork" en `FORK.md`). Separan la
+  especificación del plan con el grafo de artefactos de `spec-driven` (el id
+  `specs` y sus `requires`). No hay un esquema `three-step`.
+- Sin código todavía: la skill `implement` y la generación de `.feature`. Hoy el
+  flujo es `specify` → `plan` → `apply`, y `apply` es la skill de upstream
+  `openspec-apply-change`, que ya se activa con "openspec implement".
+- Si se agrega `implement`, va en un template propio del fork, como `specify` y
+  `plan`. No renombrar `apply-change.ts` (es de upstream) ni sumar ids a
+  `COMMAND_IDS`.
+- Ya los trae upstream, no son cambios del fork: `archive --skip-specs` y
+  `skip_specs: true` en `.openspec.yaml`.
 - Cambios de identidad (rebranding a `specagile`): solo en `package.json`, `bin/`,
   README y strings de usuario. No renombrar `src/` ni `openspec/`.
   
