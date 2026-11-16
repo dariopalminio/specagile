@@ -30,8 +30,10 @@ describe('tool-detection', () => {
   });
 
   describe('SKILL_NAMES', () => {
-    it('should contain all skill names matching COMMAND_IDS', () => {
-      expect(SKILL_NAMES).toHaveLength(12);
+    it('should contain every workflow skill, including the skill-only ones', () => {
+      expect(SKILL_NAMES).toHaveLength(14);
+      expect(SKILL_NAMES).toContain('openspec-specify');
+      expect(SKILL_NAMES).toContain('openspec-plan');
       expect(SKILL_NAMES).toContain('openspec-explore');
       expect(SKILL_NAMES).toContain('openspec-new-change');
       expect(SKILL_NAMES).toContain('openspec-continue-change');

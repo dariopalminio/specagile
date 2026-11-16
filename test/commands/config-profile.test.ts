@@ -64,12 +64,17 @@ describe('deriveProfileFromWorkflowSelection', () => {
 
   it('returns custom when selection is a superset of core workflows', async () => {
     const { deriveProfileFromWorkflowSelection } = await import('../../src/commands/config.js');
-    expect(deriveProfileFromWorkflowSelection(['propose', 'explore', 'apply', 'update', 'sync', 'archive', 'new'])).toBe('custom');
+    expect(deriveProfileFromWorkflowSelection(['propose', 'explore', 'specify', 'plan', 'apply', 'update', 'sync', 'archive', 'new'])).toBe('custom');
   });
 
   it('returns core when selection has exactly core workflows in different order', async () => {
     const { deriveProfileFromWorkflowSelection } = await import('../../src/commands/config.js');
-    expect(deriveProfileFromWorkflowSelection(['archive', 'sync', 'update', 'apply', 'explore', 'propose'])).toBe('core');
+    expect(deriveProfileFromWorkflowSelection(['archive', 'sync', 'update', 'apply', 'plan', 'specify', 'explore', 'propose'])).toBe('core');
+  });
+
+  it('returns custom for the six workflows that made up core before specify and plan', async () => {
+    const { deriveProfileFromWorkflowSelection } = await import('../../src/commands/config.js');
+    expect(deriveProfileFromWorkflowSelection(['propose', 'explore', 'apply', 'update', 'sync', 'archive'])).toBe('custom');
   });
 });
 
@@ -94,6 +99,8 @@ describe('config profile interactive flow', () => {
     const coreSkillDirs = [
       'openspec-propose',
       'openspec-explore',
+      'openspec-specify',
+      'openspec-plan',
       'openspec-apply-change',
       'openspec-update-change',
       'openspec-sync-specs',
@@ -171,7 +178,7 @@ describe('config profile interactive flow', () => {
     const { saveGlobalConfig } = await import('../../src/core/global-config.js');
     const { select } = await getPromptMocks();
 
-    saveGlobalConfig({ featureFlags: {}, profile: 'core', delivery: 'both', workflows: ['propose', 'explore', 'apply', 'update', 'sync', 'archive'] });
+    saveGlobalConfig({ featureFlags: {}, profile: 'core', delivery: 'both', workflows: ['propose', 'explore', 'specify', 'plan', 'apply', 'update', 'sync', 'archive'] });
     select.mockResolvedValueOnce('keep');
 
     await runConfigCommand(['profile']);
@@ -197,7 +204,7 @@ describe('config profile interactive flow', () => {
     const { ALL_WORKFLOWS } = await import('../../src/core/profiles.js');
     const { select, checkbox } = await getPromptMocks();
 
-    saveGlobalConfig({ featureFlags: {}, profile: 'core', delivery: 'both', workflows: ['propose', 'explore', 'apply', 'update', 'sync', 'archive'] });
+    saveGlobalConfig({ featureFlags: {}, profile: 'core', delivery: 'both', workflows: ['propose', 'explore', 'specify', 'plan', 'apply', 'update', 'sync', 'archive'] });
     select.mockResolvedValueOnce('workflows');
     checkbox.mockResolvedValueOnce(['propose', 'explore']);
 
@@ -224,7 +231,7 @@ describe('config profile interactive flow', () => {
     const { saveGlobalConfig } = await import('../../src/core/global-config.js');
     const { select, checkbox } = await getPromptMocks();
 
-    saveGlobalConfig({ featureFlags: {}, profile: 'core', delivery: 'both', workflows: ['propose', 'explore', 'apply', 'update', 'sync', 'archive'] });
+    saveGlobalConfig({ featureFlags: {}, profile: 'core', delivery: 'both', workflows: ['propose', 'explore', 'specify', 'plan', 'apply', 'update', 'sync', 'archive'] });
     select.mockResolvedValueOnce('workflows');
     checkbox.mockResolvedValueOnce(['propose', 'explore', 'apply', 'sync', 'archive']);
 
@@ -246,17 +253,59 @@ describe('config profile interactive flow', () => {
     ]));
   });
 
+  it('workflow picker lists specify and plan, checked for the core profile', async () => {
+    const { saveGlobalConfig } = await import('../../src/core/global-config.js');
+    const { CORE_WORKFLOWS } = await import('../../src/core/profiles.js');
+    const { select, checkbox } = await getPromptMocks();
+
+    saveGlobalConfig({ featureFlags: {}, profile: 'core', delivery: 'both', workflows: [...CORE_WORKFLOWS] });
+    select.mockResolvedValueOnce('workflows');
+    checkbox.mockResolvedValueOnce([...CORE_WORKFLOWS]);
+
+    await runConfigCommand(['profile']);
+
+    expect(checkbox.mock.calls[0][0].choices).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        value: 'specify',
+        name: 'Specify change',
+        description: 'Create or edit proposal and specs',
+        checked: true,
+      }),
+      expect.objectContaining({
+        value: 'plan',
+        name: 'Plan change',
+        description: 'Create design and tasks from specs',
+        checked: true,
+      }),
+    ]));
+  });
+
+  it('workflow picker leaves plan unchecked for a custom profile without it', async () => {
+    const { saveGlobalConfig } = await import('../../src/core/global-config.js');
+    const { select, checkbox } = await getPromptMocks();
+
+    saveGlobalConfig({ featureFlags: {}, profile: 'custom', delivery: 'both', workflows: ['propose', 'specify', 'apply'] });
+    select.mockResolvedValueOnce('workflows');
+    checkbox.mockResolvedValueOnce(['propose', 'specify', 'apply']);
+
+    await runConfigCommand(['profile']);
+
+    const choices: Array<{ value: string; checked: boolean }> = checkbox.mock.calls[0][0].choices;
+    expect(choices.find((choice) => choice.value === 'specify')?.checked).toBe(true);
+    expect(choices.find((choice) => choice.value === 'plan')?.checked).toBe(false);
+  });
+
   it('selecting current values only should be a no-op and should not ask apply', async () => {
     const { saveGlobalConfig, getGlobalConfigPath } = await import('../../src/core/global-config.js');
     const { select, checkbox, confirm } = await getPromptMocks();
 
-    saveGlobalConfig({ featureFlags: {}, profile: 'core', delivery: 'both', workflows: ['propose', 'explore', 'apply', 'update', 'sync', 'archive'] });
+    saveGlobalConfig({ featureFlags: {}, profile: 'core', delivery: 'both', workflows: ['propose', 'explore', 'specify', 'plan', 'apply', 'update', 'sync', 'archive'] });
     const configPath = getGlobalConfigPath();
     const beforeContent = fs.readFileSync(configPath, 'utf-8');
 
     fs.mkdirSync(path.join(tempDir, 'openspec'), { recursive: true });
     select.mockResolvedValueOnce('workflows');
-    checkbox.mockResolvedValueOnce(['propose', 'explore', 'apply', 'update', 'sync', 'archive']);
+    checkbox.mockResolvedValueOnce(['propose', 'explore', 'specify', 'plan', 'apply', 'update', 'sync', 'archive']);
 
     await runConfigCommand(['profile']);
 
@@ -274,13 +323,13 @@ describe('config profile interactive flow', () => {
       featureFlags: {},
       profile: 'custom',
       delivery: 'both',
-      workflows: ['propose', 'explore', 'apply', 'update', 'archive'],
+      workflows: ['propose', 'explore', 'specify', 'plan', 'apply', 'update', 'archive'],
     });
     const configPath = getGlobalConfigPath();
     const beforeContent = fs.readFileSync(configPath, 'utf-8');
 
     select.mockResolvedValueOnce('workflows');
-    checkbox.mockResolvedValueOnce(['propose', 'explore', 'apply', 'update', 'sync', 'archive']);
+    checkbox.mockResolvedValueOnce(['propose', 'explore', 'specify', 'plan', 'apply', 'update', 'sync', 'archive']);
 
     await runConfigCommand(['profile']);
 
@@ -294,7 +343,7 @@ describe('config profile interactive flow', () => {
     const { saveGlobalConfig } = await import('../../src/core/global-config.js');
     const { select } = await getPromptMocks();
 
-    saveGlobalConfig({ featureFlags: {}, profile: 'core', delivery: 'both', workflows: ['propose', 'explore', 'apply', 'update', 'sync', 'archive'] });
+    saveGlobalConfig({ featureFlags: {}, profile: 'core', delivery: 'both', workflows: ['propose', 'explore', 'specify', 'plan', 'apply', 'update', 'sync', 'archive'] });
     setupDriftedProjectArtifacts(tempDir);
     select.mockResolvedValueOnce('keep');
 
@@ -308,7 +357,7 @@ describe('config profile interactive flow', () => {
     const { saveGlobalConfig } = await import('../../src/core/global-config.js');
     const { select } = await getPromptMocks();
 
-    saveGlobalConfig({ featureFlags: {}, profile: 'core', delivery: 'both', workflows: ['propose', 'explore', 'apply', 'update', 'sync', 'archive'] });
+    saveGlobalConfig({ featureFlags: {}, profile: 'core', delivery: 'both', workflows: ['propose', 'explore', 'specify', 'plan', 'apply', 'update', 'sync', 'archive'] });
     setupSyncedCoreBothArtifacts(tempDir);
     select.mockResolvedValueOnce('keep');
 
@@ -322,10 +371,10 @@ describe('config profile interactive flow', () => {
     const { saveGlobalConfig } = await import('../../src/core/global-config.js');
     const { select, checkbox, confirm } = await getPromptMocks();
 
-    saveGlobalConfig({ featureFlags: {}, profile: 'core', delivery: 'both', workflows: ['propose', 'explore', 'apply', 'update', 'sync', 'archive'] });
+    saveGlobalConfig({ featureFlags: {}, profile: 'core', delivery: 'both', workflows: ['propose', 'explore', 'specify', 'plan', 'apply', 'update', 'sync', 'archive'] });
     setupDriftedProjectArtifacts(tempDir);
     select.mockResolvedValueOnce('workflows');
-    checkbox.mockResolvedValueOnce(['propose', 'explore', 'apply', 'update', 'sync', 'archive']);
+    checkbox.mockResolvedValueOnce(['propose', 'explore', 'specify', 'plan', 'apply', 'update', 'sync', 'archive']);
 
     await runConfigCommand(['profile']);
 
@@ -338,7 +387,7 @@ describe('config profile interactive flow', () => {
     const { saveGlobalConfig } = await import('../../src/core/global-config.js');
     const { select } = await getPromptMocks();
 
-    saveGlobalConfig({ featureFlags: {}, profile: 'core', delivery: 'both', workflows: ['propose', 'explore', 'apply', 'update', 'sync', 'archive'] });
+    saveGlobalConfig({ featureFlags: {}, profile: 'core', delivery: 'both', workflows: ['propose', 'explore', 'specify', 'plan', 'apply', 'update', 'sync', 'archive'] });
     setupSyncedCoreBothArtifacts(tempDir);
     addExtraVerifyWorkflowArtifacts(tempDir);
     select.mockResolvedValueOnce('keep');
@@ -353,7 +402,7 @@ describe('config profile interactive flow', () => {
     const { saveGlobalConfig, getGlobalConfig } = await import('../../src/core/global-config.js');
     const { select, checkbox, confirm } = await getPromptMocks();
 
-    saveGlobalConfig({ featureFlags: {}, profile: 'core', delivery: 'both', workflows: ['propose', 'explore', 'apply', 'update', 'sync', 'archive'] });
+    saveGlobalConfig({ featureFlags: {}, profile: 'core', delivery: 'both', workflows: ['propose', 'explore', 'specify', 'plan', 'apply', 'update', 'sync', 'archive'] });
     fs.mkdirSync(path.join(tempDir, 'openspec'), { recursive: true });
 
     select.mockResolvedValueOnce('workflows');
@@ -373,7 +422,7 @@ describe('config profile interactive flow', () => {
     const { saveGlobalConfig, getGlobalConfig } = await import('../../src/core/global-config.js');
     const { select, checkbox, confirm } = await getPromptMocks();
 
-    saveGlobalConfig({ featureFlags: {}, profile: 'core', delivery: 'both', workflows: ['propose', 'explore', 'apply', 'update', 'sync', 'archive'] });
+    saveGlobalConfig({ featureFlags: {}, profile: 'core', delivery: 'both', workflows: ['propose', 'explore', 'specify', 'plan', 'apply', 'update', 'sync', 'archive'] });
     fs.mkdirSync(path.join(tempDir, 'openspec'), { recursive: true });
     const emptyBinDir = path.join(tempDir, 'empty-bin');
     fs.mkdirSync(emptyBinDir);
@@ -397,7 +446,7 @@ describe('config profile interactive flow', () => {
     const { UpdateCommand } = await import('../../src/core/update.js');
     const { select, checkbox, confirm } = await getPromptMocks();
 
-    saveGlobalConfig({ featureFlags: {}, profile: 'core', delivery: 'both', workflows: ['propose', 'explore', 'apply', 'update', 'sync', 'archive'] });
+    saveGlobalConfig({ featureFlags: {}, profile: 'core', delivery: 'both', workflows: ['propose', 'explore', 'specify', 'plan', 'apply', 'update', 'sync', 'archive'] });
     fs.mkdirSync(path.join(tempDir, 'openspec'), { recursive: true });
     const executeSpy = vi.spyOn(UpdateCommand.prototype, 'execute')
       .mockRejectedValueOnce(new Error('permission denied'));
@@ -428,7 +477,7 @@ describe('config profile interactive flow', () => {
     const config = getGlobalConfig();
     expect(config.profile).toBe('core');
     expect(config.delivery).toBe('skills');
-    expect(config.workflows).toEqual(['propose', 'explore', 'apply', 'update', 'sync', 'archive']);
+    expect(config.workflows).toEqual(['propose', 'explore', 'specify', 'plan', 'apply', 'update', 'sync', 'archive']);
     expect(select).not.toHaveBeenCalled();
     expect(checkbox).not.toHaveBeenCalled();
     expect(confirm).not.toHaveBeenCalled();

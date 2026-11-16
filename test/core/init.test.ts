@@ -320,10 +320,12 @@ describe('InitCommand', () => {
 
       await initCommand.execute(testDir);
 
-      // Core profile: propose, explore, apply, update, sync, archive
+      // Core profile: propose, explore, specify, plan, apply, update, sync, archive
       const coreSkillNames = [
         'openspec-propose',
         'openspec-explore',
+        'openspec-specify',
+        'openspec-plan',
         'openspec-apply-change',
         'openspec-update-change',
         'openspec-sync-specs',
@@ -514,6 +516,8 @@ describe('InitCommand', () => {
         ...[
           'openspec-propose',
           'openspec-explore',
+          'openspec-specify',
+          'openspec-plan',
           'openspec-apply-change',
           'openspec-update-change',
           'openspec-sync-specs',
@@ -534,7 +538,7 @@ describe('InitCommand', () => {
         );
       }
 
-      // The default profile installs six workflows; `continue` and `new` are
+      // The default profile installs eight workflows; `continue` and `new` are
       // not among them. Nothing it generates may name them (#1734) - it would
       // send the agent to a skill that was never written. The CLI fallback is
       // stated outright instead of behind a runtime availability check.
@@ -799,7 +803,7 @@ describe('InitCommand', () => {
         .map(String);
       const summary = logCalls.find((entry) => /^\d+ skills in /.test(entry));
       expect(summary).toBe(
-        '6 skills in .agents/skills/, ~/.minimax/skills/ (linked from .claude/skills/)'
+        '8 skills in .agents/skills/, ~/.minimax/skills/ (linked from .claude/skills/)'
       );
     });
 
@@ -1060,7 +1064,9 @@ describe('InitCommand', () => {
         'openspec-apply-change',
         'openspec-archive-change',
         'openspec-explore',
+        'openspec-plan',
         'openspec-propose',
+        'openspec-specify',
         'openspec-sync-specs',
         'openspec-update-change',
       ];

@@ -10,6 +10,7 @@ import {
 import { CORE_WORKFLOWS } from '../../src/core/profiles.js';
 import { CommandAdapterRegistry, generateCommands } from '../../src/core/command-generation/index.js';
 import { getCommandContents } from '../../src/core/shared/index.js';
+import { COMMAND_IDS } from '../../src/core/shared/tool-detection.js';
 
 /**
  * Claude's skill as 2.0 writes it: the one shared copy in .agents/skills, a
@@ -91,7 +92,8 @@ describe('profile sync drift detection', () => {
   it('detects drift when generated commands still exist, under every delivery setting', () => {
     // They are removal work for update: 2.0 generates no command files.
     setupCoreSkills(tempDir);
-    for (const workflow of CORE_WORKFLOWS) {
+    // Only workflows that had a 1.x command can have one left over.
+    for (const workflow of CORE_WORKFLOWS.filter((w) => (COMMAND_IDS as readonly string[]).includes(w))) {
       writeGeneratedCommand(tempDir, workflow);
     }
 

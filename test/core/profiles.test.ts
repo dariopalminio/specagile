@@ -9,7 +9,16 @@ import {
 describe('profiles', () => {
   describe('CORE_WORKFLOWS', () => {
     it('should contain the default core workflows', () => {
-      expect(CORE_WORKFLOWS).toEqual(['propose', 'explore', 'apply', 'update', 'sync', 'archive']);
+      expect(CORE_WORKFLOWS).toEqual([
+        'propose', 'explore', 'specify', 'plan', 'apply', 'update', 'sync', 'archive',
+      ]);
+    });
+
+    it('should include the specify and plan stages next to the one-step propose', () => {
+      expect(CORE_WORKFLOWS).toHaveLength(8);
+      expect(CORE_WORKFLOWS).toContain('propose');
+      expect(CORE_WORKFLOWS).toContain('specify');
+      expect(CORE_WORKFLOWS).toContain('plan');
     });
 
     it('should include update in the core profile (default install, not expanded-only)', () => {
@@ -24,13 +33,13 @@ describe('profiles', () => {
   });
 
   describe('ALL_WORKFLOWS', () => {
-    it('should contain all 12 workflows', () => {
-      expect(ALL_WORKFLOWS).toHaveLength(12);
+    it('should contain all 14 workflows', () => {
+      expect(ALL_WORKFLOWS).toHaveLength(14);
     });
 
     it('should contain expected workflow IDs', () => {
       const expected = [
-        'propose', 'explore', 'new', 'continue', 'apply', 'update',
+        'propose', 'explore', 'specify', 'plan', 'new', 'continue', 'apply', 'update',
         'ff', 'sync', 'archive', 'bulk-archive', 'verify', 'onboard',
       ];
       expect([...ALL_WORKFLOWS]).toEqual(expected);

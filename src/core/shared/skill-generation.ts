@@ -17,6 +17,8 @@ import {
   getVerifyChangeSkillTemplate,
   getOnboardSkillTemplate,
   getOpsxProposeSkillTemplate,
+  getSpecifySkillTemplate,
+  getPlanSkillTemplate,
   getOpsxExploreCommandTemplate,
   getOpsxNewCommandTemplate,
   getOpsxContinueCommandTemplate,
@@ -147,6 +149,9 @@ function allSkillTemplates(): SkillTemplateEntry[] {
     { template: getVerifyChangeSkillTemplate(), dirName: 'openspec-verify-change', workflowId: 'verify' },
     { template: getOnboardSkillTemplate(), dirName: 'openspec-onboard', workflowId: 'onboard' },
     { template: getOpsxProposeSkillTemplate(), dirName: 'openspec-propose', workflowId: 'propose' },
+    // SpecAgile's skill-only workflows: no command template (they never had one).
+    { template: getSpecifySkillTemplate(), dirName: 'openspec-specify', workflowId: 'specify' },
+    { template: getPlanSkillTemplate(), dirName: 'openspec-plan', workflowId: 'plan' },
   ];
 }
 

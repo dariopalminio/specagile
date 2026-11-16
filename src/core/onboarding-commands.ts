@@ -36,6 +36,8 @@ export const DESCRIPTION_BUDGET = 17;
  */
 const ONBOARDING_COMMANDS: readonly OnboardingCommand[] = [
   { workflow: 'propose', command: '/opsx:propose', skill: 'openspec-propose', description: 'Start a change' },
+  { workflow: 'specify', command: '/opsx:specify', skill: 'openspec-specify', description: 'Specify a change' },
+  { workflow: 'plan', command: '/opsx:plan', skill: 'openspec-plan', description: 'Plan a change' },
   { workflow: 'new', command: '/opsx:new', skill: 'openspec-new-change', description: 'Scaffold a change' },
   { workflow: 'continue', command: '/opsx:continue', skill: 'openspec-continue-change', description: 'Next artifact' },
   { workflow: 'apply', command: '/opsx:apply', skill: 'openspec-apply-change', description: 'Implement tasks' },
