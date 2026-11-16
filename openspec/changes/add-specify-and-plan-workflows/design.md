@@ -93,6 +93,7 @@ Como `status` es solo existencia, `plan` no confía en que `specs` esté `done`.
 - **Nombre derivado que ya existe**: mismo guardrail que `propose`. Antes de `openspec new change`, si el nombre derivado de una descripción coincide con un change activo, se pregunta si continuar ese change (modo edición) o crear otro con un nombre alternativo. Nombrar un change existente de forma explícita entra directo en modo edición.
 - **Especificación completa sin pedido de cambios**: no se escribe nada. Se resume el estado y se pregunta qué revisar. Se descarta hacer una revisión de coherencia automática: ese es el trabajo de `/opsx:update`, y duplicarlo haría que `specify` escriba sin que se le pida.
 - **Capacidad quitada o renombrada**: la revisión de la proposal incluye borrar o mover el spec delta afectado, con la misma confirmación. Si no, el spec huérfano llegaría al archivo y `plan` se negaría a planificar (D6, punto 3).
+- **Esquema sin `specs` en un change nuevo**: antes de `openspec new change`, `specify` resuelve el esquema (el pedido explícitamente, si no el campo `schema` de `openspec/config.yaml`, si no `spec-driven`, el mismo orden que `createChange`) y lee su lista `artifacts` en `openspec schemas --json`. Si no incluye `specs`, se detiene sin crear el change, para no dejar un change vacío como efecto secundario.
 
 ### D7. Re-planificación con confirmación
 
@@ -104,7 +105,7 @@ Todas las menciones a otros workflows usan `optionalWorkflow()` con un bloque po
 
 | Skill | Workflow nombrado | Rama sin instalar |
 |---|---|---|
-| specify | `plan` (traspaso y aviso de plan desactualizado) | `openspec instructions <artifact-id> --change "<name>"` / se omite el aviso |
+| specify | `plan` (traspaso y aviso de plan desactualizado) | `openspec instructions <artifact-id> --change "<name>"` / el aviso se mantiene, sin sugerir `/opsx:plan` |
 | specify, plan | `propose` (esquema sin `specs`) | `openspec instructions <artifact-id> --change "<name>"` |
 | plan | `specify` (especificación incompleta, change inexistente) | se nombra la etapa sin workflow / `openspec new change "<name>"` |
 | plan | `apply` (traspaso) | `openspec instructions apply --change "<name>" --json` |
