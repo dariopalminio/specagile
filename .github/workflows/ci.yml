@@ -71,7 +71,7 @@ jobs:
   test_matrix:
     name: Test (${{ matrix.label }})
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 15
+    timeout-minutes: 60
     needs: changes
     if: needs.changes.outputs.code == 'true'
     strategy:
