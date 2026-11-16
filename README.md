@@ -1,3 +1,7 @@
+```
+█▀▀ █▀▄ █▀▀ █▀▀  ▄▀█ █▀▀ █ █   █▀▀
+▄▄█ █▀  ██▄ █▄▄  █▀█ █▄█ █ █▄▄ ██▄  on
+```
 <p align="center">
   <a href="https://github.com/Fission-AI/OpenSpec">
     <picture>
