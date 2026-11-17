@@ -45,12 +45,12 @@ describe('skill links', () => {
   let root: string;
   let shared: string;
   let link: string;
-  const content = '---\nname: openspec-propose\n---\nPropose.\n';
+  const content = '---\nname: sa-propose\n---\nPropose.\n';
 
   beforeEach(() => {
     root = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'openspec-links-')));
-    shared = path.join(root, '.agents', 'skills', 'openspec-propose');
-    link = path.join(root, '.claude', 'skills', 'openspec-propose');
+    shared = path.join(root, '.agents', 'skills', 'sa-propose');
+    link = path.join(root, '.claude', 'skills', 'sa-propose');
     fs.mkdirSync(shared, { recursive: true });
     fs.writeFileSync(path.join(shared, 'SKILL.md'), content);
   });
@@ -63,7 +63,7 @@ describe('skill links', () => {
   it('makes a relative link that reads the shared copy', () => {
     expect(classifySkillLinkSpot(link, shared, content)).toBe('missing');
     expect(createSkillLink(link, shared)).toBe('link');
-    expect(fs.readlinkSync(link)).toBe(path.join('..', '..', '.agents', 'skills', 'openspec-propose'));
+    expect(fs.readlinkSync(link)).toBe(path.join('..', '..', '.agents', 'skills', 'sa-propose'));
     expect(fs.readFileSync(path.join(link, 'SKILL.md'), 'utf-8')).toBe(content);
     expect(classifySkillLinkSpot(link, shared, content)).toBe('link');
   });

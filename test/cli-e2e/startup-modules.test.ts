@@ -11,7 +11,7 @@ import { cliProjectRoot, ensureCliBuilt } from '../helpers/run-cli.js';
 // only the command definitions (names, options, help text) and its own
 // implementation; everything else loads on demand.
 
-const binPath = path.join(cliProjectRoot, 'bin', 'openspec.js');
+const binPath = path.join(cliProjectRoot, 'bin', 'specagile.js');
 const hookUrl = pathToFileURL(
   path.join(cliProjectRoot, 'test', 'helpers', 'record-loaded-modules.mjs')
 ).href;

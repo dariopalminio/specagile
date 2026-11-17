@@ -33,7 +33,12 @@ export interface UpdatePlanChange {
  * about, which the plan lists as a non-interactive run makes it. Stable
  * identifiers, for a caller that branches on them.
  */
-export type UpdatePlanNoteCode = 'legacy-tool-directories' | 'legacy-artifacts' | 'edited-skills';
+export type UpdatePlanNoteCode =
+  | 'legacy-tool-directories'
+  | 'legacy-artifacts'
+  | 'edited-skills'
+  // SpecAgile: skills kept under their former `openspec-*` names.
+  | 'kept-former-skills';
 
 export interface UpdatePlanNote {
   code: UpdatePlanNoteCode;

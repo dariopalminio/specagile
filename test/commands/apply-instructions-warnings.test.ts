@@ -54,9 +54,9 @@ describe('generateApplyInstructions warnings', () => {
     expect(instructions.warnings).toHaveLength(1);
     expect(instructions.warnings?.[0]).toContain('no delta specs');
     expect(instructions.warnings?.[0]).toContain('skip_specs: true');
-    expect(instructions.warnings?.[0]).toContain('openspec validate my-change');
+    expect(instructions.warnings?.[0]).toContain('specagile validate my-change');
     expect(instructions.warnings?.[0]).toContain(
-      'openspec instructions specs --change my-change'
+      'specagile instructions specs --change my-change'
     );
     // Not the absolute path: on Windows the CLI resolves `os.tmpdir()`'s short
     // form (C:\Users\RUNNER~1) to its long one, so only the tail is stable.
@@ -197,9 +197,9 @@ describe('generateApplyInstructions warnings', () => {
     // `specs` sent the agent to an artifact this schema does not declare, so
     // the warning dead-ended at the step meant to resolve it.
     expect(instructions.warnings?.[0]).toContain(
-      'openspec instructions contracts --change my-change'
+      'specagile instructions contracts --change my-change'
     );
-    expect(instructions.warnings?.[0]).not.toContain('openspec instructions specs');
+    expect(instructions.warnings?.[0]).not.toContain('specagile instructions specs');
   });
 
   it('falls back to a placeholder when a schema declares two spec artifacts', async () => {
@@ -245,13 +245,13 @@ describe('generateApplyInstructions warnings', () => {
 
     expect(instructions.warnings).toHaveLength(1);
     expect(instructions.warnings?.[0]).toContain(
-      'openspec instructions <artifact-id> --change my-change'
+      'specagile instructions <artifact-id> --change my-change'
     );
     // Presence of the placeholder is not enough: naming either artifact as
     // well would still be picking one, which is the thing there is no basis
     // for here.
-    expect(instructions.warnings?.[0]).not.toContain('openspec instructions contracts');
-    expect(instructions.warnings?.[0]).not.toContain('openspec instructions schemas');
+    expect(instructions.warnings?.[0]).not.toContain('specagile instructions contracts');
+    expect(instructions.warnings?.[0]).not.toContain('specagile instructions schemas');
   });
 
   // The warning tells the author `openspec validate` fails on this change. If

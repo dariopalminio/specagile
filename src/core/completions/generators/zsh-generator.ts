@@ -1,3 +1,4 @@
+import { CLI_NAME } from '../../fork/identity.js';
 import {
   CompletionGenerator,
   CommandDefinition,
@@ -49,7 +50,7 @@ export class ZshGenerator implements CompletionGenerator {
     const helpers = ZSH_DYNAMIC_HELPERS;
 
     // Assemble final script with template literal
-    return `#compdef openspec
+    return `#compdef ${CLI_NAME}
 
 # Zsh completion script for OpenSpec CLI
 # Auto-generated - do not edit manually
@@ -69,7 +70,7 @@ ${commandList}
 
   case $state in
     command)
-      _describe "openspec command" commands
+      _describe "${CLI_NAME} command" commands
       ;;
     args)
       case $words[1] in
@@ -81,7 +82,7 @@ ${commandCases}
 
 ${commandFunctions}
 ${helpers}
-compdef _openspec openspec
+compdef _openspec ${CLI_NAME}
 `;
   }
 

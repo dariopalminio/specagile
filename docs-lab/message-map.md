@@ -42,7 +42,7 @@ maintain.
 | How does a user make the workflows plan changes their way: context, rules, and guidance? | [Customize › Project configuration](customize/project-config.md) | Answered |
 | How does a user get artifacts written in a language other than English? | [Customize › Project configuration](customize/project-config.md), the context section's "Another language" note | Answered |
 | How should a user change what OpenSpec produces? | [Customize › Schemas](customize/schemas.md), with the fork walkthrough in "Creating your own custom schema" | Answered |
-| How should a user edit the installed skill prompts? | No owner: `customize/skills.md` is parked (README TODO) until there's a good answer to `openspec update` overwriting edits | Gap |
+| How should a user edit the installed skill prompts? | No owner: `customize/skills.md` is parked (README TODO) until there's a good answer to `specagile update` overwriting edits | Gap |
 | How should a user run OpenSpec across multiple repos? | [Multi-repo › Stores](multi-repo/stores.md); [Start › Set up your project](start/setup.md) routes there from "Pick where OpenSpec lives" | Answered |
 | How should a user plan a change that spans repos? | [Multi-repo › Stores](multi-repo/stores.md) | Answered |
 | What does each skill do, and when should a user reach for it? | [Reference › Skills](reference/skills.md) | Answered |

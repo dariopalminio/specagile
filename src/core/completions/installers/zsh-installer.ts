@@ -3,6 +3,7 @@ import path from 'path';
 import os from 'os';
 import { FileSystemUtils } from '../../../utils/file-system.js';
 import { InstallationResult } from '../factory.js';
+import { CLI_NAME } from '../../fork/identity.js';
 import { shellSingleQuote } from './shell-quote.js';
 
 /**
@@ -35,8 +36,9 @@ export class ZshInstaller {
    * Markers for .zshrc configuration management
    */
   private readonly ZSHRC_MARKERS = {
-    start: '# OPENSPEC:START',
-    end: '# OPENSPEC:END',
+    // SpecAgile: its own markers, so OpenSpec's block beside it stays.
+    start: '# SPECAGILE:START',
+    end: '# SPECAGILE:END',
   };
 
   constructor(homeDir: string = os.homedir()) {
@@ -89,13 +91,13 @@ export class ZshInstaller {
     if (isOhMyZsh) {
       // Oh My Zsh custom completions directory
       return {
-        path: path.join(this.ohMyZshCustomDir(), 'completions', '_openspec'),
+        path: path.join(this.ohMyZshCustomDir(), 'completions', `_${CLI_NAME}`),
         isOhMyZsh: true,
       };
     } else {
       // Standard Zsh completions directory
       return {
-        path: path.join(this.homeDir, '.zsh', 'completions', '_openspec'),
+        path: path.join(this.homeDir, '.zsh', 'completions', `_${CLI_NAME}`),
         isOhMyZsh: false,
       };
     }
@@ -483,7 +485,7 @@ export class ZshInstaller {
       // of reporting a clean uninstall.
       for (const zshrcPath of failedZshrcs) {
         messages.push(
-          `Could not remove the OpenSpec block from ${label(zshrcPath)}; delete the lines between # OPENSPEC:START and # OPENSPEC:END by hand`
+          `Could not remove the OpenSpec block from ${label(zshrcPath)}; delete the lines between # SPECAGILE:START and # SPECAGILE:END by hand`
         );
       }
 

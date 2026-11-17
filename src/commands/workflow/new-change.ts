@@ -84,7 +84,7 @@ function printCreatedChangeHuman(
       : payload.change.path;
   console.log(`Created change '${payload.change.id}' at ${location}/`);
   console.log(`Schema: ${payload.change.schema}`);
-  console.log(`Next: ${withStoreFlag(root, `openspec status --change ${payload.change.id}`)}`);
+  console.log(`Next: ${withStoreFlag(root, `specagile status --change ${payload.change.id}`)}`);
 }
 
 /**
@@ -109,7 +109,7 @@ function printImplicitRootNotice(root: ResolvedOpenSpecRoot): void {
   );
   console.log(
     chalk.dim(
-      'Run `openspec init` to finish setting this project up, or delete that directory if you meant a different project.'
+      'Run `specagile init` to finish setting this project up, or delete that directory if you meant a different project.'
     )
   );
 }

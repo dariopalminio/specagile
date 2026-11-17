@@ -53,7 +53,7 @@ describe('core/completion-tip', () => {
     // Asserting the literal, not the imported constant: comparing the message
     // against itself would pass even if the tip advertised a typo'd command.
     expect(COMPLETION_TIP_MESSAGE).toBe(
-      "Tip: Run 'openspec completion install' for shell completions"
+      "Tip: Run 'specagile completion install' for shell completions"
     );
   });
 
@@ -179,7 +179,7 @@ describe('core/completion-tip', () => {
     // have — including on the very next command after `completion install`,
     // whose own run only defers the tip.
     process.env.SHELL = '/bin/fish';
-    const installed = path.join(tempDir, '.config', 'fish', 'completions', 'openspec.fish');
+    const installed = path.join(tempDir, '.config', 'fish', 'completions', 'specagile.fish');
     fs.mkdirSync(path.dirname(installed), { recursive: true });
     fs.writeFileSync(installed, '# completions');
 

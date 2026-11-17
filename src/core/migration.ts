@@ -12,6 +12,7 @@ import { WORKFLOW_TO_SKILL_DIR } from './profile-sync-drift.js';
 import { COMMAND_IDS } from './shared/tool-detection.js';
 import { ALL_WORKFLOWS, CORE_WORKFLOWS } from './profiles.js';
 import { getSkillReferenceTransformer } from '../utils/command-references.js';
+import { applyForkIdentity } from './fork/identity.js';
 import { FileSystemUtils } from '../utils/file-system.js';
 import { isToolListed, readKeptSharedSkills } from './shared-skill-target.js';
 import { DISK_VIEW, type FileView } from './file-view.js';
@@ -709,7 +710,8 @@ export function migrateIfNeeded(projectPath: string, tools: AIToolOption[]): voi
   const proposeReferences = new Set(
     tools.map((tool) => getSkillReferenceTransformer(tool.value)('/opsx:propose'))
   );
-  const proposeReference =
-    proposeReferences.size === 1 ? [...proposeReferences][0] : 'the openspec-propose skill';
-  console.log(`New in this version: ${proposeReference}. Try 'openspec config profile core' for the streamlined experience.`);
+  const proposeReference = applyForkIdentity(
+    proposeReferences.size === 1 ? [...proposeReferences][0] : 'the openspec-propose skill'
+  );
+  console.log(`New in this version: ${proposeReference}. Try 'specagile config profile core' for the streamlined experience.`);
 }

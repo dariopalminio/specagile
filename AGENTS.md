@@ -16,7 +16,9 @@ comandos (`specify` → `plan` → `implement`) y specs vivas en `.feature`.
 - Instalar: `pnpm install --frozen-lockfile`
 - Compilar: `pnpm build`
 - Test (acotado): `pnpm test -- --run <ruta>`
-- No ejecutar `openspec init` en la raíz del fork (no es un proyecto de usuario).
+- CLI del fork: `node bin/specagile.js <comando>` (o `specagile` tras `pnpm link --global`).
+- No ejecutar `specagile init` (ni `openspec init`) en la raíz del fork (no es un
+  proyecto de usuario).
 
 ## Sincronización con upstream
 
@@ -47,18 +49,24 @@ Si se añade una ruta, actualizar también la tabla de `FORK.md`:
 
 Upstream 2.0.0 no trae `specify` ni `plan`. Estado del fork:
 
-- Implementado: skills `openspec-specify` y `openspec-plan` (solo skills, perfil
-  `core`; ver "Workflows added by this fork" en `FORK.md`). Separan la
-  especificación del plan con el grafo de artefactos de `spec-driven` (el id
-  `specs` y sus `requires`). No hay un esquema `three-step`.
-- Sin código todavía: la skill `implement` y la generación de `.feature`. Hoy el
-  flujo es `specify` → `plan` → `apply`, y `apply` es la skill de upstream
-  `openspec-apply-change`, que ya se activa con "openspec implement".
+- Implementado: skills `sa-specify` y `sa-plan` (solo skills, perfil `core`; ver
+  "Workflows added by this fork" en `FORK.md`). Separan la especificación del
+  plan con el grafo de artefactos de `spec-driven` (el id `specs` y sus
+  `requires`). No hay un esquema `three-step`.
+- Sin código todavía: un template `implement` propio y la generación de
+  `.feature`. Hoy el flujo es `specify` → `plan` → `apply`; el workflow `apply`
+  usa el template de upstream (`apply-change.ts`), se instala como
+  `sa-implement` y se activa con "specagile implement".
 - Si se agrega `implement`, va en un template propio del fork, como `specify` y
   `plan`. No renombrar `apply-change.ts` (es de upstream) ni sumar ids a
   `COMMAND_IDS`.
 - Ya los trae upstream, no son cambios del fork: `archive --skip-specs` y
   `skip_specs: true` en `.openspec.yaml`.
-- Cambios de identidad (rebranding a `specagile`): solo en `package.json`, `bin/`,
-  README y strings de usuario. No renombrar `src/` ni `openspec/`.
+- Identidad SpecAgile (CLI `specagile`, skills `sa-*`): la fuente única es
+  `src/core/fork/identity.ts`; ver "SpecAgile identity" en `FORK.md`. No editar
+  las plantillas de upstream (`src/core/templates/workflows/`): la identidad se
+  aplica al generar. Los mensajes de usuario dicen `specagile <comando>` y
+  `test/fork/cli-name.test.ts` falla si queda un `openspec <comando>`. No renombrar
+  `src/`, `openspec/`, los ids de workflow ni los archivos internos
+  (`.openspec-target`).
   

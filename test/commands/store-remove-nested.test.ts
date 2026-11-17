@@ -149,7 +149,7 @@ describe('store remove with another registered store inside the target', () => {
     );
     expect(diagnostic.message).toContain("'plat'");
     expect(diagnostic.message).toContain(plat);
-    expect(diagnostic.fix).toContain('openspec store unregister plat');
+    expect(diagnostic.fix).toContain('specagile store unregister plat');
   }, 30_000);
 
   it('prints the refusal in human mode and deletes nothing', async () => {
@@ -159,7 +159,7 @@ describe('store remove with another registered store inside the target', () => {
 
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain("'plat'");
-    expect(result.stderr).toContain('openspec store unregister plat');
+    expect(result.stderr).toContain('specagile store unregister plat');
     expect(fs.existsSync(draft)).toBe(true);
   }, 30_000);
 

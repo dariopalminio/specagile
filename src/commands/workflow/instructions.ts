@@ -134,7 +134,7 @@ export async function instructionsCommand(
       options.change,
       projectRoot,
       root.changesDir,
-      { newChangeHint: withStoreFlag(root, 'openspec new change <name>') }
+      { newChangeHint: withStoreFlag(root, 'specagile new change <name>') }
     );
 
     // Validate schema if explicitly provided
@@ -408,8 +408,8 @@ function describeArtifactRemedy(
   const target = artifactId ?? '<artifact>';
   const verb = options.many ? 'Create each with' : 'Create it with';
   return (
-    `${verb} \`openspec instructions ${target} --change ${changeName}\`` +
-    ` (\`openspec status --change ${changeName}\` shows what is left).`
+    `${verb} \`specagile instructions ${target} --change ${changeName}\`` +
+    ` (\`specagile status --change ${changeName}\` shows what is left).`
   );
 }
 
@@ -499,7 +499,7 @@ async function collectApplyWarnings(input: {
   if (specArtifacts.some((artifact) => skippedArtifacts?.has(artifact.id))) return [];
   const warnings = (await findUnreadDeltaFiles(path.join(changeDir, 'specs'))).map(
     (file) =>
-      `specs/${file.path} is not a capability's spec.md, so \`openspec validate ${changeName}\` rejects it and archive never merges it. ` +
+      `specs/${file.path} is not a capability's spec.md, so \`specagile validate ${changeName}\` rejects it and archive never merges it. ` +
       `Move its requirements into specs/${file.expected}.`
   );
   const hasDeltas = specArtifacts.some(
@@ -517,8 +517,8 @@ async function collectApplyWarnings(input: {
   const specTarget = specArtifacts.length === 1 ? specArtifacts[0].id : '<artifact-id>';
   return [
     ...warnings,
-    `This change has no delta specs and does not declare \`skip_specs: true\`, so \`openspec validate ${changeName}\` fails on it. ` +
-      `Write the delta specs before implementing (\`openspec instructions ${specTarget} --change ${changeName}\`), ` +
+    `This change has no delta specs and does not declare \`skip_specs: true\`, so \`specagile validate ${changeName}\` fails on it. ` +
+      `Write the delta specs before implementing (\`specagile instructions ${specTarget} --change ${changeName}\`), ` +
       `or add \`skip_specs: true\` to ${metadataPath} if this change really changes no specified behavior.`,
   ];
 }
@@ -736,7 +736,7 @@ export async function applyInstructionsCommand(options: ApplyInstructionsOptions
       options.change,
       projectRoot,
       root.changesDir,
-      { newChangeHint: withStoreFlag(root, 'openspec new change <name>') }
+      { newChangeHint: withStoreFlag(root, 'specagile new change <name>') }
     );
 
     // Validate schema if explicitly provided
@@ -874,7 +874,7 @@ export async function archiveInstructionsCommand(
       options.change,
       root.path,
       root.changesDir,
-      { newChangeHint: withStoreFlag(root, 'openspec new change <name>') }
+      { newChangeHint: withStoreFlag(root, 'specagile new change <name>') }
     );
     const projectConfig = readProjectConfig(root.path);
     const instructions = generateArchiveInstructions(changeName, projectConfig);

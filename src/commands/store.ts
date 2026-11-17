@@ -261,7 +261,7 @@ async function resolveSetupInput(
       'store_setup_id_required',
       {
         target: 'store.id',
-        fix: 'openspec store setup <id> --path ~/openspec/<id> --json',
+        fix: 'specagile store setup <id> --path ~/openspec/<id> --json',
       }
     );
   }
@@ -272,7 +272,7 @@ async function resolveSetupInput(
       'store_setup_path_required',
       {
         target: 'store.root',
-        fix: `openspec store setup ${id ?? '<id>'} --path ~/openspec/${id ?? '<id>'}`,
+        fix: `specagile store setup ${id ?? '<id>'} --path ~/openspec/${id ?? '<id>'}`,
       }
     );
   }
@@ -339,7 +339,7 @@ async function confirmRemove(id: string, root: string, options: StoreRemoveOptio
       'store_remove_confirmation_required',
       {
         target: 'store.root',
-        fix: `openspec store remove ${id} --yes`,
+        fix: `specagile store remove ${id} --yes`,
       }
     );
   }
@@ -356,7 +356,7 @@ async function confirmRemove(id: string, root: string, options: StoreRemoveOptio
       'store_remove_cancelled',
       {
         target: 'store.root',
-        fix: 'Run "openspec store unregister <id>" if you only want to forget the local registration.',
+        fix: 'Run "specagile store unregister <id>" if you only want to forget the local registration.',
       }
     );
   }
@@ -406,12 +406,12 @@ function printMutationHuman(
   }
   console.log('');
   console.log('Next: run normal OpenSpec commands against this store, for example:');
-  console.log(`  openspec new change <change-id> --store ${payload.store.id}`);
+  console.log(`  specagile new change <change-id> --store ${payload.store.id}`);
   if (payload.git.is_repository) {
     const shareRemote = remotes?.canonical ?? remotes?.observed;
     console.log(
       shareRemote
-        ? `Share it: teammates clone ${shareRemote} and run openspec store register <path>.`
+        ? `Share it: teammates clone ${shareRemote} and run specagile store register <path>.`
         : 'Share this store by committing and pushing it like any Git repo.'
     );
   }
@@ -442,8 +442,8 @@ function printListHuman(payload: StoreListOutput): void {
     console.log('No stores registered.');
     console.log('');
     console.log('Next:');
-    console.log('  openspec store setup team-context --path ~/openspec/team-context');
-    console.log('  openspec store register /path/to/store');
+    console.log('  specagile store setup team-context --path ~/openspec/team-context');
+    console.log('  specagile store register /path/to/store');
     return;
   }
 

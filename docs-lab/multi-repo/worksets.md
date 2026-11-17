@@ -19,7 +19,7 @@ Worksets are the utility OpenSpec provides for this. A workset is a saved, named
 
    ```bash
    # save a named list of folders you open together
-   openspec workset create platform \
+   specagile workset create platform \
      --member ~/src/web-app \
      --member ~/openspec/team-plans \
      --tool code
@@ -27,17 +27,17 @@ Worksets are the utility OpenSpec provides for this. A workset is a saved, named
 
    ```yaml
    Saved workset 'platform' (2 members) to your machine.
-   Open it any time with: openspec workset open platform
+   Open it any time with: specagile workset open platform
    ```
 
 2. **Open it** whenever you start work:
 
    ```bash
    # open every member in one VS Code window
-   openspec workset open platform
+   specagile workset open platform
    ```
 
-`openspec workset list` shows what you saved, and `openspec workset remove <name>` deletes a workset without touching the member folders:
+`specagile workset list` shows what you saved, and `specagile workset remove <name>` deletes a workset without touching the member folders:
 
 ```yaml
 platform  (opens in VS Code)
@@ -51,7 +51,7 @@ Say the `add-login` change lives in the `team-plans` store, and the code for it 
 
 - read `team-plans/openspec/changes/add-login/` and the specs next to it
 - edit the code in `web-app/`
-- run `openspec` commands from inside `web-app`
+- run `specagile` commands from inside `web-app`
 
 Without the workset, the agent only sees whichever folder it was started in.
 

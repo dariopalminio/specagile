@@ -3,23 +3,25 @@
  * These are Zsh-specific helper functions that never change.
  */
 
+import { CLI_NAME } from '../../fork/identity.js';
+
 export const ZSH_DYNAMIC_HELPERS = `# Dynamic completion helpers
 
-# Use openspec __complete to get available changes
+# Use ${CLI_NAME} __complete to get available changes
 _openspec_complete_changes() {
   local -a changes
   while IFS=$'\\t' read -r id desc; do
     changes+=("$id:$desc")
-  done < <(openspec __complete changes 2>/dev/null)
+  done < <(${CLI_NAME} __complete changes 2>/dev/null)
   _describe "change" changes
 }
 
-# Use openspec __complete to get available specs
+# Use ${CLI_NAME} __complete to get available specs
 _openspec_complete_specs() {
   local -a specs
   while IFS=$'\\t' read -r id desc; do
     specs+=("$id:$desc")
-  done < <(openspec __complete specs 2>/dev/null)
+  done < <(${CLI_NAME} __complete specs 2>/dev/null)
   _describe "spec" specs
 }
 
@@ -28,18 +30,18 @@ _openspec_complete_items() {
   local -a items
   while IFS=$'\\t' read -r id desc; do
     items+=("$id:$desc")
-  done < <(openspec __complete changes 2>/dev/null)
+  done < <(${CLI_NAME} __complete changes 2>/dev/null)
   while IFS=$'\\t' read -r id desc; do
     items+=("$id:$desc")
-  done < <(openspec __complete specs 2>/dev/null)
+  done < <(${CLI_NAME} __complete specs 2>/dev/null)
   _describe "item" items
 }
 
-# Use openspec __complete to get available schemas
+# Use ${CLI_NAME} __complete to get available schemas
 _openspec_complete_schemas() {
   local -a schemas
   while IFS=$'\\t' read -r id desc; do
     schemas+=("$id:$desc")
-  done < <(openspec __complete schemas 2>/dev/null)
+  done < <(${CLI_NAME} __complete schemas 2>/dev/null)
   _describe "schema" schemas
 }`;

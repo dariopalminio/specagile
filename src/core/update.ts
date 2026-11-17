@@ -12,6 +12,13 @@ import * as fs from 'fs';
 import { createRequire } from 'module';
 import { FileSystemUtils } from '../utils/file-system.js';
 import { getSkillReferenceTransformer, getTransformerForTool, transformToSharedSkillReferences, transformToSkillReferences } from '../utils/command-references.js';
+import { applyForkIdentity } from './fork/identity.js';
+import {
+  formatFormerSkillMigration,
+  formerSkillsKeptMessage,
+  migrateFormerSkills,
+  type FormerSkillMigrationResult,
+} from './fork/former-skills.js';
 import { AI_TOOLS, OPENSPEC_DIR_NAME } from './config.js';
 import {
   getToolSkillStatus,
@@ -222,7 +229,7 @@ export class UpdateCommand {
 
     // 1. Check openspec directory exists
     if (!await FileSystemUtils.directoryExists(openspecPath)) {
-      throw new Error(`No OpenSpec directory found. Run 'openspec init' first.`);
+      throw new Error(`No OpenSpec directory found. Run 'specagile init' first.`);
     }
 
     // 2. Migrate OpenSpec-managed skills left in renamed tool directories
@@ -325,14 +332,14 @@ export class UpdateCommand {
             )
           );
           this.log(
-            chalk.dim(`Re-run "openspec update" and accept the move to ${migration.to}/ to resume updates.`)
+            chalk.dim(`Re-run "specagile update" and accept the move to ${migration.to}/ to resume updates.`)
           );
         }
         return;
       }
       await this.syncCopilotCloudFiles(resolvedProjectPath, configuredAndNewTools);
       this.log(chalk.yellow('No configured tools found.'));
-      this.log(chalk.dim('Run "openspec init" to set up tools.'));
+      this.log(chalk.dim('Run "specagile init" to set up tools.'));
       return;
     }
 
@@ -379,6 +386,14 @@ export class UpdateCommand {
       // behind that nothing reads any more.
       // Kept copies were reported when they were first left in place; an
       // up-to-date run does not repeat that on every invocation.
+      const formerSkills = await this.migrateFormerSkillsForRun(
+        resolvedProjectPath,
+        configuredTools,
+        legacyUpgradeFailures.length > 0
+      );
+      for (const line of formatFormerSkillMigration(formerSkills, { reportKept: false })) {
+        this.log(chalk.dim(line));
+      }
       await this.removeEarlierReleaseLeftovers(
         resolvedProjectPath,
         [],
@@ -540,6 +555,16 @@ export class UpdateCommand {
       }
     }
 
+    // SpecAgile: skills under their former `openspec-*` names, now that the
+    // `sa-*` ones are in place; before the sweep, so nothing is told twice.
+    const formerSkills = await this.migrateFormerSkillsForRun(
+      resolvedProjectPath,
+      configuredAndNewTools,
+      failedTools.length > 0
+    );
+    removedSkillCount += formerSkills.removed.length;
+    this.keptOwnSkills.push(...formerSkills.kept);
+
     await this.removeEarlierReleaseLeftovers(
       resolvedProjectPath,
       updatedToolIds,
@@ -602,7 +627,7 @@ export class UpdateCommand {
         const forms = new Set(
           newlyConfiguredTools.map((toolId) => getSkillReferenceTransformer(toolId)(command))
         );
-        return forms.size === 1 ? [...forms][0] : neutralForm;
+        return applyForkIdentity(forms.size === 1 ? [...forms][0] : neutralForm);
       };
       // Only hint at workflows these tools actually received. A legacy upgrade
       // can install a narrower set than the profile (inferred Codex prompts).
@@ -826,7 +851,7 @@ export class UpdateCommand {
         } else if (isInteractive()) {
           this.log(
             chalk.dim(
-              "GitHub Copilot cloud coding-agent files are available (opt-in). Enable with 'openspec init --copilot-cloud'."
+              "GitHub Copilot cloud coding-agent files are available (opt-in). Enable with 'specagile init --copilot-cloud'."
             )
           );
         }
@@ -897,6 +922,32 @@ export class UpdateCommand {
         }
       });
     });
+  }
+
+  /**
+   * SpecAgile: removes the untouched skills left under their former
+   * `openspec-*` names (src/core/fork/former-skills.ts). Like the sweep of
+   * earlier-release files, not after a declined cleanup nor after a tool
+   * failed: its `sa-*` skills may be missing. A dry run notes what it keeps.
+   */
+  private async migrateFormerSkillsForRun(
+    projectPath: string,
+    toolIds: readonly string[],
+    anyToolFailed: boolean
+  ): Promise<FormerSkillMigrationResult> {
+    if (this.legacyCleanupSkipped || anyToolFailed) return { removed: [], kept: [] };
+    const result = await migrateFormerSkills({
+      projectPath,
+      tools: AI_TOOLS.filter((tool) => toolIds.includes(tool.value)),
+      version: OPENSPEC_VERSION,
+      ops: this.ops,
+      view: this.view,
+      writesToDisk: !this.dryRun,
+    });
+    if (result.kept.length > 0) {
+      this.recorder?.addNote('kept-former-skills', formerSkillsKeptMessage(result.kept));
+    }
+    return result;
   }
 
   /**
@@ -1047,7 +1098,7 @@ export class UpdateCommand {
       this.log();
       this.log(
         chalk.yellow(
-          `Detected new ${toolNoun}: ${newToolNames.join(', ')}. Run 'openspec init' to add ${pronoun}.`
+          `Detected new ${toolNoun}: ${newToolNames.join(', ')}. Run 'specagile init' to add ${pronoun}.`
         )
       );
     }
@@ -1092,7 +1143,7 @@ export class UpdateCommand {
     const extraWorkflows = installedWorkflows.filter((w) => !profileSet.has(w));
 
     if (extraWorkflows.length > 0) {
-      this.log(chalk.dim(`Note: ${extraWorkflows.length} extra ${extraWorkflows.length === 1 ? 'workflow' : 'workflows'} not in profile (use \`openspec config profile\` to manage)`));
+      this.log(chalk.dim(`Note: ${extraWorkflows.length} extra ${extraWorkflows.length === 1 ? 'workflow' : 'workflows'} not in profile (use \`specagile config profile\` to manage)`));
       return true;
     }
     return false;
@@ -1118,7 +1169,7 @@ export class UpdateCommand {
     const label = missing.length === 1 ? 'workflow' : 'workflows';
     const pronoun = missing.length === 1 ? 'it' : 'them';
     this.log(chalk.dim(`Note: Your custom profile is missing ${missing.length} core ${label}: ${missing.join(', ')}`));
-    this.log(chalk.dim(`Run \`openspec config profile\` to add ${pronoun}, or \`openspec config profile core\` to use the core set.`));
+    this.log(chalk.dim(`Run \`specagile config profile\` to add ${pronoun}, or \`specagile config profile core\` to use the core set.`));
     return true;
   }
 
@@ -1370,7 +1421,7 @@ export class UpdateCommand {
         this.log(
           chalk.dim(
             `Left ${detection.globalSlashCommandFiles.length} OpenSpec prompt file(s) in your home folder: ` +
-              'other projects may still use them. Run "openspec update --force" to remove them.'
+              'other projects may still use them. Run "specagile update --force" to remove them.'
           )
         );
         return legacyUpgrade;

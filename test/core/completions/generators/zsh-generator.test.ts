@@ -31,7 +31,7 @@ describe('ZshGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain('#compdef openspec');
+      expect(script).toContain('#compdef specagile');
       expect(script).toContain('# Zsh completion script for OpenSpec CLI');
       expect(script).toContain('_openspec() {');
     });
@@ -395,7 +395,7 @@ describe('ZshGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script.trim().endsWith('compdef _openspec openspec')).toBe(true);
+      expect(script.trim().endsWith('compdef _openspec specagile')).toBe(true);
     });
 
     it('should handle empty command list', () => {
@@ -403,7 +403,7 @@ describe('ZshGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain('#compdef openspec');
+      expect(script).toContain('#compdef specagile');
       expect(script).toContain('_openspec() {');
     });
 
@@ -437,15 +437,15 @@ describe('ZshGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain('openspec __complete changes 2>/dev/null');
-      expect(script).toContain('openspec __complete specs 2>/dev/null');
-      expect(script).toContain('openspec __complete schemas 2>/dev/null');
+      expect(script).toContain('specagile __complete changes 2>/dev/null');
+      expect(script).toContain('specagile __complete specs 2>/dev/null');
+      expect(script).toContain('specagile __complete schemas 2>/dev/null');
       // No invocation may survive a template edit that drops a redirect. Only
       // real call sites count: the script also explains itself in comments
       // that name the command without running it.
       const invocations = script
         .split('\n')
-        .filter((line) => line.includes('openspec __complete') && !line.trim().startsWith('#'));
+        .filter((line) => line.includes('specagile __complete') && !line.trim().startsWith('#'));
       expect(invocations.length).toBeGreaterThan(0);
       for (const line of invocations) {
         expect(line, `unredirected __complete call: ${line.trim()}`).toContain('2>/dev/null');

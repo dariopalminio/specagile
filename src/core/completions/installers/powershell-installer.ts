@@ -15,8 +15,9 @@ export class PowerShellInstaller {
    * Markers for PowerShell profile configuration management
    */
   private readonly PROFILE_MARKERS = {
-    start: '# OPENSPEC:START',
-    end: '# OPENSPEC:END',
+    // SpecAgile: its own markers, so OpenSpec's block beside it stays.
+    start: '# SPECAGILE:START',
+    end: '# SPECAGILE:END',
   };
 
   constructor(homeDir: string = os.homedir()) {
@@ -120,7 +121,7 @@ export class PowerShellInstaller {
   getInstallationPath(): string {
     const profilePath = this.getProfilePath();
     const profileDir = path.dirname(profilePath);
-    return path.join(profileDir, 'OpenSpecCompletion.ps1');
+    return path.join(profileDir, 'SpecAgileCompletion.ps1');
   }
 
   /**
@@ -231,9 +232,9 @@ export class PowerShellInstaller {
         // Add OpenSpec completion configuration with markers
         const openspecBlock = [
           '',
-          '# OPENSPEC:START - OpenSpec completion (managed block, do not edit manually)',
+          '# SPECAGILE:START - SpecAgile completion (managed block, do not edit manually)',
           scriptLine,
-          '# OPENSPEC:END',
+          '# SPECAGILE:END',
           '',
         ].join('\n');
 
@@ -281,9 +282,9 @@ export class PowerShellInstaller {
           continue;
         }
 
-        // Remove OPENSPEC:START -> OPENSPEC:END block
-        const startMarker = '# OPENSPEC:START';
-        const endMarker = '# OPENSPEC:END';
+        // Remove SPECAGILE:START -> SPECAGILE:END block
+        const startMarker = '# SPECAGILE:START';
+        const endMarker = '# SPECAGILE:END';
         const startIndex = profileContent.indexOf(startMarker);
 
         if (startIndex === -1) {

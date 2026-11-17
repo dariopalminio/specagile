@@ -1,6 +1,6 @@
 # CLI
 
-> The `openspec` terminal commands.
+> The `specagile` terminal commands.
 
 <!-- Installing, updating, and uninstalling the CLI itself live in installation.md. -->
 
@@ -10,19 +10,19 @@
 
 | Command | What it does |
 |---|---|
-| [`openspec init`](#openspec-init) | Initialize OpenSpec in a project. |
-| [`openspec update`](#openspec-update) | Update OpenSpec's installed instruction files. |
-| [`openspec config`](#openspec-config) | View and change global configuration. |
+| [`specagile init`](#specagile-init) | Initialize OpenSpec in a project. |
+| [`specagile update`](#specagile-update) | Update OpenSpec's installed instruction files. |
+| [`specagile config`](#specagile-config) | View and change global configuration. |
 
 **Changes and specs**
 
 | Command | What it does |
 |---|---|
-| [`openspec list`](#openspec-list) | List changes, or specs with `--specs`. |
-| [`openspec show`](#openspec-show) | Print a change or spec, as markdown or JSON. |
-| [`openspec view`](#openspec-view) | One-screen dashboard of specs and changes. |
-| [`openspec validate`](#openspec-validate) | Check changes and specs for structural issues. |
-| [`openspec archive`](#openspec-archive) | Move a completed change to the archive and update the main specs. |
+| [`specagile list`](#specagile-list) | List changes, or specs with `--specs`. |
+| [`specagile show`](#specagile-show) | Print a change or spec, as markdown or JSON. |
+| [`specagile view`](#specagile-view) | One-screen dashboard of specs and changes. |
+| [`specagile validate`](#specagile-validate) | Check changes and specs for structural issues. |
+| [`specagile archive`](#specagile-archive) | Move a completed change to the archive and update the main specs. |
 
 **Workflows and schemas**
 
@@ -30,51 +30,51 @@ Your agent runs most of these during the workflow.
 
 | Command | What it does |
 |---|---|
-| [`openspec new`](#openspec-new) | Create a new change directory. |
-| [`openspec status`](#openspec-status) | Artifact completion status for one or every active change. |
-| [`openspec instructions`](#openspec-instructions) | Instructions for creating an artifact, applying, or archiving. |
-| [`openspec templates`](#openspec-templates) | Resolved template paths for a schema's artifacts. |
-| [`openspec schemas`](#openspec-schemas) | List available workflow schemas. |
-| [`openspec schema`](#openspec-schema) | Inspect, fork, or create a schema (experimental). |
+| [`specagile new`](#specagile-new) | Create a new change directory. |
+| [`specagile status`](#specagile-status) | Artifact completion status for one or every active change. |
+| [`specagile instructions`](#specagile-instructions) | Instructions for creating an artifact, applying, or archiving. |
+| [`specagile templates`](#specagile-templates) | Resolved template paths for a schema's artifacts. |
+| [`specagile schemas`](#specagile-schemas) | List available workflow schemas. |
+| [`specagile schema`](#specagile-schema) | Inspect, fork, or create a schema (experimental). |
 
 **Multi-repo (beta)**
 
 | Command | What it does |
 |---|---|
-| [`openspec store`](#openspec-store) | Create and manage stores: standalone OpenSpec repos registered on your machine. |
-| [`openspec doctor`](#openspec-doctor) | Report relationship health for the resolved OpenSpec root. |
-| [`openspec context`](#openspec-context) | Print the working context for the resolved OpenSpec root. |
-| [`openspec workset`](#openspec-workset) | Compose, keep, and open personal working views. |
+| [`specagile store`](#specagile-store) | Create and manage stores: standalone OpenSpec repos registered on your machine. |
+| [`specagile doctor`](#specagile-doctor) | Report relationship health for the resolved OpenSpec root. |
+| [`specagile context`](#specagile-context) | Print the working context for the resolved OpenSpec root. |
+| [`specagile workset`](#specagile-workset) | Compose, keep, and open personal working views. |
 
 **Utilities**
 
 | Command | What it does |
 |---|---|
-| [`openspec version`](#openspec-version) | Report the installed version and optionally check for an update. |
-| [`openspec install`](#openspec-install) | Install the standalone `openspec`, which runs without Node.js. |
-| [`openspec feedback`](#openspec-feedback) | Submit feedback about OpenSpec. |
-| [`openspec completion`](#openspec-completion) | Install or generate shell completions. |
+| [`specagile version`](#specagile-version) | Report the installed version and optionally check for an update. |
+| [`specagile install`](#specagile-install) | Install the standalone `openspec`, which runs without Node.js. |
+| [`specagile feedback`](#specagile-feedback) | Submit feedback about OpenSpec. |
+| [`specagile completion`](#specagile-completion) | Install or generate shell completions. |
 
 **Deprecated**
 
 | Command | What it does |
 |---|---|
-| [`openspec change`](#openspec-change) | Noun form of show, list, and validate for changes. The CLI warns and points to the verb-first commands. |
-| [`openspec spec`](#openspec-spec) | Noun form of show, list, and validate for specs, with the same warning. |
+| [`specagile change`](#specagile-change) | Noun form of show, list, and validate for changes. The CLI warns and points to the verb-first commands. |
+| [`specagile spec`](#specagile-spec) | Noun form of show, list, and validate for specs, with the same warning. |
 
-Every command takes `-h, --help`. The bare `openspec` command also takes:
+Every command takes `-h, --help`. The bare `specagile` command also takes:
 
 - `-V, --version`: print the CLI version.
 - `--no-color`: disable colored output.
 
-## openspec init
+## specagile init
 
 Initializes OpenSpec in a project.
 
 ```bash
-openspec init                        # current directory, interactive tool picker
-openspec init --tools claude,cursor  # set up specific tools, no prompts
-openspec init --tools none           # openspec/ structure only, no tool files
+specagile init                        # current directory, interactive tool picker
+specagile init --tools claude,cursor  # set up specific tools, no prompts
+specagile init --tools none           # openspec/ structure only, no tool files
 ```
 
 With no `--tools`, init prompts you to pick tools in an interactive terminal. Outside one, it sets up the tools it detects in the project. With none detected it exits 1 and lists the valid ids.
@@ -85,7 +85,7 @@ When `openspec/config.yaml` contains a `store:` line and the repo has no local s
 
 ```bash
 # install Claude Code integration files in the code repo
-openspec init --tools claude
+specagile init --tools claude
 ```
 
 - **Integration files**: written in the code repo.
@@ -125,7 +125,7 @@ Created: Claude Code
 Config: openspec/config.yaml (schema: spec-driven)
 
 Getting started:
-  Start your first change: /openspec-propose "your idea"
+  Start your first change: /sa-propose "your idea"
 ```
 
 `--tools none` creates only `openspec/config.yaml`. On an already-initialized project, init rewrites the installed files in place and the summary reads `Refreshed: Claude Code` with `Config: openspec/config.yaml (exists)`.
@@ -135,14 +135,14 @@ Getting started:
 - `0`: setup completed.
 - `1`: invalid `--tools` or `--profile` value, a non-interactive run with no tools detected and no `--tools`, or an invalid store-only invocation.
 
-## openspec update
+## specagile update
 
 Updates OpenSpec's installed instruction files.
 
 ```bash
-openspec update             # refresh tools whose files are older than the CLI
-openspec update --force     # rewrite files even when they're current
-openspec update --dry-run   # list what an update would change, and change nothing
+specagile update             # refresh tools whose files are older than the CLI
+specagile update --force     # rewrite files even when they're current
+specagile update --dry-run   # list what an update would change, and change nothing
 ```
 
 update finds the tools init configured and compares their generated files against the CLI's version. When a newer OpenSpec release exists, it first offers to upgrade the CLI, then reruns with the upgraded version. Set `OPENSPEC_NO_UPDATE_CHECK=1` to skip the check.
@@ -171,12 +171,12 @@ update finds the tools init configured and compares their generated files agains
 - with `--force`, setting up tools found only in legacy artifacts and cleaning those artifacts up, including retired global Codex prompts.
 
 ```bash
-openspec update --dry-run
+specagile update --dry-run
 ```
 
 ```
 2 file(s) would change:
-  update  .agents/skills/openspec-propose/SKILL.md  (openspec)
+  update  .agents/skills/sa-propose/SKILL.md  (openspec)
   add     ~/.config/openspec/config.json  (openspec)
 ```
 
@@ -185,7 +185,7 @@ openspec update --dry-run
 ```json
 {
   "changes": [
-    { "path": ".agents/skills/openspec-propose/SKILL.md", "action": "update", "tool": "openspec" },
+    { "path": ".agents/skills/sa-propose/SKILL.md", "action": "update", "tool": "openspec" },
     { "path": "~/.config/openspec/config.json", "action": "add", "tool": "openspec" }
   ],
   "notes": [],
@@ -230,7 +230,7 @@ An update that touches an IDE-based tool, such as Cursor or Kiro, ends with `Res
 In a directory without OpenSpec, update refuses:
 
 ```
-✖ Error: No OpenSpec directory found. Run 'openspec init' first.
+✖ Error: No OpenSpec directory found. Run 'specagile init' first.
 ```
 
 **Exit codes**
@@ -238,14 +238,14 @@ In a directory without OpenSpec, update refuses:
 - `0`: files updated, or everything already up to date.
 - `1`: no OpenSpec directory at the path, or the update failed.
 
-## openspec config
+## specagile config
 
 Views and changes global configuration.
 
 ```bash
-openspec config list                  # see current settings
-openspec config set profile core      # change one value
-openspec config profile               # interactive workflow picker
+specagile config list                  # see current settings
+specagile config set profile core      # change one value
+specagile config profile               # interactive workflow picker
 ```
 
 | Subcommand | What it does |
@@ -261,21 +261,21 @@ openspec config profile               # interactive workflow picker
 
 Config is global to your machine, stored as JSON where `config path` points: `$XDG_CONFIG_HOME/openspec/config.json` if set, else `~/.config/openspec/config.json` (macOS, Linux) or `%APPDATA%\openspec\config.json` (Windows). Every subcommand accepts `--scope <scope>`, but only `global` works today. Any other scope exits 1 with `Error: Project-local config is not yet implemented`.
 
-### openspec config path
+### specagile config path
 
 ```bash
-openspec config path
+specagile config path
 ```
 
 ```
 /Users/you/.config/openspec/config.json
 ```
 
-### openspec config list
+### specagile config list
 
 ```bash
-openspec config list          # readable settings plus profile summary
-openspec config list --json   # raw config as JSON
+specagile config list          # readable settings plus profile summary
+specagile config list --json   # raw config as JSON
 ```
 
 **Options**
@@ -299,10 +299,10 @@ Profile settings:
   workflows: propose, explore, apply, update, sync, archive (from core profile)
 ```
 
-### openspec config get
+### specagile config get
 
 ```bash
-openspec config get profile
+specagile config get profile
 ```
 
 **Arguments**
@@ -324,11 +324,11 @@ core
 - `0`: value printed.
 - `1`: key has no value, and nothing is printed.
 
-### openspec config set
+### specagile config set
 
 ```bash
-openspec config set profile core
-openspec config set featureFlags.workspaces true
+specagile config set profile core
+specagile config set featureFlags.workspaces true
 ```
 
 **Arguments**
@@ -362,7 +362,7 @@ Unknown keys and invalid values fail with exit 1 before anything is saved:
 
 ```
 Error: Invalid configuration key "bogus.key". Unknown top-level key "bogus".
-Use "openspec config list" to see available keys.
+Use "specagile config list" to see available keys.
 Pass --allow-unknown to bypass this check.
 ```
 
@@ -370,19 +370,19 @@ Pass --allow-unknown to bypass this check.
 Error: Invalid configuration - profile: Invalid option: expected one of "core"|"custom"
 ```
 
-If the config file exists but does not hold a JSON object, whether because it is not valid JSON at all or because its root is something else such as `null` or an array, `config set`, `config unset` and `config profile` exit 1 and leave the file unchanged. Fix it with `openspec config edit`, or replace it with `openspec config reset --all`:
+If the config file exists but does not hold a JSON object, whether because it is not valid JSON at all or because its root is something else such as `null` or an array, `config set`, `config unset` and `config profile` exit 1 and leave the file unchanged. Fix it with `specagile config edit`, or replace it with `specagile config reset --all`:
 
 ```
 Error: /home/you/.config/openspec/config.json could not be parsed, so it was left unchanged.
-Fix it with "openspec config edit", or reset it with "openspec config reset --all".
+Fix it with "specagile config edit", or reset it with "specagile config reset --all".
 ```
 
-Until it is fixed, telemetry and the background update check in `openspec update` stay off. An explicit `openspec version --check` still runs.
+Until it is fixed, telemetry and the background update check in `specagile update` stay off. An explicit `specagile version --check` still runs.
 
-### openspec config unset
+### specagile config unset
 
 ```bash
-openspec config unset profile
+specagile config unset profile
 ```
 
 Removes the key so the default applies again. Keys with built-in defaults always count as set, so this reports success even if you never set them:
@@ -393,11 +393,11 @@ Unset profile (reverted to default)
 
 A key with no value at all prints `Key "featureFlags.nothere" was not set`. Both cases exit 0. A config file that cannot be parsed exits 1 instead, as for `config set`.
 
-### openspec config reset
+### specagile config reset
 
 ```bash
-openspec config reset --all      # asks for confirmation
-openspec config reset --all -y   # no prompt
+specagile config reset --all      # asks for confirmation
+specagile config reset --all -y   # no prompt
 ```
 
 **Options**
@@ -421,10 +421,10 @@ Without `--all` it exits 1 and prints the usage line.
 - `1`: `--all` missing.
 - `130`: prompt cancelled with Ctrl-C.
 
-### openspec config edit
+### specagile config edit
 
 ```bash
-openspec config edit
+specagile config edit
 ```
 
 Opens the config file in `$EDITOR` (falling back to `$VISUAL`), creating it with defaults first if missing. When the editor closes, the file is validated. Invalid JSON or an invalid config exits 1.
@@ -439,11 +439,11 @@ Set the EDITOR or VISUAL environment variable to your preferred editor
 Example: export EDITOR=vim
 ```
 
-### openspec config profile
+### specagile config profile
 
 ```bash
-openspec config profile        # interactive picker (needs a terminal)
-openspec config profile core   # apply the core preset directly
+specagile config profile        # interactive picker (needs a terminal)
+specagile config profile core   # apply the core preset directly
 ```
 
 **Arguments**
@@ -452,10 +452,10 @@ openspec config profile core   # apply the core preset directly
 |---|---|
 | `preset` | Optional preset name. Only `core` exists. It selects the core workflows. |
 
-With no preset, an interactive picker shows your current workflows, lets you change them (a checkbox list), prints the diff, and inside an OpenSpec project offers to run `openspec update` for you. Outside a terminal it exits 1:
+With no preset, an interactive picker shows your current workflows, lets you change them (a checkbox list), prints the diff, and inside an OpenSpec project offers to run `specagile update` for you. Outside a terminal it exits 1:
 
 ```
-Interactive mode required. Use `openspec config profile core` or set config via environment/flags.
+Interactive mode required. Use `specagile config profile core` or set config via environment/flags.
 ```
 
 **Output**
@@ -463,25 +463,25 @@ Interactive mode required. Use `openspec config profile core` or set config via 
 Changed config doesn't reach projects until they update:
 
 ```
-Config updated. Run `openspec update` in your projects to apply.
+Config updated. Run `specagile update` in your projects to apply.
 ```
 
 **Exit codes**
 
 - `0`: profile saved, or you kept current settings.
-- `1`: unknown preset, no terminal, or the offered `openspec update` failed.
+- `1`: unknown preset, no terminal, or the offered `specagile update` failed.
 - `130`: picker cancelled with Ctrl-C.
 
-## openspec list
+## specagile list
 
 Lists changes, or specs with `--specs`.
 
 ```bash
-openspec list                    # active changes, most recently modified first
-openspec list --archived         # archived changes
-openspec list --all              # active and archived changes
-openspec list --specs            # specs with requirement counts
-openspec list --json             # machine-readable, includes the resolved root
+specagile list                    # active changes, most recently modified first
+specagile list --archived         # archived changes
+specagile list --all              # active and archived changes
+specagile list --specs            # specs with requirement counts
+specagile list --json             # machine-readable, includes the resolved root
 ```
 
 Rows come from `openspec/changes/` and `openspec/specs/` under the resolved root. The default change listing skips `openspec/changes/archive/`.
@@ -558,15 +558,15 @@ rmdir openspec/changes/mobile
 - `0`: listing printed, even when empty.
 - `1`: no OpenSpec root found (outside a project, no `--store`).
 
-## openspec show
+## specagile show
 
 Prints a change or spec, as markdown or JSON.
 
 ```bash
-openspec show add-rate-limit              # change: prints proposal.md
-openspec show add-rate-limit --diff       # change: append requirement diffs
-openspec show api                         # spec: prints spec.md
-openspec show api --json --no-scenarios   # spec JSON without scenario text
+specagile show add-rate-limit              # change: prints proposal.md
+specagile show add-rate-limit --diff       # change: append requirement diffs
+specagile show api                         # spec: prints spec.md
+specagile show api --json --no-scenarios   # spec JSON without scenario text
 ```
 
 With no name, show asks change or spec, then lists items to pick from. Outside an interactive terminal it exits 1 and prints the direct forms instead.
@@ -686,12 +686,12 @@ An unknown name suggests near matches: `Unknown item 'does-not-exist'. Did you m
 - `0`: item printed.
 - `1`: unknown or ambiguous name, no name outside a terminal, an out-of-range `-r` index, `--requirements` combined with `-r`, or a delta or main spec cannot be read for `--diff`.
 
-## openspec view
+## specagile view
 
 Prints a one-screen dashboard of specs and changes.
 
 ```bash
-openspec view   # project summary in one screen
+specagile view   # project summary in one screen
 ```
 
 view prints the dashboard once and exits. It reads no keystrokes. Changes group by task progress: Draft (no tasks yet), Active (tasks underway, with a progress bar and percent), Completed (every task checked). Specs list with requirement counts, largest first.
@@ -724,7 +724,7 @@ Specifications
 
 ════════════════════════════════════════════════════════════
 
-Use openspec list --changes or openspec list --specs for detailed views
+Use specagile list --changes or specagile list --specs for detailed views
 ```
 
 A `Task Progress` summary line appears when any change has tasks underway.
@@ -742,20 +742,20 @@ Each active change also shows its schema and artifact states below its task prog
 | No marker | It is blocked by a missing dependency. |
 | `(skipped)` | The change skips it. |
 
-If a workflow cannot be loaded, view prints a warning and keeps that change's task progress visible. Run `openspec status --change <name>` to inspect the workflow separately. After `openspec view --store <id>`, pass the same `--store <id>` to status.
+If a workflow cannot be loaded, view prints a warning and keeps that change's task progress visible. Run `specagile status --change <name>` to inspect the workflow separately. After `specagile view --store <id>`, pass the same `--store <id>` to status.
 
 **Exit codes**
 
 - `0`: dashboard printed.
 - `1`: no OpenSpec root found (outside a project, no `--store`).
 
-## openspec validate
+## specagile validate
 
 Checks changes and specs for structural issues.
 
 ```bash
-openspec validate add-rate-limit   # one change or spec, by name
-openspec validate --all            # every change and spec
+specagile validate add-rate-limit   # one change or spec, by name
+specagile validate --all            # every change and spec
 ```
 
 With no name and no bulk flag, validate prompts you to pick items. Outside an interactive terminal it exits 1 and prints the bulk flags instead.
@@ -794,10 +794,10 @@ Totals: 2 passed, 0 failed (2 items)
 
 **Task checkbox findings**
 
-Progress counts checkboxes and nothing else, so a task file written as plain bullets reads as zero tasks: `openspec list` and `openspec status` report no work, and `openspec archive` has nothing to flag as incomplete. Validate reports a `WARNING` on each tracked task file that lists work without a checkbox:
+Progress counts checkboxes and nothing else, so a task file written as plain bullets reads as zero tasks: `specagile list` and `specagile status` report no work, and `specagile archive` has nothing to flag as incomplete. Validate reports a `WARNING` on each tracked task file that lists work without a checkbox:
 
 ```text
-⚠ [WARNING] tasks.md: This change counts as 0 tasks: no line in its tracked task files is a checkbox, so "openspec list" and "openspec status" report no work and "openspec archive" has nothing to flag as incomplete. Write each task as "- [ ] 1.1 Description".
+⚠ [WARNING] tasks.md: This change counts as 0 tasks: no line in its tracked task files is a checkbox, so "specagile list" and "specagile status" report no work and "specagile archive" has nothing to flag as incomplete. Write each task as "- [ ] 1.1 Description".
 ```
 
 The warning fires only when the change's whole tracked set holds no checkbox at all. One file of prose beside a real checklist is not reported, and a change mid-authoring keeps its progress the moment a single checkbox exists. `--strict` turns the warning into a failure. The line number is in the `--json` report.
@@ -826,7 +826,7 @@ Change 'add-rate-limit' has issues
 Next steps:
   - Ensure change has deltas in specs/: use headers ## ADDED/MODIFIED/REMOVED/RENAMED Requirements
   - Each requirement MUST include at least one #### Scenario: block
-  - Debug parsed deltas: openspec show add-rate-limit --json --deltas-only
+  - Debug parsed deltas: specagile show add-rate-limit --json --deltas-only
 ```
 
 `--json` prints one report for the run:
@@ -879,8 +879,8 @@ Selects the output for an explicit bulk validation scope:
 - **`findings`**: only items with issues, including passing items with warnings or information. Every item is still validated. Totals, strict-mode behavior, and exit codes are unchanged.
 
 ```bash
-openspec validate --all --report findings
-openspec validate --archived --report findings --json
+specagile validate --all --report findings
+specagile validate --archived --report findings --json
 ```
 
 **Scopes**
@@ -954,7 +954,7 @@ Both explicit report modes reject these requests before root selection or item d
 In JSON mode, a rejected request exits 1 with only a single-element `status` array. It has no `root` or report payload:
 
 ```bash
-openspec validate --all --report bogus --json
+specagile validate --all --report bogus --json
 ```
 
 ```json
@@ -979,7 +979,7 @@ For a custom JSON view, filter the full report with `jq` or PowerShell. These sc
 In Bash with `jq`:
 
 ```bash
-if validation_json=$(openspec validate --all --json); then
+if validation_json=$(specagile validate --all --json); then
   validation_exit=0
 else
   validation_exit=$?
@@ -992,7 +992,7 @@ exit "$validation_exit"
 In PowerShell:
 
 ```powershell
-$validationJson = openspec validate --all --json
+$validationJson = specagile validate --all --json
 $validationExit = $LASTEXITCODE
 $validationReport = $validationJson | ConvertFrom-Json
 if ($validationReport.PSObject.Properties.Name -contains 'items') {
@@ -1004,13 +1004,13 @@ exit $validationExit
 
 These custom views keep the full report's keys but omit clean items. They are neither complete full-v1 reports nor the versioned `--report findings` shape.
 
-## openspec archive
+## specagile archive
 
 Moves a completed change to the archive and updates the main specs.
 
 ```bash
-openspec archive add-rate-limit -y                # archive one change, merge its deltas
-openspec archive add-rate-limit -y --skip-specs   # archive without touching the specs
+specagile archive add-rate-limit -y                # archive one change, merge its deltas
+specagile archive add-rate-limit -y --skip-specs   # archive without touching the specs
 ```
 
 With no name, archive prompts you to pick a change. Outside an interactive terminal it exits 1 and prints the rerun command instead.
@@ -1094,13 +1094,13 @@ Warning: 1 incomplete task(s) found. Continuing due to --yes flag.
 - `0`: the change was archived, with or without spec updates.
 - `1`: validation failed, the change name is unknown, or a confirmation was needed and no answer could be read.
 
-## openspec new
+## specagile new
 
 Creates a new change directory.
 
 ```bash
-openspec new change add-caching                                # metadata only
-openspec new change add-search --goal "Users can search docs"  # record a goal
+specagile new change add-caching                                # metadata only
+specagile new change add-search --goal "Users can search docs"  # record a goal
 ```
 
 `new` has one subcommand, `new change <name>`. It creates `openspec/changes/<name>/` containing a single [`.openspec.yaml` metadata file](configuration/change-metadata.md):
@@ -1110,7 +1110,7 @@ schema: spec-driven
 created: 2026-08-11
 ```
 
-Artifacts (proposal, specs, design, tasks) aren't scaffolded here. You write them later, and `openspec status` tells you which one is next.
+Artifacts (proposal, specs, design, tasks) aren't scaffolded here. You write them later, and `specagile status` tells you which one is next.
 
 **Arguments**
 
@@ -1133,7 +1133,7 @@ Artifacts (proposal, specs, design, tasks) aren't scaffolded here. You write the
 ```
 Created change 'add-caching' at openspec/changes/add-caching/
 Schema: spec-driven
-Next: openspec status --change add-caching
+Next: specagile status --change add-caching
 ```
 
 When no `openspec/` directory was found, `new change` creates one where you are and says so:
@@ -1141,10 +1141,10 @@ When no `openspec/` directory was found, `new change` creates one where you are 
 ```
 Created change 'add-caching' at openspec/changes/add-caching/
 Schema: spec-driven
-Next: openspec status --change add-caching
+Next: specagile status --change add-caching
 
 Note: no OpenSpec root was found here, so one was created at openspec/.
-Run `openspec init` to finish setting this project up, or delete that directory if you meant a different project.
+Run `specagile init` to finish setting this project up, or delete that directory if you meant a different project.
 ```
 
 The notice goes to stdout with the rest of the human output, and never appears with `--json`.
@@ -1180,15 +1180,15 @@ When no `openspec/` directory was found and `new change` created one, the JSON h
 - `0`: change created.
 - `1`: the change already exists, or the schema is unknown.
 
-## openspec status
+## specagile status
 
 Reports artifact completion status for one change or every active change.
 
 ```bash
-openspec status --change add-rate-limit          # checklist view
-openspec status --change add-rate-limit --json   # structured report
-openspec status --all                            # every active change
-openspec status --all --json                     # one batch report
+specagile status --change add-rate-limit          # checklist view
+specagile status --change add-rate-limit --json   # structured report
+specagile status --all                            # every active change
+specagile status --all --json                     # one batch report
 ```
 
 When active changes exist, use exactly one of `--change` or `--all`. Without either, status exits 1 and lists the available changes, even when only one exists:
@@ -1198,7 +1198,7 @@ When active changes exist, use exactly one of `--change` or `--all`. Without eit
   add-rate-limit
 ```
 
-When the project has no active changes, status prints `No active changes. Create one with: openspec new change <name>` and exits 0 even without either flag. With `--all --json`, the same empty state is `{ "changes": [], "message": "No active changes.", "root": ... }`.
+When the project has no active changes, status prints `No active changes. Create one with: specagile new change <name>` and exits 0 even without either flag. With `--all --json`, the same empty state is `{ "changes": [], "message": "No active changes.", "root": ... }`.
 
 **Options**
 
@@ -1225,10 +1225,10 @@ Progress: 2/4 artifacts complete
 [ ] design
 [-] tasks (blocked by: design)
 
-Next: openspec instructions design --change "add-rate-limit" --json
+Next: specagile instructions design --change "add-rate-limit" --json
 ```
 
-The `Next:` line names the one command that moves the change forward, so `openspec status` is enough to pick a change back up in a fresh session. It names the next ready artifact while planning is unfinished, and `openspec instructions apply` once every planning artifact exists:
+The `Next:` line names the one command that moves the change forward, so `specagile status` is enough to pick a change back up in a fresh session. It names the next ready artifact while planning is unfinished, and `specagile instructions apply` once every planning artifact exists:
 
 ```
 [x] proposal
@@ -1237,7 +1237,7 @@ The `Next:` line names the one command that moves the change forward, so `opensp
 [x] tasks
 
 All planning artifacts complete!
-Next: openspec instructions apply --change "add-rate-limit" --json
+Next: specagile instructions apply --change "add-rate-limit" --json
 ```
 
 It carries `--store <id>` whenever the resolved root is a store, and names the same command as the JSON `nextSteps` sentence.
@@ -1250,7 +1250,7 @@ It carries `--store <id>` whenever the resolved root is a store, and names the s
   "schemaName": "spec-driven",
   "isComplete": false,
   "nextSteps": [
-    "Run openspec instructions design --change \"add-rate-limit\" --json before writing that artifact."
+    "Run specagile instructions design --change \"add-rate-limit\" --json before writing that artifact."
   ],
   "artifacts": [
     {
@@ -1308,14 +1308,14 @@ If one change can't load, the batch continues. Its entry contains `changeName` a
 - `0`: every requested status printed; an empty `--all` report also exits 0.
 - `1`: a requested change failed to load, `--change` or `--all` is missing, the two flags were combined, the change doesn't exist, or the schema override is unknown.
 
-## openspec instructions
+## specagile instructions
 
 Prints instructions for creating an artifact, applying, or archiving. Your agent runs this during the workflow to fetch the instruction text for its next step.
 
 ```bash
-openspec instructions proposal --change add-rate-limit   # how to write one artifact
-openspec instructions apply --change add-rate-limit      # how to implement the change
-openspec instructions archive --change add-rate-limit    # inputs for archiving
+specagile instructions proposal --change add-rate-limit   # how to write one artifact
+specagile instructions apply --change add-rate-limit      # how to implement the change
+specagile instructions archive --change add-rate-limit    # inputs for archiving
 ```
 
 **Arguments**
@@ -1404,13 +1404,13 @@ Each `tasks` entry carries `id`, `description`, `done`, `sourcePath`, and `line`
 - `0`: instructions printed.
 - `1`: unknown artifact, unknown change, unknown schema, or missing `--change`. Each error lists the valid values.
 
-## openspec templates
+## specagile templates
 
 Prints the resolved template paths for a schema's artifacts.
 
 ```bash
-openspec templates          # default schema: spec-driven
-openspec templates --json   # map of artifact ids to paths
+specagile templates          # default schema: spec-driven
+specagile templates --json   # map of artifact ids to paths
 ```
 
 **Options**
@@ -1464,13 +1464,13 @@ tasks:
 - `0`: paths printed.
 - `1`: unknown schema. The error lists available schemas.
 
-## openspec schemas
+## specagile schemas
 
 Lists available workflow schemas.
 
 ```bash
-openspec schemas          # names, descriptions, artifact order
-openspec schemas --json   # machine-readable, for agent use
+specagile schemas          # names, descriptions, artifact order
+specagile schemas --json   # machine-readable, for agent use
 ```
 
 **Options**
@@ -1512,14 +1512,14 @@ Schemas from your project are labeled `(project)`, and global overrides are labe
 - `0`: schemas listed.
 - `1`: the schema list couldn't be read.
 
-## openspec schema
+## specagile schema
 
 Inspects, forks, or creates a schema (experimental). Every subcommand first prints `Note: Schema commands are experimental and may change.` on stderr.
 
 ```bash
-openspec schema which spec-driven          # where a schema resolves from
-openspec schema fork spec-driven my-flow   # copy a schema into the project
-openspec schema init my-schema             # create a schema from scratch
+specagile schema which spec-driven          # where a schema resolves from
+specagile schema fork spec-driven my-flow   # copy a schema into the project
+specagile schema init my-schema             # create a schema from scratch
 ```
 
 | Subcommand | What it does |
@@ -1537,13 +1537,13 @@ Schemas resolve from three locations. The first match wins:
 | `user` | `~/.local/share/openspec/schemas/` (`XDG_DATA_HOME` and Windows `%LOCALAPPDATA%` respected). |
 | `package` | The schemas shipped with the CLI. `spec-driven` lives here. |
 
-### openspec schema which
+### specagile schema which
 
 Shows which copy of a schema the CLI will use.
 
 ```bash
-openspec schema which spec-driven
-openspec schema which --all        # every schema, grouped by source
+specagile schema which spec-driven
+specagile schema which --all        # every schema, grouped by source
 ```
 
 **Arguments**
@@ -1580,13 +1580,13 @@ When a higher-priority copy hides another, a `Shadows:` section lists the hidden
 
 An unknown name exits 1 and lists the available schemas.
 
-### openspec schema validate
+### specagile schema validate
 
 Checks a schema's structure and templates.
 
 ```bash
-openspec schema validate spec-driven   # one schema, from any source
-openspec schema validate               # every project-local schema
+specagile schema validate spec-driven   # one schema, from any source
+specagile schema validate               # every project-local schema
 ```
 
 It verifies that `schema.yaml` exists and parses, that the structure matches the schema format, that every artifact's template file exists inside the schema's `templates/` directory, and that the dependency graph has no cycles or unknown references, including in `apply.requires`. An `apply.tracks` value that isn't exactly equal to some artifact's `generates` value prints a `warning:` line but does not fail validation, because OpenSpec then can't tell which artifact's progress that file belongs to.
@@ -1611,12 +1611,12 @@ With no name, each project schema gets one line under a `Validation Results:` he
   error: Template file 'tasks.md' not found for artifact 'tasks'
 ```
 
-### openspec schema fork
+### specagile schema fork
 
 Copies an existing schema into the project so you can customize it.
 
 ```bash
-openspec schema fork spec-driven my-flow
+specagile schema fork spec-driven my-flow
 ```
 
 **Arguments**
@@ -1656,12 +1656,12 @@ openspec/schemas/my-flow/
 
 An existing destination is an error unless you pass `--force`. A fork that keeps the source's name shadows the original.
 
-### openspec schema init
+### specagile schema init
 
 Creates a new project-local schema with starter templates.
 
 ```bash
-openspec schema init my-schema --description "Lightweight flow" --artifacts proposal,tasks
+specagile schema init my-schema --description "Lightweight flow" --artifacts proposal,tasks
 ```
 
 With no `--description` and no `--artifacts` in an interactive terminal, init prompts for a description, an artifact checklist, and whether to make the schema the project default. Outside a terminal it uses the defaults below.
@@ -1705,19 +1705,19 @@ openspec/schemas/my-schema/
     └── tasks.md
 ```
 
-`schema.yaml` wires the selected artifacts with their dependencies. When `tasks` is included it also gets an `apply` phase that tracks `tasks.md`. Use the schema with `openspec new --schema my-schema`.
+`schema.yaml` wires the selected artifacts with their dependencies. When `tasks` is included it also gets an `apply` phase that tracks `tasks.md`. Use the schema with `specagile new --schema my-schema`.
 
-## openspec store
+## specagile store
 
 Creates and manages stores: standalone OpenSpec repos registered on your machine.
 
 ```bash
-openspec store setup team-context --path ~/openspec/team-context   # create and register
-openspec store register ~/stores/design-system                     # register an existing checkout
-openspec store list                                                # see what's registered
+specagile store setup team-context --path ~/openspec/team-context   # create and register
+specagile store register ~/stores/design-system                     # register an existing checkout
+specagile store list                                                # see what's registered
 ```
 
-Registrations live in a per-machine registry: `~/.local/share/openspec/stores/registry.yaml`, or `$XDG_DATA_HOME/openspec/stores/registry.yaml` when `XDG_DATA_HOME` is set. Every subcommand takes `--json` to print a structured report instead of text. Running `openspec store` with a missing or unknown subcommand exits 1 and lists the subcommands.
+Registrations live in a per-machine registry: `~/.local/share/openspec/stores/registry.yaml`, or `$XDG_DATA_HOME/openspec/stores/registry.yaml` when `XDG_DATA_HOME` is set. Every subcommand takes `--json` to print a structured report instead of text. Running `specagile store` with a missing or unknown subcommand exits 1 and lists the subcommands.
 
 | Subcommand | What it does |
 |---|---|
@@ -1728,12 +1728,12 @@ Registrations live in a per-machine registry: `~/.local/share/openspec/stores/re
 | `list` (alias `ls`) | List registered stores. |
 | `doctor [id]` | Check registration, metadata, and Git state for registered stores. |
 
-### openspec store setup
+### specagile store setup
 
 Creates a store folder and registers it.
 
 ```bash
-openspec store setup team-context --path ~/openspec/team-context
+specagile store setup team-context --path ~/openspec/team-context
 ```
 
 In an interactive terminal, setup prompts for a missing name and location and confirms before creating anything. Outside one, a missing name or `--path` exits 1 with the flag to pass. Rerunning setup for a registered store reports `Registry: already registered`.
@@ -1764,7 +1764,7 @@ OpenSpec root: ready
 Registry: registered
 
 Next: run normal OpenSpec commands against this store, for example:
-  openspec new change <change-id> --store team-context
+  specagile new change <change-id> --store team-context
 Share this store by committing and pushing it like any Git repo.
 ```
 
@@ -1801,12 +1801,12 @@ Share this store by committing and pushing it like any Git repo.
 }
 ```
 
-### openspec store register
+### specagile store register
 
 Registers an existing store folder, for example a teammate's store you cloned.
 
 ```bash
-openspec store register ~/stores/design-system
+specagile store register ~/stores/design-system
 ```
 
 The folder must contain a healthy `openspec/` root. With `.openspec-store/store.yaml` present, register reuses the recorded id. Without it, register asks before creating that metadata. Outside an interactive terminal, pass `--yes` instead. A machine can register one checkout per store id. A second path under the same id, or the same path under a second id, exits 1.
@@ -1835,12 +1835,12 @@ Registry: registered
 
 `--json` prints the same document shape as `store setup --json`.
 
-### openspec store unregister
+### specagile store unregister
 
 Forgets the registration. The folder stays on disk.
 
 ```bash
-openspec store unregister design-system
+specagile store unregister design-system
 ```
 
 ```
@@ -1848,22 +1848,22 @@ Unregistered store: design-system
 Files kept at: /Users/you/stores/design-system
 ```
 
-### openspec store remove
+### specagile store remove
 
 Forgets the registration and deletes the folder.
 
 ```bash
-openspec store remove design-system --yes
+specagile store remove design-system --yes
 ```
 
 Interactively, remove asks before deleting. With `--json` or outside an interactive terminal, deletion requires `--yes`:
 
 ```
 Error: Pass --yes to delete store files non-interactively.
-Fix: openspec store remove design-system --yes
+Fix: specagile store remove design-system --yes
 ```
 
-Remove exits 1 and deletes nothing when the folder lacks matching store metadata, or when it contains another registered store (for example a store vendored as a Git submodule). In that case the error is `store_remove_contains_registered_store`: run `openspec store unregister <nested-id>` first, or `openspec store unregister <id>` to forget the store without deleting files.
+Remove exits 1 and deletes nothing when the folder lacks matching store metadata, or when it contains another registered store (for example a store vendored as a Git submodule). In that case the error is `store_remove_contains_registered_store`: run `specagile store unregister <nested-id>` first, or `specagile store unregister <id>` to forget the store without deleting files.
 
 **Options**
 
@@ -1878,12 +1878,12 @@ Removed store: design-system
 Deleted: /Users/you/stores/design-system
 ```
 
-### openspec store list
+### specagile store list
 
 Lists registered stores. `ls` is an alias.
 
 ```bash
-openspec store list
+specagile store list
 ```
 
 ```
@@ -1896,13 +1896,13 @@ team-context    /Users/you/stores/team-context
 
 With nothing registered, list prints `No stores registered.` and the setup and register commands to run next.
 
-### openspec store doctor
+### specagile store doctor
 
 Checks registration, metadata, and Git state for registered stores.
 
 ```bash
-openspec store doctor                # every registered store
-openspec store doctor team-context  # one store
+specagile store doctor                # every registered store
+specagile store doctor team-context  # one store
 ```
 
 **Output**
@@ -1923,13 +1923,13 @@ team-context
 - `0`: the report printed, even when a store reports issues.
 - `1`: the report couldn't run (for example an unknown store id).
 
-## openspec doctor
+## specagile doctor
 
 Reports relationship health for the resolved OpenSpec root.
 
 ```bash
-openspec doctor                       # nearest openspec/ root above your cwd
-openspec doctor --store team-context  # a registered store as the root
+specagile doctor                       # nearest openspec/ root above your cwd
+specagile doctor --store team-context  # a registered store as the root
 ```
 
 Doctor is read-only: it never clones, syncs, or repairs. It reports whether the root is healthy and whether each reference declared in `openspec/config.yaml` resolves on this machine. With no root above your cwd and no `--store`, it exits 1 and names your registered stores.
@@ -1994,14 +1994,14 @@ References
 - `0`: the report printed, including when it lists issues.
 - `1`: no root resolved (no `openspec/` above your cwd and no `--store`), or an unknown `--store` id.
 
-## openspec context
+## specagile context
 
 Prints the working context for the resolved OpenSpec root: the root plus every referenced store declared in `openspec/config.yaml`, each with a fetch command.
 
 ```bash
-openspec context                       # nearest openspec/ root above your cwd
-openspec context --store team-context  # a registered store as the root
-openspec context --json                # agent brief
+specagile context                       # nearest openspec/ root above your cwd
+specagile context --store team-context  # a registered store as the root
+specagile context --json                # agent brief
 ```
 
 References that don't resolve on this machine land in a `Not available on this machine` section, each with a fix.
@@ -2025,7 +2025,7 @@ OpenSpec root
 
 Referenced stores
   team-context  /Users/you/stores/team-context
-    Fetch: openspec show <spec-id> --type spec --store team-context
+    Fetch: specagile show <spec-id> --type spec --store team-context
 ```
 
 With `--store`, the store is the whole set:
@@ -2052,7 +2052,7 @@ No references declared; the working set is this root alone.
       "role": "referenced_store",
       "id": "team-context",
       "path": "/Users/you/stores/team-context",
-      "fetch": "openspec show <spec-id> --type spec --store team-context",
+      "fetch": "specagile show <spec-id> --type spec --store team-context",
       "status": []
     }
   ],
@@ -2084,14 +2084,14 @@ No references declared; the working set is this root alone.
 - `0`: the report printed.
 - `1`: no root resolved (no `openspec/` above your cwd and no `--store`), or the `--code-workspace` write was refused.
 
-## openspec workset
+## specagile workset
 
 Composes, keeps, and opens personal working views. A workset is a saved, named list of folders you work across together.
 
 ```bash
-openspec workset create checkout --member ~/projects/checkout-api --member web=~/projects/checkout-web
-openspec workset list
-openspec workset remove checkout --yes
+specagile workset create checkout --member ~/projects/checkout-api --member web=~/projects/checkout-web
+specagile workset list
+specagile workset remove checkout --yes
 ```
 
 | Subcommand | What it does |
@@ -2107,12 +2107,12 @@ A workset is purely local:
 - Nothing is written into the member folders, and nothing is committed or shared.
 - Deleting that one folder removes every trace.
 
-### openspec workset create
+### specagile workset create
 
 Saves a named working view of folders.
 
 ```bash
-openspec workset create checkout \
+specagile workset create checkout \
   --member ~/projects/checkout-api \
   --member web=~/projects/checkout-web
 ```
@@ -2137,15 +2137,15 @@ In an interactive terminal, create prompts for whatever the flags didn't provide
 
 ```
 Saved workset 'checkout' (2 members) to your machine.
-Open it any time with: openspec workset open checkout
+Open it any time with: specagile workset open checkout
 ```
 
-### openspec workset list
+### specagile workset list
 
 Shows saved worksets with their members, sorted by name.
 
 ```bash
-openspec workset list   # alias: ls
+specagile workset list   # alias: ls
 ```
 
 **Options**
@@ -2156,7 +2156,7 @@ openspec workset list   # alias: ls
 
 **Output**
 
-One block per workset: the name, its tool when it has one, then one `name  path` row per member. With nothing saved, list prints `No worksets saved. Create one with: openspec workset create`.
+One block per workset: the name, its tool when it has one, then one `name  path` row per member. With nothing saved, list prints `No worksets saved. Create one with: specagile workset create`.
 
 ```
 checkout
@@ -2189,13 +2189,13 @@ With `--json`:
 }
 ```
 
-### openspec workset open
+### specagile workset open
 
 Opens a saved workset in your tool. Editor tools (`code`, `cursor`) get a generated `.code-workspace` file. A window opens and the command returns. CLI agent tools (`claude`, `codex`) would take over this terminal with every member attached. They are temporarily disabled while that flow is reworked, so worksets open in an IDE for now.
 
 ```bash
-openspec workset open checkout                # saved tool, or a prompt
-openspec workset open checkout --tool cursor  # this tool just this once
+specagile workset open checkout                # saved tool, or a prompt
+specagile workset open checkout --tool cursor  # this tool just this once
 ```
 
 **Arguments**
@@ -2221,12 +2221,12 @@ With no `--tool` and no saved tool, open prompts you to pick an installed tool. 
 - Mirrors the tool: the command exits with the tool's own exit code, and a signal becomes `128+n` (`130` after Ctrl-C).
 - `1`: unknown workset, no member folder available, or no usable tool.
 
-### openspec workset remove
+### specagile workset remove
 
 Deletes a saved workset and its generated `.code-workspace` file. Member folders are never touched.
 
 ```bash
-openspec workset remove checkout --yes
+specagile workset remove checkout --yes
 ```
 
 In an interactive terminal, remove shows the workset and asks you to confirm. With `--json`, or outside a terminal, it requires `--yes` and exits 1 without it.
@@ -2244,18 +2244,18 @@ In an interactive terminal, remove shows the workset and asks you to confirm. Wi
 Removed workset 'checkout'. Member folders were not touched.
 ```
 
-## openspec version
+## specagile version
 
 Reports the running OpenSpec version and how this copy was installed.
 
 ```bash
-openspec version                 # local version and install details
-openspec version --json          # structured local report
-openspec version --check         # also check for an update
-openspec version --check --json  # structured local and update report
+specagile version                 # local version and install details
+specagile version --json          # structured local report
+specagile version --check         # also check for an update
+specagile version --check --json  # structured local and update report
 ```
 
-Without `--check`, this command is local and makes no network request. It works outside an OpenSpec project. The existing `openspec --version` flag remains the shortest form and prints only the bare version number.
+Without `--check`, this command is local and makes no network request. It works outside an OpenSpec project. The existing `specagile --version` flag remains the shortest form and prints only the bare version number.
 
 **Options**
 
@@ -2323,22 +2323,22 @@ Update status values:
 | `disabled` | `OPENSPEC_NO_UPDATE_CHECK` is set, or (npm installs only) a registry override was rejected. `latest` is `null`. |
 | `offline` | The registry or GitHub was unavailable, refused the request (for example a rate limit), or returned an unusable response. `latest` is `null`. |
 
-For the standalone install, the update command is `openspec install`, and the check matches what that command can get: the newest stable release on GitHub that has its `SHA256SUMS` attached. A release published minutes ago whose files are not attached yet is not offered. npm registry settings do not apply to this check.
+For the standalone install, the update command is `specagile install`, and the check matches what that command can get: the newest stable release on GitHub that has its `SHA256SUMS` attached. A release published minutes ago whose files are not attached yet is not offered. npm registry settings do not apply to this check.
 
-Because `--check` is an explicit request, it runs even when telemetry is off (`DO_NOT_TRACK`, `OPENSPEC_TELEMETRY=0`, `telemetry.enabled: false`) and in CI. It is turned off only by `OPENSPEC_NO_UPDATE_CHECK`, or, for npm installs, by a rejected non-HTTPS registry override. The background check in `openspec update` still stays off for all of these. Disabled and offline checks still exit 0 because update availability is advisory. This command never upgrades OpenSpec; `canSelfUpgrade` only reports whether the existing `openspec update` path could safely upgrade this copy.
+Because `--check` is an explicit request, it runs even when telemetry is off (`DO_NOT_TRACK`, `OPENSPEC_TELEMETRY=0`, `telemetry.enabled: false`) and in CI. It is turned off only by `OPENSPEC_NO_UPDATE_CHECK`, or, for npm installs, by a rejected non-HTTPS registry override. The background check in `specagile update` still stays off for all of these. Disabled and offline checks still exit 0 because update availability is advisory. This command never upgrades OpenSpec; `canSelfUpgrade` only reports whether the existing `specagile update` path could safely upgrade this copy.
 
 **Exit codes**
 
 - `0`: the local report printed, including disabled or offline update checks.
 - `1`: command syntax was invalid, such as the unsupported `--upgrade` option.
 
-## openspec install
+## specagile install
 
 Installs the standalone `openspec`. Run it from an npm or Homebrew install to switch, or from the standalone install to upgrade it in place.
 
 ```bash
-openspec install          # newest release
-openspec install 1.15.0   # a specific release
+specagile install          # newest release
+specagile install 1.15.0   # a specific release
 ```
 
 It runs the [install script](../start/installation.md#install), which picks the newest release whose files are all attached and the file for your machine, and checks it against that release's `SHA256SUMS`:
@@ -2361,13 +2361,13 @@ Afterwards it says which copy `openspec` now runs, since a package-manager copy 
 - `0`: installed.
 - `1`: the version isn't a release version, or the download or install failed. Your current copy is left as it was.
 
-## openspec feedback
+## specagile feedback
 
 Submits feedback about OpenSpec.
 
 ```bash
-openspec feedback "Validate output is hard to scan"
-openspec feedback "Archive fails on Windows" --body "Steps: init, propose, archive. Error: EPERM."
+specagile feedback "Validate output is hard to scan"
+specagile feedback "Archive fails on Windows" --body "Steps: init, propose, archive. Error: EPERM."
 ```
 
 The CLI files your message as a GitHub issue on the `Fission-AI/OpenSpec` repo through your `gh` CLI. The title becomes `Feedback: <message>`. The body uses the bug form's headings: your message under `What happened`, your `--body` text under `Details`, and a `Minimal steps to reproduce` section asking you to add the steps, since the CLI can't fill those in. A footer adds CLI version, platform, and timestamp. The issue gets the `feedback` label. If the repo doesn't define that label, the CLI retries without it and says so.
@@ -2401,13 +2401,13 @@ Without `gh` installed, or with `gh` not logged in, nothing is submitted. The CL
 - `1`: no message given.
 - `gh`'s own code: `gh` failed after authentication (network, rate limit, issues disabled). The CLI reprints your feedback and the manual-submission URL first.
 
-## openspec completion
+## specagile completion
 
 Installs or generates shell completions.
 
 ```bash
-openspec completion install        # detect your shell, install, wire up config
-openspec completion generate zsh   # print the script to stdout
+specagile completion install        # detect your shell, install, wire up config
+specagile completion generate zsh   # print the script to stdout
 ```
 
 Supported shells: `zsh`, `bash`, `fish`, `powershell`. Every subcommand takes an optional shell argument. Omit it and the CLI detects your shell from the environment.
@@ -2420,12 +2420,12 @@ Supported shells: `zsh`, `bash`, `fish`, `powershell`. Every subcommand takes an
 
 Installed with Nix, completions are already in place: the flake package ships the Bash, Fish, and Zsh scripts at the standard locations, so `install` is not needed ([Installation](../start/installation.md#nix)).
 
-### openspec completion generate
+### specagile completion generate
 
 Prints the script and writes nothing.
 
 ```
-#compdef openspec
+#compdef specagile
 
 # Zsh completion script for OpenSpec CLI
 # Auto-generated - do not edit manually
@@ -2436,18 +2436,18 @@ _openspec() {
 ...
 ```
 
-### openspec completion install
+### specagile completion install
 
-Writes the script and edits your shell config. Config edits sit between `# OPENSPEC:START` and `# OPENSPEC:END` markers. An existing script is backed up first (`.backup-<timestamp>` copy).
+Writes the script and edits your shell config. Config edits sit between `# SPECAGILE:START` and `# SPECAGILE:END` markers. An existing script is backed up first (`.backup-<timestamp>` copy).
 
 | Shell | Script location | Config edited |
 |---|---|---|
-| zsh | `~/.zsh/completions/_openspec` | `$ZDOTDIR/.zshrc` when `ZDOTDIR` is an absolute path, otherwise `~/.zshrc` |
-| bash | `~/.local/share/bash-completion/completions/openspec` | `~/.bashrc` |
-| fish | `~/.config/fish/completions/openspec.fish` | None: fish auto-loads it. |
-| powershell | `OpenSpecCompletion.ps1` beside your profile | `$PROFILE` |
+| zsh | `~/.zsh/completions/_specagile` | `$ZDOTDIR/.zshrc` when `ZDOTDIR` is an absolute path, otherwise `~/.zshrc` |
+| bash | `~/.local/share/bash-completion/completions/specagile` | `~/.bashrc` |
+| fish | `~/.config/fish/completions/specagile.fish` | None: fish auto-loads it. |
+| powershell | `SpecAgileCompletion.ps1` beside your profile | `$PROFILE` |
 
-With Oh My Zsh installed, the script lands in `$ZSH_CUSTOM/completions/_openspec` instead (default `~/.oh-my-zsh/custom/completions/_openspec`).
+With Oh My Zsh installed, the script lands in `$ZSH_CUSTOM/completions/_specagile` instead (default `~/.oh-my-zsh/custom/completions/_specagile`).
 
 A relative or `~`-prefixed `ZDOTDIR` is ignored, and `~/.zshrc` is edited instead. Running install again when the script is already current still adds the block to the `.zshrc` zsh reads.
 
@@ -2465,7 +2465,7 @@ A relative or `~`-prefixed `ZDOTDIR` is ignored, and `~/.zshrc` is edited instea
 Restart your shell or run: exec zsh
 ```
 
-### openspec completion uninstall
+### specagile completion uninstall
 
 Removes the script and the marked config block. It asks before touching your config (default: No).
 
@@ -2480,7 +2480,7 @@ For zsh, it cleans the `.zshrc` that install edits, and also `~/.zshrc` when an 
 **Output**
 
 ```
-✓ Completion script removed from /Users/you/.zsh/completions/_openspec. Removed OpenSpec configuration from ~/.zshrc
+✓ Completion script removed from /Users/you/.zsh/completions/_specagile. Removed OpenSpec configuration from ~/.zshrc
 ```
 
 **Exit codes**
@@ -2488,37 +2488,37 @@ For zsh, it cleans the `.zshrc` that install edits, and also `~/.zshrc` when an 
 - `0`: script generated, installed, or removed. A cancelled uninstall also exits 0.
 - `1`: shell not supported or not detected, or an install or uninstall step failed.
 
-## openspec change
+## specagile change
 
 Deprecated noun form of `show`, `list`, and `validate`. Every run warns and points to the verb-first commands, then runs anyway:
 
 ```
-Warning: The "openspec change ..." commands are deprecated. Prefer verb-first commands (e.g., "openspec list", "openspec validate --changes").
-Warning: "openspec change list" is deprecated. Use "openspec list".
+Warning: The "specagile change ..." commands are deprecated. Prefer verb-first commands (e.g., "specagile list", "specagile validate --changes").
+Warning: "specagile change list" is deprecated. Use "specagile list".
 add-rate-limit
 ```
 
 | Deprecated | Use instead |
 |---|---|
-| `openspec change show <name>` | `openspec show <name>` |
-| `openspec change list` | `openspec list` |
-| `openspec change validate <name>` | `openspec validate <name>` (all changes: `openspec validate --changes`) |
+| `specagile change show <name>` | `specagile show <name>` |
+| `specagile change list` | `specagile list` |
+| `specagile change validate <name>` | `specagile validate <name>` (all changes: `specagile validate --changes`) |
 
 The verb-first sections document the flags.
 
-## openspec spec
+## specagile spec
 
 Deprecated noun form of `show`, `list`, and `validate`. Every run warns and points to the verb-first commands, then runs anyway:
 
 ```
-Warning: The "openspec spec ..." commands are deprecated. Prefer verb-first commands (e.g., "openspec show", "openspec validate --specs").
+Warning: The "specagile spec ..." commands are deprecated. Prefer verb-first commands (e.g., "specagile show", "specagile validate --specs").
 api
 ```
 
 | Deprecated | Use instead |
 |---|---|
-| `openspec spec show <id>` | `openspec show <id>` |
-| `openspec spec list` | `openspec list --specs` |
-| `openspec spec validate <id>` | `openspec validate <id>` (all specs: `openspec validate --specs`) |
+| `specagile spec show <id>` | `specagile show <id>` |
+| `specagile spec list` | `specagile list --specs` |
+| `specagile spec validate <id>` | `specagile validate <id>` (all specs: `specagile validate --specs`) |
 
 The verb-first sections document the flags.

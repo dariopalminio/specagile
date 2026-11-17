@@ -80,13 +80,13 @@ describe('PowerShellInstaller', () => {
       });
 
       const result = installer.getInstallationPath();
-      expect(result).toBe(path.join(testHomeDir, '.config', 'powershell', 'OpenSpecCompletion.ps1'));
+      expect(result).toBe(path.join(testHomeDir, '.config', 'powershell', 'SpecAgileCompletion.ps1'));
     });
 
     it('should work with custom PROFILE environment variable', () => {
       process.env.PROFILE = path.join(testHomeDir, 'custom', 'profile.ps1');
       const result = installer.getInstallationPath();
-      expect(result).toBe(path.join(testHomeDir, 'custom', 'OpenSpecCompletion.ps1'));
+      expect(result).toBe(path.join(testHomeDir, 'custom', 'SpecAgileCompletion.ps1'));
     });
 
     it('should return Windows path when on Windows platform', () => {
@@ -96,7 +96,7 @@ describe('PowerShellInstaller', () => {
       });
 
       const result = installer.getInstallationPath();
-      expect(result).toBe(path.join(testHomeDir, 'Documents', 'PowerShell', 'OpenSpecCompletion.ps1'));
+      expect(result).toBe(path.join(testHomeDir, 'Documents', 'PowerShell', 'SpecAgileCompletion.ps1'));
     });
   });
 
@@ -142,7 +142,7 @@ describe('PowerShellInstaller', () => {
   });
 
   describe('configureProfile', () => {
-    const mockScriptPath = '/path/to/OpenSpecCompletion.ps1';
+    const mockScriptPath = '/path/to/SpecAgileCompletion.ps1';
 
     // Note: OPENSPEC_NO_AUTO_CONFIG check is now handled in the install() method,
     // not in configureProfile() itself
@@ -155,8 +155,8 @@ describe('PowerShellInstaller', () => {
 
       expect(result).toBe(true);
       const content = await fs.readFile(profilePath, 'utf-8');
-      expect(content).toContain('# OPENSPEC:START');
-      expect(content).toContain('# OPENSPEC:END');
+      expect(content).toContain('# SPECAGILE:START');
+      expect(content).toContain('# SPECAGILE:END');
       expect(content).toContain(`. "${mockScriptPath}"`);
     });
 
@@ -170,8 +170,8 @@ describe('PowerShellInstaller', () => {
 
       expect(result).toBe(true);
       const content = await fs.readFile(profilePath, 'utf-8');
-      expect(content).toContain('# OPENSPEC:START');
-      expect(content).toContain('# OPENSPEC:END');
+      expect(content).toContain('# SPECAGILE:START');
+      expect(content).toContain('# SPECAGILE:END');
       expect(content).toContain(mockScriptPath);
       expect(content).toContain('# My custom PowerShell config');
       expect(content).toContain('Write-Host "Hello"');
@@ -185,9 +185,9 @@ describe('PowerShellInstaller', () => {
       await fs.mkdir(path.dirname(profilePath), { recursive: true });
 
       const initialContent = [
-        '# OPENSPEC:START - OpenSpec completion (managed block, do not edit manually)',
+        '# SPECAGILE:START - SpecAgile completion (managed block, do not edit manually)',
         `. "${mockScriptPath}"`,
-        '# OPENSPEC:END',
+        '# SPECAGILE:END',
         '',
         '# My custom config',
         'Write-Host "Custom"',
@@ -213,9 +213,9 @@ describe('PowerShellInstaller', () => {
         '# User config before',
         'Set-Variable -Name "test" -Value "before"',
         '',
-        '# OPENSPEC:START',
+        '# SPECAGILE:START',
         '# Old config',
-        '# OPENSPEC:END',
+        '# SPECAGILE:END',
         '',
         '# User config after',
         'Set-Variable -Name "test" -Value "after"',
@@ -240,9 +240,9 @@ describe('PowerShellInstaller', () => {
       await installer.configureProfile(mockScriptPath);
 
       const content = await fs.readFile(profilePath, 'utf-8');
-      expect(content).toContain('# OPENSPEC:START');
+      expect(content).toContain('# SPECAGILE:START');
       expect(content).toContain(`. "${mockScriptPath}"`);
-      expect(content).toContain('# OPENSPEC:END');
+      expect(content).toContain('# SPECAGILE:END');
     });
 
     // Skip on Windows: fs.chmod() doesn't reliably restrict write access on Windows
@@ -310,12 +310,12 @@ describe('PowerShellInstaller', () => {
       await fs.mkdir(path.dirname(profilePath), { recursive: true });
 
       const initialContent = [
-        '# OPENSPEC:START',
+        '# SPECAGILE:START',
         '# OpenSpec completions',
         'if (Test-Path "/path") {',
         '    . "/path"',
         '}',
-        '# OPENSPEC:END',
+        '# SPECAGILE:END',
         '',
         '# My config',
       ].join('\n');
@@ -326,8 +326,8 @@ describe('PowerShellInstaller', () => {
 
       expect(result).toBe(true);
       const content = await fs.readFile(profilePath, 'utf-8');
-      expect(content).not.toContain('# OPENSPEC:START');
-      expect(content).not.toContain('# OPENSPEC:END');
+      expect(content).not.toContain('# SPECAGILE:START');
+      expect(content).not.toContain('# SPECAGILE:END');
       expect(content).not.toContain('# OpenSpec completions');
       expect(content).toContain('# My config');
     });
@@ -338,9 +338,9 @@ describe('PowerShellInstaller', () => {
 
       const initialContent = [
         '# User config',
-        '# OPENSPEC:START',
+        '# SPECAGILE:START',
         '# Config',
-        '# OPENSPEC:END',
+        '# SPECAGILE:END',
         '',
         '',
       ].join('\n');
@@ -360,9 +360,9 @@ describe('PowerShellInstaller', () => {
 
       const initialContent = [
         '# Before',
-        '# OPENSPEC:START',
+        '# SPECAGILE:START',
         '# OpenSpec',
-        '# OPENSPEC:END',
+        '# SPECAGILE:END',
         '# After',
       ].join('\n');
 
@@ -381,9 +381,9 @@ describe('PowerShellInstaller', () => {
       await fs.mkdir(path.dirname(profilePath), { recursive: true });
 
       const initialContent = [
-        '# OPENSPEC:END',
+        '# SPECAGILE:END',
         '# Config',
-        '# OPENSPEC:START',
+        '# SPECAGILE:START',
       ].join('\n');
 
       await fs.writeFile(profilePath, initialContent);
@@ -400,7 +400,7 @@ $openspecCompleter = {
     param($wordToComplete, $commandAst, $cursorPosition)
     # Completion logic here
 }
-Register-ArgumentCompleter -CommandName openspec -ScriptBlock $openspecCompleter
+Register-ArgumentCompleter -CommandName specagile -ScriptBlock $openspecCompleter
 `;
 
     it('should install completion script for the first time', async () => {
@@ -409,7 +409,7 @@ Register-ArgumentCompleter -CommandName openspec -ScriptBlock $openspecCompleter
 
       expect(result.success).toBe(true);
       expect(result.message).toContain('installed');
-      expect(result.installedPath).toContain('OpenSpecCompletion.ps1');
+      expect(result.installedPath).toContain('SpecAgileCompletion.ps1');
       expect(result.backupPath).toBeUndefined();
     });
 
@@ -572,7 +572,7 @@ Register-ArgumentCompleter -CommandName openspec -ScriptBlock $openspecCompleter
   });
 
   describe('encoding preservation', () => {
-    const mockScriptPath = '/path/to/OpenSpecCompletion.ps1';
+    const mockScriptPath = '/path/to/SpecAgileCompletion.ps1';
     const utf16leBom = Buffer.from([0xff, 0xfe]);
     const utf8Bom = Buffer.from([0xef, 0xbb, 0xbf]);
 
@@ -611,9 +611,9 @@ Register-ArgumentCompleter -CommandName openspec -ScriptBlock $openspecCompleter
       // Decode and verify content is intact
       const content = raw.subarray(2).toString('utf16le');
       expect(content).toContain('. "C:\\Code\\SystemConfig\\Powershell\\profile.ps1"');
-      expect(content).toContain('# OPENSPEC:START');
+      expect(content).toContain('# SPECAGILE:START');
       expect(content).toContain(`. "${mockScriptPath}"`);
-      expect(content).toContain('# OPENSPEC:END');
+      expect(content).toContain('# SPECAGILE:END');
     });
 
     it('should preserve UTF-16 LE BOM when removing profile config', async () => {
@@ -623,9 +623,9 @@ Register-ArgumentCompleter -CommandName openspec -ScriptBlock $openspecCompleter
 
       const textWithBlock = [
         '. "C:\\Code\\profile.ps1"',
-        '# OPENSPEC:START',
-        '. "/path/to/OpenSpecCompletion.ps1"',
-        '# OPENSPEC:END',
+        '# SPECAGILE:START',
+        '. "/path/to/SpecAgileCompletion.ps1"',
+        '# SPECAGILE:END',
         '',
       ].join('\n');
       await writeUtf16LeFile(profilePath, textWithBlock);
@@ -641,8 +641,8 @@ Register-ArgumentCompleter -CommandName openspec -ScriptBlock $openspecCompleter
       // Verify content: original line kept, OpenSpec block removed
       const content = raw.subarray(2).toString('utf16le');
       expect(content).toContain('. "C:\\Code\\profile.ps1"');
-      expect(content).not.toContain('# OPENSPEC:START');
-      expect(content).not.toContain('# OPENSPEC:END');
+      expect(content).not.toContain('# SPECAGILE:START');
+      expect(content).not.toContain('# SPECAGILE:END');
     });
 
     it('should preserve UTF-8 BOM when configuring profile', async () => {
@@ -662,7 +662,7 @@ Register-ArgumentCompleter -CommandName openspec -ScriptBlock $openspecCompleter
 
       const content = raw.subarray(3).toString('utf-8');
       expect(content).toContain('# My profile');
-      expect(content).toContain('# OPENSPEC:START');
+      expect(content).toContain('# SPECAGILE:START');
     });
 
     it('should skip UTF-16 BE profile and leave it unchanged', async () => {
@@ -703,7 +703,7 @@ Register-ArgumentCompleter -CommandName openspec -ScriptBlock $openspecCompleter
 
       const content = raw.toString('utf-8');
       expect(content).toContain('# Plain UTF-8');
-      expect(content).toContain('# OPENSPEC:START');
+      expect(content).toContain('# SPECAGILE:START');
     });
 
     it('should round-trip UTF-16 LE through install → uninstall without corruption', async () => {
@@ -723,7 +723,7 @@ Register-ArgumentCompleter -CommandName openspec -ScriptBlock $openspecCompleter
       expect(raw[0]).toBe(0xff);
       expect(raw[1]).toBe(0xfe);
       let content = raw.subarray(2).toString('utf16le');
-      expect(content).toContain('# OPENSPEC:START');
+      expect(content).toContain('# SPECAGILE:START');
       expect(content).toContain(originalText.trimEnd());
 
       // Uninstall removes the OpenSpec block
@@ -733,7 +733,7 @@ Register-ArgumentCompleter -CommandName openspec -ScriptBlock $openspecCompleter
       expect(raw[0]).toBe(0xff);
       expect(raw[1]).toBe(0xfe);
       content = raw.subarray(2).toString('utf16le');
-      expect(content).not.toContain('# OPENSPEC:START');
+      expect(content).not.toContain('# SPECAGILE:START');
       expect(content).toContain('. "C:\\Code\\SystemConfig\\Powershell\\profile.ps1"');
     });
   });
@@ -741,7 +741,7 @@ Register-ArgumentCompleter -CommandName openspec -ScriptBlock $openspecCompleter
   describe('uninstall', () => {
     const mockCompletionScript = `# PowerShell completion script
 $openspecCompleter = {}
-Register-ArgumentCompleter -CommandName openspec -ScriptBlock $openspecCompleter
+Register-ArgumentCompleter -CommandName specagile -ScriptBlock $openspecCompleter
 `;
 
     it('should successfully uninstall when completion script exists', async () => {
@@ -773,8 +773,8 @@ Register-ArgumentCompleter -CommandName openspec -ScriptBlock $openspecCompleter
       await installer.uninstall();
 
       const content = await fs.readFile(profilePath, 'utf-8');
-      expect(content).not.toContain('# OPENSPEC:START');
-      expect(content).not.toContain('# OPENSPEC:END');
+      expect(content).not.toContain('# SPECAGILE:START');
+      expect(content).not.toContain('# SPECAGILE:END');
     });
 
     it('should return failure when completion script is not installed', async () => {
@@ -825,7 +825,7 @@ Register-ArgumentCompleter -CommandName openspec -ScriptBlock $openspecCompleter
       const scriptExists = await fs.access(targetPath).then(() => true).catch(() => false);
       const profileContent = await fs.readFile(profilePath, 'utf-8');
       expect(scriptExists).toBe(true);
-      expect(profileContent).toContain('# OPENSPEC:START');
+      expect(profileContent).toContain('# SPECAGILE:START');
 
       await installer.uninstall();
 
@@ -833,7 +833,7 @@ Register-ArgumentCompleter -CommandName openspec -ScriptBlock $openspecCompleter
       const scriptExistsAfter = await fs.access(targetPath).then(() => true).catch(() => false);
       const profileContentAfter = await fs.readFile(profilePath, 'utf-8');
       expect(scriptExistsAfter).toBe(false);
-      expect(profileContentAfter).not.toContain('# OPENSPEC:START');
+      expect(profileContentAfter).not.toContain('# SPECAGILE:START');
     });
 
     // Skip on Windows: fs.chmod() on directories doesn't restrict write access on Windows

@@ -213,10 +213,10 @@ describe('status --all', () => {
     // The point of the batch view is one screen saying what each change needs
     // next - a single shared line, or a line for only one change, would not.
     expect(result.stdout).toContain(
-      'Next: openspec instructions specs --change "first-change" --json'
+      'Next: specagile instructions specs --change "first-change" --json'
     );
     expect(result.stdout).toContain(
-      'Next: openspec instructions specs --change "second-change" --json'
+      'Next: specagile instructions specs --change "second-change" --json'
     );
   });
 
@@ -230,7 +230,7 @@ describe('status --all', () => {
     // A failed entry has no artifact statuses to reason about, so it must not
     // be given a next step alongside its diagnostic.
     expect(getOutput(result)).toContain('✗ broken-change');
-    expect(result.stdout).toContain('Next: openspec instructions specs --change "good-change"');
+    expect(result.stdout).toContain('Next: specagile instructions specs --change "good-change"');
     expect(result.stdout).not.toContain('--change "broken-change"');
   });
 

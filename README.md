@@ -41,12 +41,15 @@ Our philosophy:
   Follow <a href="https://x.com/0xTab">@0xTab on X</a> for updates · Join the <a href="https://discord.gg/YctCnvvshC">OpenSpec Discord</a> for help and questions.
 </p>
 
-<!-- TODO: Add GIF demo of /openspec-propose → /openspec-archive-change workflow -->
+<!-- TODO: Add GIF demo of /sa-propose → /sa-archive workflow -->
+
+> [!NOTE]
+> **SpecAgile** is a fork of OpenSpec. Its CLI is `specagile` and its skills are named `sa-*` (`/sa-propose`, `/sa-implement`, …). Use one of the two tools in a project, OpenSpec or SpecAgile, not both: each one refreshes its own skills. The fork's own docs are in [`docs-lab/`](docs-lab/README.md); the links to openspec.dev below describe OpenSpec, with the `openspec` CLI and `openspec-*` skill names.
 
 ## See it in action
 
 ```text
-You: /openspec-explore
+You: /sa-explore
 AI:  What would you like to explore?
 You: I want dark mode but I'm not sure how to do it cleanly.
 AI:  Let me look at your styling setup...
@@ -54,7 +57,7 @@ AI:  Let me look at your styling setup...
      with system-preference detection. No new dependencies. Scope it?
 You: Yes, let's do it.
 
-You: /openspec-propose add-dark-mode
+You: /sa-propose add-dark-mode
 AI:  Created openspec/changes/add-dark-mode/
      ✓ proposal.md — why we're doing this, what's changing
      ✓ specs/       — requirements and scenarios
@@ -62,7 +65,7 @@ AI:  Created openspec/changes/add-dark-mode/
      ✓ tasks.md     — implementation checklist
      Ready for implementation!
 
-You: /openspec-apply-change
+You: /sa-implement
 AI:  Implementing tasks...
      ✓ 1.1 Add theme context provider
      ✓ 1.2 Create toggle component
@@ -70,7 +73,7 @@ AI:  Implementing tasks...
      ✓ 2.2 Wire up localStorage
      All tasks complete!
 
-You: /openspec-archive-change
+You: /sa-archive
 AI:  Archived to openspec/changes/archive/2025-01-23-add-dark-mode/
      Specs updated. Ready for the next feature.
 ```
@@ -121,38 +124,36 @@ Solo, OpenSpec keeps you and your AI honest on a single repo. On a team, the har
 
 ## Quick Start
 
-Install OpenSpec. On macOS or Linux, in your terminal:
+SpecAgile is not published as a package yet. Install it from this repository (needs Node.js 22.12.0 or higher and pnpm):
 
 ```bash
-curl -fsSL https://openspec.dev/cli/install.sh | sh
+git clone <this-repository> specagile
+cd specagile
+pnpm install
+pnpm build
+pnpm link --global
 ```
 
-On Windows, in PowerShell:
-
-```powershell
-irm https://openspec.dev/cli/install.ps1 | iex
-```
-
-Prefer a package manager? `npm install -g @fission-ai/openspec@latest` (needs Node.js 22.12.0 or higher) or the official [Homebrew formula](https://formulae.brew.sh/formula/openspec), `brew install openspec`.
+That puts `specagile` on your `PATH`. It does not install an `openspec` executable, so an OpenSpec installed beside it keeps working as `openspec`. (The curl, PowerShell, npm and Homebrew installers on openspec.dev install OpenSpec, not SpecAgile.)
 
 Then navigate to your project directory and initialize:
 
 ```bash
 cd your-project
-openspec init
+specagile init
 ```
-
-> **Want your AI to do it?** Paste the [setup prompt](https://openspec.dev/docs/installation#install-with-your-ai-assistant) into your coding assistant — it installs the CLI, runs `openspec init`, and verifies the result.
 
 Now talk to your AI:
 
-- **Not sure what to build yet?** Start with `/openspec-explore`, a no-stakes thinking partner that reads your code, weighs options, and shapes a plan before any code gets written. ([Quickstart](https://openspec.dev/docs/quickstart))
-- **Already know what you want?** Go straight to `/openspec-propose <what-you-want-to-build>`.
-- **Want to agree on *what* before *how*?** Use the three-step flow: `/openspec-specify <what-you-want-to-build>` writes the proposal and specs and stops there, so your team can review them; then `/openspec-plan` writes the design and tasks, and `/openspec-apply-change` implements them. `/openspec-propose` remains the one-step shortcut for both planning stages.
+- **Not sure what to build yet?** Start with `/sa-explore`, a no-stakes thinking partner that reads your code, weighs options, and shapes a plan before any code gets written. ([Quickstart](https://openspec.dev/docs/quickstart))
+- **Already know what you want?** Go straight to `/sa-propose <what-you-want-to-build>`.
+- **Want to agree on *what* before *how*?** Use the three-step flow: `/sa-specify <what-you-want-to-build>` writes the proposal and specs and stops there, so your team can review them; then `/sa-plan` writes the design and tasks, and `/sa-implement` implements them. `/sa-propose` remains the one-step shortcut for both planning stages.
 
-All of these are in the default profile. If you want the expanded workflow (`openspec-new-change`, `openspec-continue-change`, `openspec-ff-change`, `openspec-verify-change`, `openspec-bulk-archive-change`, `openspec-onboard`), select it with `openspec config profile` and apply with `openspec update`.
+All of these are in the default profile. If you want the expanded workflow (`sa-new-change`, `sa-continue-change`, `sa-ff-change`, `sa-verify`, `sa-bulk-archive-change`, `sa-onboard`), select it with `specagile config profile` and apply with `specagile update`.
 
-These are skills. Most tools invoke them as `/openspec-propose` and Codex as `$openspec-propose`, or you can ask for the work in plain words. `openspec init` prints the right form for the tools you picked — see [Supported Tools](https://openspec.dev/docs/supported-tools). Coming from 1.x and its `/opsx:*` commands? See [Upgrade to 2.0](https://openspec.dev/docs/upgrade-to-2).
+These are skills. Most tools invoke them as `/sa-propose` and Codex as `$sa-propose`, or you can ask for the work in plain words. `specagile init` prints the right form for the tools you picked — see [Supported Tools](docs-lab/reference/supported-tools.md). Coming from 1.x and its `/opsx:*` commands? See [Upgrade to 2.0](docs-lab/help/upgrade-to-2.md).
+
+**Coming from OpenSpec?** In a project set up with `openspec init`, run `specagile update`. It installs the `sa-*` skills and removes the `openspec-*` skills OpenSpec wrote, as long as they are unchanged; a skill you edited stays where it is and is listed in the output. The project's `openspec/` folder is used as it is. After that, use `specagile` in that project: running `openspec update` there writes the `openspec-*` skills again.
 
 > [!NOTE]
 > Not sure if your tool is supported? [View the full list](https://openspec.dev/docs/supported-tools) – we support 30+ tools and growing.
@@ -164,7 +165,7 @@ These are skills. Most tools invoke them as `/openspec-propose` and Codex as `$o
 Full documentation lives at **[openspec.dev/docs](https://openspec.dev/docs)**.
 
 → **[Quickstart](https://openspec.dev/docs/quickstart)**: your first change, start to finish<br>
-→ **[Set up your project](https://openspec.dev/docs/setup)**: what `openspec init` installs<br>
+→ **[Set up your project](https://openspec.dev/docs/setup)**: what `init` installs<br>
 → **[CLI](https://openspec.dev/docs/cli)**: terminal reference<br>
 → **[Supported Tools](https://openspec.dev/docs/supported-tools)**: tool integrations & install paths<br>
 → **[Customize](https://openspec.dev/docs/customize)**: profiles, project config, and schemas<br>
@@ -195,28 +196,26 @@ AI coding assistants are powerful but unpredictable when requirements live only 
 
 **vs. nothing** — AI coding without specs means vague prompts and unpredictable results. OpenSpec brings predictability without the ceremony.
 
-## Updating OpenSpec
+## Updating SpecAgile
 
 **Upgrade the CLI**
 
-With the standalone install, run `openspec install`. If you installed with npm:
+In your clone of this repository:
 
 ```bash
-npm install -g @fission-ai/openspec@latest
+git pull
+pnpm install
+pnpm build
 ```
 
-If you installed OpenSpec with Homebrew:
-
-```bash
-brew upgrade openspec
-```
+The global `specagile` link points at the clone, so it picks up the new build.
 
 **Refresh agent instructions**
 
 Run this inside each project to regenerate AI guidance and refresh the installed skills:
 
 ```bash
-openspec update
+specagile update
 ```
 
 ## Usage Notes
@@ -241,7 +240,7 @@ OpenSpec collects anonymous usage stats.
 We collect only command names and version to understand usage patterns. No arguments, paths, content, or PII. Automatically disabled in CI.
 
 **Opt-out (any one is enough):**
-- `openspec config set telemetry.enabled false` (global config; unset means on)
+- `specagile config set telemetry.enabled false` (global config; unset means on)
 - `export OPENSPEC_TELEMETRY=0` or `export DO_NOT_TRACK=1` (env overrides config)
 
 </details>

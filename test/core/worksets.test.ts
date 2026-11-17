@@ -227,7 +227,7 @@ describe('worksets core', () => {
         ).diagnostic;
         expect(diagnostic.code).toBe('workset_exists');
         expect(diagnostic.fix).toBe(
-          'Choose another name, or remove it first: openspec workset remove platform'
+          'Choose another name, or remove it first: specagile workset remove platform'
         );
       }
     });
@@ -247,7 +247,7 @@ describe('worksets core', () => {
         ).diagnostic;
         expect(diagnostic.code).toBe('workset_not_found');
         expect(diagnostic.fix).toBe(
-          'Saved worksets: platform. See them with: openspec workset list'
+          'Saved worksets: platform. See them with: specagile workset list'
         );
       }
 
@@ -259,7 +259,7 @@ describe('worksets core', () => {
           error as { diagnostic: { fix?: string } }
         ).diagnostic;
         expect(diagnostic.fix).toBe(
-          'Create it first: openspec workset create absent'
+          'Create it first: specagile workset create absent'
         );
       }
     });

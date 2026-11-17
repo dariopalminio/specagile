@@ -11,6 +11,7 @@ import {
   getOpsxExploreCommandTemplate,
 } from '../../../src/core/templates/skill-templates.js';
 import { loadSchema } from '../../../src/core/artifact-graph/schema.js';
+import { withUpstreamIdentity } from '../../helpers/fork-identity.js';
 
 // #1689: 1.9.0 removed openspec/AGENTS.md, which carried the spec index, and
 // nothing that replaced it ever named the verb that lists specs. Measured
@@ -35,7 +36,8 @@ function instructionFor(artifactId: string): string {
   expect(artifact, `spec-driven has no "${artifactId}" artifact`).toBeDefined();
   const instruction = artifact?.instruction;
   expect(instruction, `spec-driven "${artifactId}" has no instruction`).toBeDefined();
-  return instruction as string;
+  // SpecAgile: the schema names `specagile`; compared with upstream's names.
+  return withUpstreamIdentity(instruction as string);
 }
 
 const exploreBodies: Array<[string, string]> = [

@@ -8,7 +8,7 @@ describe('top-level show command', () => {
   const testDir = path.join(projectRoot, 'test-show-command-tmp');
   const changesDir = path.join(testDir, 'openspec', 'changes');
   const specsDir = path.join(testDir, 'openspec', 'specs');
-  const openspecBin = path.join(projectRoot, 'bin', 'openspec.js');
+  const openspecBin = path.join(projectRoot, 'bin', 'specagile.js');
 
 
   beforeEach(async () => {
@@ -42,9 +42,9 @@ describe('top-level show command', () => {
       expect(err.status).not.toBe(0);
       const stderr = err.stderr.toString();
       expect(stderr).toContain('Nothing to show.');
-      expect(stderr).toContain('openspec show <item>');
-      expect(stderr).toContain('openspec change show');
-      expect(stderr).toContain('openspec spec show');
+      expect(stderr).toContain('specagile show <item>');
+      expect(stderr).toContain('specagile change show');
+      expect(stderr).toContain('specagile spec show');
     } finally {
       process.chdir(originalCwd);
       process.env = originalEnv;
@@ -140,7 +140,7 @@ describe('top-level show command', () => {
       // Resolved as a change, not rejected as an unknown item.
       expect(stderr).not.toContain('Unknown item');
       expect(stderr).toContain('has no proposal.md yet');
-      expect(stderr).toContain('openspec status --change scaffolded');
+      expect(stderr).toContain('specagile status --change scaffolded');
     } finally {
       process.chdir(originalCwd);
     }

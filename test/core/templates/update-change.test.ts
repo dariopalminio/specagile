@@ -8,6 +8,7 @@ import { STORE_SELECTION_GUIDANCE } from '../../../src/core/templates/workflows/
 import { PROJECT_ROOT_GUARD } from '../../../src/core/templates/workflows/project-root.js';
 import { resolveOptionalWorkflows } from '../../../src/core/templates/optional-workflow.js';
 import { ALL_WORKFLOWS, CORE_WORKFLOWS } from '../../../src/core/profiles.js';
+import { generateSkillContent } from '../../../src/core/shared/skill-generation.js';
 
 const skill = getUpdateChangeSkillTemplate();
 const command = getOpsxUpdateCommandTemplate();
@@ -221,6 +222,20 @@ describe('update-change templates', () => {
       expect(body, label).toContain('openspec status --change "<name>" --json');
       expect(body, label).toContain('openspec instructions "<artifact-id>" --change "<name>" --json');
     }
+  });
+
+  // SpecAgile: the generated skill (not the upstream template) carries the
+  // fork's CLI name, and still tells the skill apart from `specagile update`.
+  it('distinguishes the generated sa-update-change skill from the specagile update command', () => {
+    const content = generateSkillContent(
+      { ...skill, instructions: resolveOptionalWorkflows(skill.instructions, new Set<string>(ALL_WORKFLOWS)) },
+      '1.0.0-test'
+    );
+    const description = content.match(/^description: (.*)$/m)?.[1] ?? '';
+    expect(content).toMatch(/^name: sa-update-change$/m);
+    expect(description).toContain('"specagile update change"');
+    expect(description).toContain('specagile update CLI command');
+    expect(description).not.toMatch(/\bopenspec update\b/);
   });
 
   it('reads artifact ids from status JSON and never branches on hardcoded artifact names (3.2)', () => {

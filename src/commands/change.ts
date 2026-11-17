@@ -111,7 +111,7 @@ export class ChangeCommand {
         } else {
           console.error(`No change specified. Available IDs: ${changes.join(', ')}`);
         }
-        console.error('Hint: use "openspec change list" to view available changes.');
+        console.error('Hint: use "specagile change list" to view available changes.');
         process.exitCode = 1;
         return;
       }
@@ -147,7 +147,7 @@ export class ChangeCommand {
         }
         throw new Error(
           `Change "${changeName}" has no proposal.md yet. ` +
-            `Run "openspec status --change ${changeName}" to see which artifact comes next.`
+            `Run "specagile status --change ${changeName}" to see which artifact comes next.`
         );
       }
       throw new Error(`Change "${changeName}" not found at ${proposalPath}`);
@@ -526,7 +526,7 @@ export class ChangeCommand {
         } else {
           console.error(`No change specified. Available IDs: ${changes.join(', ')}`);
         }
-        console.error('Hint: use "openspec change list" to view available changes.');
+        console.error('Hint: use "specagile change list" to view available changes.');
         process.exitCode = 1;
         return;
       }
@@ -599,7 +599,7 @@ export class ChangeCommand {
     } else {
       bullets.push('- Ensure change has deltas in specs/: use headers ## ADDED/MODIFIED/REMOVED/RENAMED Requirements');
       bullets.push('- Each requirement MUST include at least one #### Scenario: block');
-      bullets.push('- Debug parsed deltas: openspec change show <id> --json --deltas-only');
+      bullets.push('- Debug parsed deltas: specagile change show <id> --json --deltas-only');
     }
     console.error('Next steps:');
     bullets.forEach(b => console.error(`  ${b}`));

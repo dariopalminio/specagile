@@ -7,6 +7,7 @@ import { generateSkillContent } from '../../../src/core/shared/skill-generation.
 import { STORE_SELECTION_GUIDANCE } from '../../../src/core/templates/workflows/store-selection.js';
 import { PROJECT_ROOT_GUARD } from '../../../src/core/templates/workflows/project-root.js';
 import { ALL_WORKFLOWS } from '../../../src/core/profiles.js';
+import { applyForkIdentity } from '../../../src/core/fork/identity.js';
 
 // The specify skill is the specification stage of the fork's three-step flow.
 // These guards pin its contract (specs/opsx-specify-skill/spec.md) in the text
@@ -36,8 +37,9 @@ function section(body: string, start: string, end: string): string {
 }
 
 describe('specify skill template', () => {
-  it('is the openspec-specify skill, triggered by its own phrases', () => {
+  it('is the sa-specify skill, triggered by its own phrases', () => {
     const { name, description } = getSpecifySkillTemplate();
+    // Written with OpenSpec's names; generation gives it SpecAgile's (FORK.md).
     expect(name).toBe('openspec-specify');
     expect(description).toContain('OpenSpec');
     expect(description).toContain('"openspec specify"');
@@ -48,14 +50,19 @@ describe('specify skill template', () => {
 
     const frontmatter = /^---\n([\s\S]*?)\n---\n/.exec(withAll)?.[1];
     expect(frontmatter).toBeDefined();
-    expect((parseYaml(frontmatter!) as { description: string }).description).toBe(description);
+    const parsed = parseYaml(frontmatter!) as { name: string; description: string };
+    expect(parsed.name).toBe('sa-specify');
+    expect(parsed.description).toBe(applyForkIdentity(description));
+    expect(parsed.description).toContain('"specagile specify"');
   });
 
   it('reads store selection and the project check before any step', () => {
-    const store = withAll.indexOf(STORE_SELECTION_GUIDANCE);
+    const storeGuidance = applyForkIdentity(STORE_SELECTION_GUIDANCE);
+    const rootGuard = applyForkIdentity(PROJECT_ROOT_GUARD);
+    const store = withAll.indexOf(storeGuidance);
     expect(store).toBeGreaterThanOrEqual(0);
-    expect(withAll.indexOf(PROJECT_ROOT_GUARD)).toBe(store + STORE_SELECTION_GUIDANCE.length + 2);
-    expect(withAll.indexOf(PROJECT_ROOT_GUARD)).toBeLessThan(withAll.indexOf('**Steps**'));
+    expect(withAll.indexOf(rootGuard)).toBe(store + storeGuidance.length + 2);
+    expect(withAll.indexOf(rootGuard)).toBeLessThan(withAll.indexOf('**Steps**'));
   });
 
   it('renders cleanly for every combination of the workflows it names', () => {
@@ -114,7 +121,7 @@ describe('specify skill template', () => {
       expect(check).toContain('Do not modify any artifact of the existing change until the user answers');
       // The check runs before the change can be created.
       expect(withAll.indexOf('**Check that the name is free')).toBeLessThan(
-        withAll.indexOf('openspec new change "<name>"\n')
+        withAll.indexOf('specagile new change "<name>"\n')
       );
     });
 
@@ -188,7 +195,7 @@ describe('specify skill template', () => {
         section(render(workflows), '**Schema without a specs artifact**: ', '**Change that declares skip_specs**');
       expect(stop(EVERY)).toContain('`/opsx:propose`');
       expect(stop(without('propose'))).not.toContain('/opsx:propose');
-      expect(stop(without('propose'))).toContain('`openspec instructions <artifact-id> --change "<name>"`');
+      expect(stop(without('propose'))).toContain('`specagile instructions <artifact-id> --change "<name>"`');
       expect(render(without('propose'))).not.toContain('/opsx:propose');
     });
   });
@@ -203,9 +210,10 @@ describe('specify skill template', () => {
     it('never names plan when it is not installed, and points at the CLI instead', () => {
       const body = render(without('plan'));
       expect(body).not.toContain('/opsx:plan');
-      expect(body).not.toContain('openspec-plan');
+      expect(body).not.toContain('sa-plan');
+    expect(body).not.toContain('openspec-plan');
       expect(output(without('plan'))).toContain(
-        'generate the next artifact with `openspec instructions <artifact-id> --change "<name>"`'
+        'generate the next artifact with `specagile instructions <artifact-id> --change "<name>"`'
       );
     });
 

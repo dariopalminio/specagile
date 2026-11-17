@@ -1,3 +1,4 @@
+import { CLI_NAME } from '../../fork/identity.js';
 import {
   CompletionGenerator,
   CommandDefinition,
@@ -74,7 +75,7 @@ ${commandCases}
     }
 }
 
-Register-ArgumentCompleter -CommandName openspec -ScriptBlock $openspecCompleter
+Register-ArgumentCompleter -CommandName ${CLI_NAME} -ScriptBlock $openspecCompleter
 `;
   }
 

@@ -93,14 +93,14 @@ describe('ZshInstaller', () => {
       const result = await installer.getInstallationPath();
 
       expect(result.isOhMyZsh).toBe(true);
-      expect(result.path).toBe(path.join(testHomeDir, '.oh-my-zsh', 'custom', 'completions', '_openspec'));
+      expect(result.path).toBe(path.join(testHomeDir, '.oh-my-zsh', 'custom', 'completions', '_specagile'));
     });
 
     it('should return standard Zsh path when Oh My Zsh is not installed', async () => {
       const result = await installer.getInstallationPath();
 
       expect(result.isOhMyZsh).toBe(false);
-      expect(result.path).toBe(path.join(testHomeDir, '.zsh', 'completions', '_openspec'));
+      expect(result.path).toBe(path.join(testHomeDir, '.zsh', 'completions', '_specagile'));
     });
 
     it('should honor $ZSH for an Oh My Zsh install at a custom location', async () => {
@@ -112,7 +112,7 @@ describe('ZshInstaller', () => {
       const result = await installer.getInstallationPath();
 
       expect(result.isOhMyZsh).toBe(true);
-      expect(result.path).toBe(path.join(customRoot, 'custom', 'completions', '_openspec'));
+      expect(result.path).toBe(path.join(customRoot, 'custom', 'completions', '_specagile'));
     });
 
     it('should honor $ZSH_CUSTOM over the derived custom dir', async () => {
@@ -123,7 +123,7 @@ describe('ZshInstaller', () => {
 
       expect(result.isOhMyZsh).toBe(true);
       expect(result.path).toBe(
-        path.join(testHomeDir, 'dotfiles', 'omz-custom', 'completions', '_openspec')
+        path.join(testHomeDir, 'dotfiles', 'omz-custom', 'completions', '_specagile')
       );
     });
   });
@@ -161,7 +161,7 @@ describe('ZshInstaller', () => {
   });
 
   describe('install', () => {
-    const testScript = '#compdef openspec\n_openspec() {\n  echo "test"\n}\n';
+    const testScript = '#compdef specagile\n_openspec() {\n  echo "test"\n}\n';
 
     it('should install to Oh My Zsh path when Oh My Zsh is present', async () => {
       // Create .oh-my-zsh directory
@@ -172,7 +172,7 @@ describe('ZshInstaller', () => {
 
       expect(result.success).toBe(true);
       expect(result.isOhMyZsh).toBe(true);
-      expect(result.installedPath).toBe(path.join(ohMyZshPath, 'custom', 'completions', '_openspec'));
+      expect(result.installedPath).toBe(path.join(ohMyZshPath, 'custom', 'completions', '_specagile'));
       expect(result.message).toContain('Oh My Zsh');
 
       // Verify file was created with correct content
@@ -185,7 +185,7 @@ describe('ZshInstaller', () => {
 
       expect(result.success).toBe(true);
       expect(result.isOhMyZsh).toBe(false);
-      expect(result.installedPath).toBe(path.join(testHomeDir, '.zsh', 'completions', '_openspec'));
+      expect(result.installedPath).toBe(path.join(testHomeDir, '.zsh', 'completions', '_specagile'));
 
       // Verify file was created
       const content = await fs.readFile(result.installedPath!, 'utf-8');
@@ -204,7 +204,7 @@ describe('ZshInstaller', () => {
     });
 
     it('should backup existing file before overwriting', async () => {
-      const targetPath = path.join(testHomeDir, '.zsh', 'completions', '_openspec');
+      const targetPath = path.join(testHomeDir, '.zsh', 'completions', '_specagile');
       await fs.mkdir(path.dirname(targetPath), { recursive: true });
       await fs.writeFile(targetPath, 'old script');
 
@@ -288,12 +288,12 @@ describe('ZshInstaller', () => {
 
     it('should update completion when content differs', async () => {
       // First installation
-      const firstScript = '#compdef openspec\n_openspec() {\n  echo "version 1"\n}\n';
+      const firstScript = '#compdef specagile\n_openspec() {\n  echo "version 1"\n}\n';
       const firstResult = await installer.install(firstScript);
       expect(firstResult.success).toBe(true);
 
       // Second installation with different script
-      const secondScript = '#compdef openspec\n_openspec() {\n  echo "version 2"\n}\n';
+      const secondScript = '#compdef specagile\n_openspec() {\n  echo "version 2"\n}\n';
       const secondResult = await installer.install(secondScript);
 
       expect(secondResult.success).toBe(true);
@@ -336,7 +336,7 @@ describe('ZshInstaller', () => {
   });
 
   describe('uninstall', () => {
-    const testScript = '#compdef openspec\n_openspec() {}\n';
+    const testScript = '#compdef specagile\n_openspec() {}\n';
 
     it('should remove installed completion script', async () => {
       // Install first
@@ -374,12 +374,12 @@ describe('ZshInstaller', () => {
       const result = await installer.uninstall();
 
       expect(result.success).toBe(true);
-      expect(result.message).toContain(path.join('.oh-my-zsh', 'custom', 'completions', '_openspec'));
+      expect(result.message).toContain(path.join('.oh-my-zsh', 'custom', 'completions', '_specagile'));
     });
   });
 
   describe('isInstalled', () => {
-    const testScript = '#compdef openspec\n_openspec() {}\n';
+    const testScript = '#compdef specagile\n_openspec() {}\n';
 
     it('should return false when not installed', async () => {
       const isInstalled = await installer.isInstalled();
@@ -405,7 +405,7 @@ describe('ZshInstaller', () => {
   });
 
   describe('getInstallationInfo', () => {
-    const testScript = '#compdef openspec\n_openspec() {}\n';
+    const testScript = '#compdef specagile\n_openspec() {}\n';
 
     it('should return not installed when script does not exist', async () => {
       const info = await installer.getInstallationInfo();
@@ -422,7 +422,7 @@ describe('ZshInstaller', () => {
 
       expect(info.installed).toBe(true);
       expect(info.path).toBeDefined();
-      expect(info.path).toContain('_openspec');
+      expect(info.path).toContain('_specagile');
       expect(info.isOhMyZsh).toBe(false);
     });
 
@@ -463,8 +463,8 @@ describe('ZshInstaller', () => {
       const zshrcPath = path.join(testHomeDir, '.zshrc');
       const content = await fs.readFile(zshrcPath, 'utf-8');
 
-      expect(content).toContain('# OPENSPEC:START');
-      expect(content).toContain('# OPENSPEC:END');
+      expect(content).toContain('# SPECAGILE:START');
+      expect(content).toContain('# SPECAGILE:END');
       expect(content).toContain('# OpenSpec shell completions configuration');
       expect(content).toContain(`fpath=('${completionsDir}' $fpath)`);
       expect(content).toContain('autoload -Uz compinit');
@@ -496,7 +496,7 @@ describe('ZshInstaller', () => {
         const hostileHome = path.join(testHomeDir, "x$(touch pwned)`id`'q");
         const hostileInstaller = new ZshInstaller(hostileHome);
 
-        const result = await hostileInstaller.install('#compdef openspec\n');
+        const result = await hostileInstaller.install('#compdef specagile\n');
         const printed = result.instructions!.join('\n');
 
         expect(printed).not.toMatch(/fpath=\([^']/);
@@ -527,13 +527,13 @@ describe('ZshInstaller', () => {
 
       const content = await fs.readFile(zshrcPath, 'utf-8');
 
-      expect(content).toContain('# OPENSPEC:START');
-      expect(content).toContain('# OPENSPEC:END');
+      expect(content).toContain('# SPECAGILE:START');
+      expect(content).toContain('# SPECAGILE:END');
       expect(content).toContain('# My custom zsh config');
       expect(content).toContain('alias ll="ls -la"');
 
       // Config should be before existing content
-      const configIndex = content.indexOf('# OPENSPEC:START');
+      const configIndex = content.indexOf('# SPECAGILE:START');
       const aliasIndex = content.indexOf('alias ll');
       expect(configIndex).toBeLessThan(aliasIndex);
     });
@@ -541,10 +541,10 @@ describe('ZshInstaller', () => {
     it('should update config between markers when .zshrc has existing markers', async () => {
       const zshrcPath = path.join(testHomeDir, '.zshrc');
       const initialContent = [
-        '# OPENSPEC:START',
+        '# SPECAGILE:START',
         '# Old config',
         'fpath=(/old/path $fpath)',
-        '# OPENSPEC:END',
+        '# SPECAGILE:END',
         '',
         '# My custom config',
       ].join('\n');
@@ -557,8 +557,8 @@ describe('ZshInstaller', () => {
 
       const content = await fs.readFile(zshrcPath, 'utf-8');
 
-      expect(content).toContain('# OPENSPEC:START');
-      expect(content).toContain('# OPENSPEC:END');
+      expect(content).toContain('# SPECAGILE:START');
+      expect(content).toContain('# SPECAGILE:END');
       expect(content).toContain(`fpath=('${completionsDir}' $fpath)`);
       expect(content).not.toContain('# Old config');
       expect(content).not.toContain('/old/path');
@@ -571,9 +571,9 @@ describe('ZshInstaller', () => {
         '# My zsh config',
         'export PATH="/custom/path:$PATH"',
         '',
-        '# OPENSPEC:START',
+        '# SPECAGILE:START',
         '# Old OpenSpec config',
-        '# OPENSPEC:END',
+        '# SPECAGILE:END',
         '',
         'alias ls="ls -G"',
       ].join('\n');
@@ -651,12 +651,12 @@ describe('ZshInstaller', () => {
       const content = [
         '# My config',
         '',
-        '# OPENSPEC:START',
+        '# SPECAGILE:START',
         '# OpenSpec shell completions configuration',
         'fpath=(~/.zsh/completions $fpath)',
         'autoload -Uz compinit',
         'compinit',
-        '# OPENSPEC:END',
+        '# SPECAGILE:END',
         '',
         'alias ll="ls -la"',
       ].join('\n');
@@ -669,8 +669,8 @@ describe('ZshInstaller', () => {
 
       const newContent = await fs.readFile(zshrcPath, 'utf-8');
 
-      expect(newContent).not.toContain('# OPENSPEC:START');
-      expect(newContent).not.toContain('# OPENSPEC:END');
+      expect(newContent).not.toContain('# SPECAGILE:START');
+      expect(newContent).not.toContain('# SPECAGILE:END');
       expect(newContent).not.toContain('OpenSpec shell completions');
       expect(newContent).toContain('# My config');
       expect(newContent).toContain('alias ll="ls -la"');
@@ -679,9 +679,9 @@ describe('ZshInstaller', () => {
     it('should remove leading empty lines when markers were at top', async () => {
       const zshrcPath = path.join(testHomeDir, '.zshrc');
       const content = [
-        '# OPENSPEC:START',
+        '# SPECAGILE:START',
         '# OpenSpec config',
-        '# OPENSPEC:END',
+        '# SPECAGILE:END',
         '',
         '# User config below',
       ].join('\n');
@@ -702,7 +702,7 @@ describe('ZshInstaller', () => {
       const zshrcPath = path.join(testHomeDir, '.zshrc');
 
       // End marker before start marker
-      await fs.writeFile(zshrcPath, '# OPENSPEC:END\n# OPENSPEC:START\n');
+      await fs.writeFile(zshrcPath, '# SPECAGILE:END\n# SPECAGILE:START\n');
 
       const result = await installer.removeZshrcConfig();
 
@@ -711,7 +711,7 @@ describe('ZshInstaller', () => {
 
     it('should return true when only one marker is present', async () => {
       const zshrcPath = path.join(testHomeDir, '.zshrc');
-      await fs.writeFile(zshrcPath, '# OPENSPEC:START\nsome config\n');
+      await fs.writeFile(zshrcPath, '# SPECAGILE:START\nsome config\n');
 
       const result = await installer.removeZshrcConfig();
 
@@ -721,7 +721,7 @@ describe('ZshInstaller', () => {
   });
 
   describe('install with .zshrc auto-configuration', () => {
-    const testScript = '#compdef openspec\n_openspec() {}\n';
+    const testScript = '#compdef specagile\n_openspec() {}\n';
 
     it('should auto-configure .zshrc for standard Zsh', async () => {
       const result = await installer.install(testScript);
@@ -733,7 +733,7 @@ describe('ZshInstaller', () => {
       const zshrcPath = path.join(testHomeDir, '.zshrc');
       const content = await fs.readFile(zshrcPath, 'utf-8');
 
-      expect(content).toContain('# OPENSPEC:START');
+      expect(content).toContain('# SPECAGILE:START');
       expect(content).toContain('fpath=');
       expect(content).toContain('compinit');
     });
@@ -757,7 +757,7 @@ describe('ZshInstaller', () => {
 
       const content = await fs.readFile(zshrcPath, 'utf-8');
       expect(content).toBe(originalZshrc);
-      expect(content).not.toContain('# OPENSPEC:START');
+      expect(content).not.toContain('# SPECAGILE:START');
       expect(content).not.toContain('autoload -Uz compinit');
       expect(content).not.toContain('compinit');
       expect(result.instructions!.join('\n')).toContain('Oh My Zsh');
@@ -811,11 +811,11 @@ describe('ZshInstaller', () => {
     });
 
     it('writes the block to $ZDOTDIR/.zshrc and leaves ~/.zshrc alone', async () => {
-      const result = await installer.install('#compdef openspec\n');
+      const result = await installer.install('#compdef specagile\n');
 
       expect(result.zshrcConfigured).toBe(true);
       const content = await fs.readFile(path.join(zdotdir, '.zshrc'), 'utf-8');
-      expect(content).toContain('# OPENSPEC:START');
+      expect(content).toContain('# SPECAGILE:START');
       expect(content).toContain('# my zshrc');
       await expect(fs.access(path.join(testHomeDir, '.zshrc'))).rejects.toThrow();
     });
@@ -823,7 +823,7 @@ describe('ZshInstaller', () => {
     it('names $ZDOTDIR/.zshrc in the manual instructions when it cannot write', async () => {
       process.env.OPENSPEC_NO_AUTO_CONFIG = '1';
       try {
-        const result = await installer.install('#compdef openspec\n');
+        const result = await installer.install('#compdef specagile\n');
 
         expect(result.zshrcConfigured).toBe(false);
         const text = result.instructions!.join('\n');
@@ -836,7 +836,7 @@ describe('ZshInstaller', () => {
     });
 
     it('uninstall removes the block from $ZDOTDIR/.zshrc and names that file', async () => {
-      await installer.install('#compdef openspec\n');
+      await installer.install('#compdef specagile\n');
 
       const result = await installer.uninstall();
 
@@ -847,7 +847,7 @@ describe('ZshInstaller', () => {
 
     it('uninstall also clears a stray ~/.zshrc block left by an install before the fix', async () => {
       const homeZshrc = path.join(testHomeDir, '.zshrc');
-      await fs.writeFile(homeZshrc, '# OPENSPEC:START\nfpath=(x $fpath)\n# OPENSPEC:END\n\n# kept\n');
+      await fs.writeFile(homeZshrc, '# SPECAGILE:START\nfpath=(x $fpath)\n# SPECAGILE:END\n\n# kept\n');
 
       const result = await installer.uninstall();
 
@@ -861,21 +861,21 @@ describe('ZshInstaller', () => {
       // An install made before #2138: the script is in place, but the block
       // went to ~/.zshrc, which zsh never reads under ZDOTDIR.
       delete process.env.ZDOTDIR;
-      await installer.install('#compdef openspec\n');
+      await installer.install('#compdef specagile\n');
       process.env.ZDOTDIR = zdotdir;
 
-      const result = await installer.install('#compdef openspec\n');
+      const result = await installer.install('#compdef specagile\n');
 
       expect(result.message).toContain('up to date');
       expect(result.zshrcConfigured).toBe(true);
-      expect(await fs.readFile(path.join(zdotdir, '.zshrc'), 'utf-8')).toContain('# OPENSPEC:START');
+      expect(await fs.readFile(path.join(zdotdir, '.zshrc'), 'utf-8')).toContain('# SPECAGILE:START');
     });
 
     it('shows manual instructions for an up-to-date script when it cannot configure .zshrc', async () => {
-      await installer.install('#compdef openspec\n');
+      await installer.install('#compdef specagile\n');
       process.env.OPENSPEC_NO_AUTO_CONFIG = '1';
       try {
-        const result = await installer.install('#compdef openspec\n');
+        const result = await installer.install('#compdef specagile\n');
 
         expect(result.zshrcConfigured).toBe(false);
         expect(result.instructions!.join('\n')).toContain(
@@ -888,7 +888,7 @@ describe('ZshInstaller', () => {
 
     it('uninstall fails and names the file when a block cannot be removed', async () => {
       if (process.platform === 'win32') return; // chmod does not make a file read-only for the owner on Windows
-      await installer.install('#compdef openspec\n');
+      await installer.install('#compdef specagile\n');
       const zshrc = path.join(zdotdir, '.zshrc');
       await fs.chmod(zshrc, 0o444);
       try {
@@ -899,7 +899,7 @@ describe('ZshInstaller', () => {
 
         expect(result.success).toBe(false);
         expect(result.message).toContain(`Could not remove the OpenSpec block from ${zshrc}`);
-        expect(await fs.readFile(zshrc, 'utf-8')).toContain('# OPENSPEC:START');
+        expect(await fs.readFile(zshrc, 'utf-8')).toContain('# SPECAGILE:START');
       } finally {
         await fs.chmod(zshrc, 0o644);
       }
@@ -908,9 +908,9 @@ describe('ZshInstaller', () => {
     it('falls back to ~/.zshrc when ZDOTDIR is empty', async () => {
       process.env.ZDOTDIR = '';
 
-      await installer.install('#compdef openspec\n');
+      await installer.install('#compdef specagile\n');
 
-      expect(await fs.readFile(path.join(testHomeDir, '.zshrc'), 'utf-8')).toContain('# OPENSPEC:START');
+      expect(await fs.readFile(path.join(testHomeDir, '.zshrc'), 'utf-8')).toContain('# SPECAGILE:START');
     });
 
     // zsh never expands `~` in ZDOTDIR, and a relative value would resolve
@@ -921,10 +921,10 @@ describe('ZshInstaller', () => {
       async (value) => {
         process.env.ZDOTDIR = value;
 
-        const result = await installer.install('#compdef openspec\n');
+        const result = await installer.install('#compdef specagile\n');
 
         expect(result.zshrcConfigured).toBe(true);
-        expect(await fs.readFile(path.join(testHomeDir, '.zshrc'), 'utf-8')).toContain('# OPENSPEC:START');
+        expect(await fs.readFile(path.join(testHomeDir, '.zshrc'), 'utf-8')).toContain('# SPECAGILE:START');
         await expect(fs.access(path.resolve(value.split('/')[0]))).rejects.toThrow();
       }
     );
@@ -932,7 +932,7 @@ describe('ZshInstaller', () => {
     it('treats a trailing slash on ZDOTDIR as the same directory', async () => {
       process.env.ZDOTDIR = `${zdotdir}${path.sep}`;
 
-      await installer.install('#compdef openspec\n');
+      await installer.install('#compdef specagile\n');
       const result = await installer.uninstall();
 
       expect(result.message).toContain(`Removed OpenSpec configuration from ${path.join(zdotdir, '.zshrc')}`);
@@ -942,7 +942,7 @@ describe('ZshInstaller', () => {
     it('shows ~/.zshrc and cleans it once when ZDOTDIR is the home directory', async () => {
       process.env.ZDOTDIR = `${testHomeDir}${path.sep}`;
 
-      await installer.install('#compdef openspec\n');
+      await installer.install('#compdef specagile\n');
       const result = await installer.uninstall();
 
       expect(result.message.match(/Removed OpenSpec configuration from/g)).toHaveLength(1);
@@ -950,7 +950,7 @@ describe('ZshInstaller', () => {
 
       process.env.OPENSPEC_NO_AUTO_CONFIG = '1';
       try {
-        const manual = await installer.install('#compdef openspec\n');
+        const manual = await installer.install('#compdef specagile\n');
         expect(manual.instructions!.join('\n')).toContain('add the following to your ~/.zshrc file');
       } finally {
         delete process.env.OPENSPEC_NO_AUTO_CONFIG;
@@ -959,7 +959,7 @@ describe('ZshInstaller', () => {
   });
 
   describe('uninstall with .zshrc cleanup', () => {
-    const testScript = '#compdef openspec\n_openspec() {}\n';
+    const testScript = '#compdef specagile\n_openspec() {}\n';
 
     it('should remove .zshrc config when uninstalling', async () => {
       // Install first (which creates .zshrc config)
@@ -968,7 +968,7 @@ describe('ZshInstaller', () => {
       // Verify .zshrc was configured
       const zshrcPath = path.join(testHomeDir, '.zshrc');
       let content = await fs.readFile(zshrcPath, 'utf-8');
-      expect(content).toContain('# OPENSPEC:START');
+      expect(content).toContain('# SPECAGILE:START');
 
       // Uninstall
       const result = await installer.uninstall();
@@ -978,7 +978,7 @@ describe('ZshInstaller', () => {
 
       // Verify .zshrc config was removed
       content = await fs.readFile(zshrcPath, 'utf-8');
-      expect(content).not.toContain('# OPENSPEC:START');
+      expect(content).not.toContain('# SPECAGILE:START');
     });
 
     it('should not remove .zshrc config for Oh My Zsh users', async () => {
@@ -996,7 +996,7 @@ describe('ZshInstaller', () => {
     it('should succeed even if only .zshrc config is removed', async () => {
       // Manually create .zshrc config without installing completion script
       const zshrcPath = path.join(testHomeDir, '.zshrc');
-      await fs.writeFile(zshrcPath, '# OPENSPEC:START\nconfig\n# OPENSPEC:END\n');
+      await fs.writeFile(zshrcPath, '# SPECAGILE:START\nconfig\n# SPECAGILE:END\n');
 
       const result = await installer.uninstall();
 

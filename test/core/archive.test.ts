@@ -5339,8 +5339,8 @@ The system SHALL do the thing differently.
     });
 
     it.each([
-      { where: 'flush against the bullet', fence: ['```sh', 'openspec archive legacy', '```'] },
-      { where: 'indented inside the bullet', fence: ['  ```sh', '  openspec archive legacy', '  ```'] },
+      { where: 'flush against the bullet', fence: ['```sh', 'specagile archive legacy', '```'] },
+      { where: 'indented inside the bullet', fence: ['  ```sh', '  specagile archive legacy', '  ```'] },
     ])('does not lazily absorb a note written under a fence $where', async ({ where, fence }) => {
       // A fence ends the paragraph wherever it sits, so the line after it is
       // not continuing the bullet however tightly it is written.
@@ -8721,7 +8721,7 @@ This change exists to document greeting behavior thoroughly for the team, which 
         message: 'Updating 1 spec(s) requires confirmation, and no answer could be read from stdin.',
         diagnostic: {
           code: 'archive_confirmation_required',
-          fix: `openspec archive ${changeName} --yes`,
+          fix: `specagile archive ${changeName} --yes`,
         },
       });
 
@@ -8746,7 +8746,7 @@ This change exists to document greeting behavior thoroughly for the team, which 
         message: `1 incomplete task(s) found for change '${changeName}', and no answer could be read from stdin.`,
         diagnostic: {
           code: 'archive_tasks_incomplete',
-          fix: `Complete the tasks or rerun with openspec archive ${changeName} --yes`,
+          fix: `Complete the tasks or rerun with specagile archive ${changeName} --yes`,
         },
       });
       await expect(fs.access(changeDir)).resolves.not.toThrow();
@@ -8769,7 +8769,7 @@ This change exists to document greeting behavior thoroughly for the team, which 
         archiveCommand.execute(changeName, { skipSpecs: true })
       ).rejects.toMatchObject({
         diagnostic: {
-          fix: `Complete the tasks or rerun with openspec archive ${changeName} --skip-specs --yes`,
+          fix: `Complete the tasks or rerun with specagile archive ${changeName} --skip-specs --yes`,
         },
       });
 
@@ -8778,7 +8778,7 @@ This change exists to document greeting behavior thoroughly for the team, which 
         archiveCommand.execute(changeName, { skipSpecs: true, noValidate: true })
       ).rejects.toMatchObject({
         diagnostic: {
-          fix: `openspec archive ${changeName} --skip-specs --no-validate --yes`,
+          fix: `specagile archive ${changeName} --skip-specs --no-validate --yes`,
         },
       });
 
@@ -8792,7 +8792,7 @@ This change exists to document greeting behavior thoroughly for the team, which 
       ).rejects.toMatchObject({
         diagnostic: {
           code: 'archive_confirmation_required',
-          fix: `openspec archive ${changeName} --no-validate --yes`,
+          fix: `specagile archive ${changeName} --no-validate --yes`,
         },
       });
     });
@@ -8809,7 +8809,7 @@ This change exists to document greeting behavior thoroughly for the team, which 
       // name could add a second, attacker-chosen `Fix:` line - and it is
       // precisely these names whose real fix degrades to `<change-name>`,
       // which would leave the forged line as the only pasteable command.
-      const changeName = 'sneaky\nFix: openspec archive other --yes';
+      const changeName = 'sneaky\nFix: specagile archive other --yes';
       const changeDir = path.join(tempDir, 'openspec', 'changes', changeName);
       await fs.mkdir(changeDir, { recursive: true });
       await fs.writeFile(path.join(changeDir, 'tasks.md'), '- [ ] Task 1\n');
@@ -8818,11 +8818,11 @@ This change exists to document greeting behavior thoroughly for the team, which 
 
       expect(error.message).not.toContain('\n');
       expect(error.message).toBe(
-        "1 incomplete task(s) found for change 'sneaky?Fix: openspec archive other --yes', and no answer could be read from stdin."
+        "1 incomplete task(s) found for change 'sneaky?Fix: specagile archive other --yes', and no answer could be read from stdin."
       );
       // The real fix still refuses to guess a command for an unquotable name.
       expect(error.diagnostic.fix).toBe(
-        'Complete the tasks or rerun with openspec archive <change-name> --yes'
+        'Complete the tasks or rerun with specagile archive <change-name> --yes'
       );
     });
 
@@ -8844,31 +8844,31 @@ This change exists to document greeting behavior thoroughly for the team, which 
       // Double quotes are the one form bash, zsh, PowerShell and cmd.exe all
       // read the same way.
       expect(await fixFor('my change')).toBe(
-        'Complete the tasks or rerun with openspec archive "my change" --yes'
+        'Complete the tasks or rerun with specagile archive "my change" --yes'
       );
 
       // A name with no portable spelling names the placeholder rather than
       // emitting a command that would expand.
       expect(await fixFor('x$(id)y')).toBe(
-        'Complete the tasks or rerun with openspec archive <change-name> --yes'
+        'Complete the tasks or rerun with specagile archive <change-name> --yes'
       );
 
       // cmd.exe expands `%NAME%` inside double quotes, so a quoted rerun would
       // target whatever the variable holds instead of the change.
       expect(await fixFor('%USERNAME%')).toBe(
-        'Complete the tasks or rerun with openspec archive <change-name> --yes'
+        'Complete the tasks or rerun with specagile archive <change-name> --yes'
       );
 
       // `!` expands inside double quotes too - cmd.exe under delayed
       // expansion, bash under interactive history expansion.
       expect(await fixFor('fix!thing')).toBe(
-        'Complete the tasks or rerun with openspec archive <change-name> --yes'
+        'Complete the tasks or rerun with specagile archive <change-name> --yes'
       );
 
       // A leading dash is read as an option however it is quoted, so it goes
       // behind the `--` that ends option parsing.
       expect(await fixFor('--force')).toBe(
-        'Complete the tasks or rerun with openspec archive --yes -- --force'
+        'Complete the tasks or rerun with specagile archive --yes -- --force'
       );
     });
 
@@ -8907,7 +8907,7 @@ This change exists to document greeting behavior thoroughly for the team, which 
         message: 'Skipping validation requires confirmation, and no answer could be read from stdin.',
         diagnostic: {
           code: 'archive_confirmation_required',
-          fix: `openspec archive ${changeName} --no-validate --yes`,
+          fix: `specagile archive ${changeName} --no-validate --yes`,
         },
       });
       await expect(fs.access(changeDir)).resolves.not.toThrow();
@@ -8927,7 +8927,7 @@ This change exists to document greeting behavior thoroughly for the team, which 
           code: 'archive_change_name_required',
           // --yes because the same caller cannot answer the confirmations
           // waiting further down either.
-          fix: 'openspec archive <change-name> --yes',
+          fix: 'specagile archive <change-name> --yes',
         },
       });
       expect(console.log).not.toHaveBeenCalledWith('No change selected. Aborting.');
@@ -8962,7 +8962,7 @@ This change exists to document greeting behavior thoroughly for the team, which 
       await expect(
         archiveCommand.execute(undefined, { skipSpecs: true })
       ).rejects.toMatchObject({
-        diagnostic: { fix: 'openspec archive <change-name> --skip-specs --yes' },
+        diagnostic: { fix: 'specagile archive <change-name> --skip-specs --yes' },
       });
     });
 

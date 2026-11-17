@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { applyForkIdentity } from '../../../src/core/fork/identity.js';
 import { PROJECT_ROOT_GUARD } from '../../../src/core/templates/workflows/project-root.js';
 import { STORE_SELECTION_GUIDANCE } from '../../../src/core/templates/workflows/store-selection.js';
 import { getFeedbackSkillTemplate } from '../../../src/core/templates/skill-templates.js';
@@ -42,10 +43,16 @@ describe('project root guard', () => {
     ];
   }
 
+  /** A shared text as one rendered body ships it. */
+  function shipped(label: string, text: string): string {
+    return label.startsWith('skill ') ? applyForkIdentity(text) : text;
+  }
+
   it('warns about an uninitialized project in every deployed skill', () => {
     for (const { template, dirName } of getSkillTemplates()) {
       const content = generateSkillContent(template, 'PARITY-BASELINE');
-      expect(content, dirName).toContain(PROJECT_ROOT_GUARD);
+      // SpecAgile: skills ship the guard with the fork's CLI name.
+      expect(content, dirName).toContain(applyForkIdentity(PROJECT_ROOT_GUARD));
     }
   });
 
@@ -153,7 +160,7 @@ describe('project root guard', () => {
     ];
 
     for (const [label, body] of renderedBodies()) {
-      const guardStart = body.indexOf(PROJECT_ROOT_GUARD);
+      const guardStart = body.indexOf(shipped(label, PROJECT_ROOT_GUARD));
       expect(guardStart, label).toBeGreaterThanOrEqual(0);
 
       // A skill's YAML frontmatter is metadata a host reads to pick the skill,
@@ -174,10 +181,11 @@ describe('project root guard', () => {
   // header every workflow reads before it starts.
   it('sits directly under the store-selection guidance', () => {
     for (const [label, body] of renderedBodies()) {
-      const storeStart = body.indexOf(STORE_SELECTION_GUIDANCE);
+      const store = shipped(label, STORE_SELECTION_GUIDANCE);
+      const storeStart = body.indexOf(store);
       expect(storeStart, label).toBeGreaterThanOrEqual(0);
-      expect(body.indexOf(PROJECT_ROOT_GUARD), label).toBe(
-        storeStart + STORE_SELECTION_GUIDANCE.length + '\n\n'.length
+      expect(body.indexOf(shipped(label, PROJECT_ROOT_GUARD)), label).toBe(
+        storeStart + store.length + '\n\n'.length
       );
     }
   });

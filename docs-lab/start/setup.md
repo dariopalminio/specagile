@@ -13,7 +13,7 @@ With the CLI installed ([Installation](installation.md)), run init at the root o
 
 ```bash
 cd <your-project>
-openspec init
+specagile init
 ```
 
 Init asks which AI tools you use, writes the workflow files for the ones you pick, and reports what you got:
@@ -81,23 +81,23 @@ These are the OpenSpec workflows, the actions you'll use as you work. Here they 
 
 ```
 .agents/skills/
-├── openspec-explore/              think through an idea first
-├── openspec-propose/              propose a change
-├── openspec-specify/              write a change's proposal and specs
-├── openspec-plan/                 plan a specified change (design and tasks)
-├── openspec-apply-change/         implement a change's tasks
-├── openspec-update-change/        revise a change's plan
-├── openspec-sync-specs/           sync a change's spec updates into specs/
-├── openspec-archive-change/       move a finished change to the archive
-├── openspec-verify-change/        check the implementation matches the plan (not included by default)
-└── openspec-bulk-archive-change/  archive several changes at once (not included by default)
+├── sa-explore/              think through an idea first
+├── sa-propose/              propose a change
+├── sa-specify/              write a change's proposal and specs
+├── sa-plan/                 plan a specified change (design and tasks)
+├── sa-implement/         implement a change's tasks
+├── sa-update-change/        revise a change's plan
+├── sa-sync-specs/           sync a change's spec updates into specs/
+├── sa-archive/       move a finished change to the archive
+├── sa-verify/        check the implementation matches the plan (not included by default)
+└── sa-bulk-archive-change/  archive several changes at once (not included by default)
 ```
 
 This is the default set plus two optional workflows. [Profiles](../customize/profiles.md) lists all fourteen.
 
-Each skill is written once, here, no matter how many tools you set up. A tool that doesn't read `.agents/skills/` (Claude Code, Kiro, and others) gets a link to each skill in its own folder, such as `.claude/skills/openspec-propose`. MiniMax Code is the one exception: its skills go to `~/.minimax/skills/` in your home folder. [Supported tools](../reference/supported-tools.md#where-skills-go) shows the layout and which tools get links.
+Each skill is written once, here, no matter how many tools you set up. A tool that doesn't read `.agents/skills/` (Claude Code, Kiro, and others) gets a link to each skill in its own folder, such as `.claude/skills/sa-propose`. MiniMax Code is the one exception: its skills go to `~/.minimax/skills/` in your home folder. [Supported tools](../reference/supported-tools.md#where-skills-go) shows the layout and which tools get links.
 
-Each workflow is a **skill**: instructions your agent picks up when you ask for the work, or that you invoke by name (`/openspec-apply-change` in Claude Code, `$openspec-apply-change` in Codex). [Supported tools](../reference/supported-tools.md#support-matrix) shows the spelling for each tool.
+Each workflow is a **skill**: instructions your agent picks up when you ask for the work, or that you invoke by name (`/sa-implement` in Claude Code, `$sa-implement` in Codex). [Supported tools](../reference/supported-tools.md#support-matrix) shows the spelling for each tool.
 
 OpenSpec 1.x also wrote a command file per workflow (`/opsx:apply`). OpenSpec 2.0 installs skills only. [Upgrade to 2.0](../help/upgrade-to-2.md) covers what changes.
 
@@ -106,19 +106,19 @@ OpenSpec 1.x also wrote a command file per workflow (`/opsx:apply`). OpenSpec 2.
 The interactive picker changes the workflow set ([Profiles](../customize/profiles.md)). In your terminal:
 
 ```bash
-openspec config profile
+specagile config profile
 ```
 
-Answering yes to "Apply changes to this project now?" applies it on the spot. Other projects pick it up on their next `openspec update`. The setting is global, per machine.
+Answering yes to "Apply changes to this project now?" applies it on the spot. Other projects pick it up on their next `specagile update`. The setting is global, per machine.
 
 #### Claude Code doesn't show the workflows
 
-Claude Code loads OpenSpec skills from `.claude/skills/openspec-*`, which link to `.agents/skills/openspec-*`. If they are missing, refresh the project. In your terminal:
+Claude Code loads OpenSpec skills from `.claude/skills/sa-*`, which link to `.agents/skills/sa-*`. If they are missing, refresh the project. In your terminal:
 
 ```bash
-openspec update
+specagile update
 ```
 
-Restart Claude Code, then run `/openspec-propose` in its chat. If only some workflows are missing, [change your profile](../customize/profiles.md#expanding-the-set-optional-workflows).
+Restart Claude Code, then run `/sa-propose` in its chat. If only some workflows are missing, [change your profile](../customize/profiles.md#expanding-the-set-optional-workflows).
 
 Setup is done. The [Quickstart](quickstart.md) takes your first change from here.

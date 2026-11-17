@@ -121,7 +121,7 @@ export function findMissingTaskCheckboxIssues(
       line,
       message:
         'This change counts as 0 tasks: no line in its tracked task files is a checkbox, ' +
-        'so "openspec list" and "openspec status" report no work and "openspec archive" ' +
+        'so "specagile list" and "specagile status" report no work and "specagile archive" ' +
         'has nothing to flag as incomplete. Write each task as "- [ ] 1.1 Description".',
     });
   }

@@ -26,7 +26,7 @@ describe('OpenSpec 2.0 documentation', () => {
     // The guide must not promise that every edit is kept (#2223 review).
     expect(UPGRADE).not.toMatch(/never removed/i);
     expect(UPGRADE).toContain('> [!WARNING]');
-    const [notice] = formatKeptSkills([], [], ['.agents/skills/openspec-propose/SKILL.md']);
+    const [notice] = formatKeptSkills([], [], ['.agents/skills/sa-propose/SKILL.md']);
     expect(UPGRADE).toContain(notice);
     // The release note is a changeset until the release, then part of CHANGELOG.md.
     const changeset = path.join(REPO_ROOT, '.changeset', 'share-skills-in-agents-folder.md');

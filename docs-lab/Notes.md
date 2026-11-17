@@ -65,11 +65,11 @@ What do we want to get across the line this week?
 ## From docs-lab drafting (2026-08-19, project-config page)
 
 Product issue, not docs: the installed skills in this repo are stale against the current
-templates. `.claude/skills/openspec-archive-change/SKILL.md` has no `openspec instructions`
+templates. `.claude/skills/sa-archive/SKILL.md` has no `specagile instructions`
 call at all, while `src/core/templates/workflows/archive-change.ts:40` instructs one; the
 installed apply skill also doesn't mention the `context`/`operationGuidance` fields in the
 JSON it reads. So config injection reaches the CLI output, but a stale skill never tells
-the agent to consume it. Running `openspec update` should refresh them.
+the agent to consume it. Running `specagile update` should refresh them.
 
 
 ## From docs-lab drafting (2026-08-19, schemas page)
@@ -77,13 +77,13 @@ the agent to consume it. Running `openspec update` should refresh them.
 Product issues found while verifying the schema system (all file refs current as of today):
 
 - `schema init` next-steps output prints a command that doesn't exist in that form:
-  "Use with: openspec new --schema <name>" (schema.ts:999); real syntax is
-  `openspec new change <name> --schema <name>`.
-- `openspec new change` spinner prints the hardcoded default schema, not the resolved one
+  "Use with: specagile new --schema <name>" (schema.ts:999); real syntax is
+  `specagile new change <name> --schema <name>`.
+- `specagile new change` spinner prints the hardcoded default schema, not the resolved one
   (new-change.ts:118): "Creating change 'x' with schema 'spec-driven'..." then "Schema: lite".
 - `schema fork` re-serializes schema.yaml (literal `instruction: |` becomes folded `>`,
   comments dropped), so diffing a fork against upstream is noisy (schema.ts:706-712).
-- All `openspec schema` subcommands plus `openspec schemas`/`templates` use process.cwd()
+- All `specagile schema` subcommands plus `specagile schemas`/`templates` use process.cwd()
   and take no --store; they silently see nothing when run from a subdirectory, unlike
   root-resolved commands (schema.ts:383/485/634/768).
 - `suggestSchemas` fuzzy "did you mean" helper exists but is wired to nothing

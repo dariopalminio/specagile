@@ -131,7 +131,7 @@ the page or rewriting the goal in both places, never letting them drift.
 | Page | Goal |
 |---|---|
 | [Skills](reference/skills.md) | Every OpenSpec skill: arguments, what it creates, and what it responds with. |
-| [CLI](reference/cli.md) | The `openspec` terminal commands. |
+| [CLI](reference/cli.md) | The `specagile` terminal commands. |
 | [Schemas](reference/schemas/index.md) | Every available workflow schema and the artifacts it defines. |
 | [Schemas › schema.yaml](reference/schemas/schema-yaml.md) | Every field of a schema definition, for reading or writing one. |
 | [Schemas › spec-driven](reference/schemas/spec-driven/index.md) | The default workflow's artifacts: their order, their formats, and the change folder they produce. |
@@ -204,10 +204,10 @@ file's [Cutover](sources.md#cutover) section.
   `schemas/spec-driven/templates/design.md` carries only four headers. The docs show
   both verbatim; the mismatch belongs upstream. Noted 2026-08-14 while consolidating
   the spec-driven page.
-- Product feedback, not a docs task: `openspec store setup --remote` writes the URL
+- Product feedback, not a docs task: `specagile store setup --remote` writes the URL
   into `store.yaml` but never configures a git `origin`, so "setup --remote, then
   `git push -u origin main`" fails as written; the Stores page shows `git remote add`
-  instead. The pasteable missing-store fix in `openspec doctor` is powered by
+  instead. The pasteable missing-store fix in `specagile doctor` is powered by
   `references:` remotes, not `store.yaml`. Noted 2026-08-21 while porting the Stores
   page.
 - Style guide follow-up (`.agents/skills/write-openspec-docs/writing.md`), from the
@@ -269,7 +269,7 @@ file's [Cutover](sources.md#cutover) section.
   `guides/` file in the Adoption group. Noted 2026-08-08.
 - `customize/skills.md` is parked: the skeleton stays on disk but is out of the page
   index, the sidebar, and the sync config. Editing installed skill prompts has no good
-  answer yet (`openspec update` overwrites edits); the message map keeps the question as
+  answer yet (`specagile update` overwrites edits); the message map keeps the question as
   a Gap. Revive when the product has a real story for surviving updates. Parked 2026-08-14.
 - `guides/examples.md` is parked: the skeleton stays on disk but is out of the page
   index, the sidebar, and the sync config. Contrived examples teach the wrong lesson for
@@ -280,7 +280,7 @@ file's [Cutover](sources.md#cutover) section.
   update workflow is unlabeled in the picker. The only stored profile values are core
   and custom, but `src/core/templates/workflows/update-change.ts` says "expanded-profile
   workflow", and `WORKFLOW_PROMPT_META` (`src/commands/config.ts`) has no `update` entry,
-  so the `openspec config` workflow picker renders a core workflow as raw `update` /
+  so the `specagile config` workflow picker renders a core workflow as raw `update` /
   "Workflow: update". Docs standardized on core/custom with "expand the set" as a verb
   (2026-08-12). Noted 2026-08-12 during the glossary product sweep.
 - Product feedback, not a docs task: converge on skills only, soon. A workflow's skill and

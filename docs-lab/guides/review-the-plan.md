@@ -15,7 +15,7 @@
 ## Advanced: verify after apply
 
 Before archiving, check that the code does what the scenarios describe. The optional
-[verify skill](../reference/skills.md#openspec-verify-change) can help find gaps.
+[verify skill](../reference/skills.md#sa-verify) can help find gaps.
 
 ### Keep a record when checks are hard to track
 

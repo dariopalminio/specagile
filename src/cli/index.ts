@@ -21,6 +21,7 @@ import type {
   NewChangeOptions,
 } from '../commands/workflow/index.js';
 import { COMMON_FLAGS } from '../core/completions/shared-flags.js';
+import { CLI_NAME } from '../core/fork/identity.js';
 
 // Startup cost: every command's implementation, and the packages it uses,
 // loads with `await import()` inside its action. This module and
@@ -36,7 +37,7 @@ const STORE_OPTION_DESCRIPTION = COMMON_FLAGS.store.description;
 function hiddenStorePathOption(): Option {
   return new Option(
     '--store-path <path>',
-    'Not supported; register the path with "openspec store register <path>" and use --store <id>'
+    'Not supported; register the path with "specagile store register <path>" and use --store <id>'
   ).hideHelp();
 }
 
@@ -82,14 +83,14 @@ export function getCommandPath(command: Command): string {
 
   while (current) {
     const name = current.name();
-    // Skip the root 'openspec' command
-    if (name && name !== 'openspec') {
+    // Skip the root command (SpecAgile: `specagile`)
+    if (name && name !== CLI_NAME) {
       names.unshift(name);
     }
     current = current.parent;
   }
 
-  return names.join(':') || 'openspec';
+  return names.join(':') || CLI_NAME;
 }
 
 /**
@@ -145,7 +146,7 @@ export function shouldDeferCompletionTip(command: Command, stderrIsTty: boolean)
 }
 
 program
-  .name('openspec')
+  .name(CLI_NAME)
   .description('AI-native system for spec-driven development')
   .version(version);
 
@@ -313,7 +314,7 @@ program
   .option('--no-interactive', 'Disable interactive prompts')
   .action(async (options?: { tool?: string; noInteractive?: boolean }) => {
     try {
-      console.log('Note: "openspec experimental" is deprecated. Use "openspec init" instead.');
+      console.log('Note: "specagile experimental" is deprecated. Use "specagile init" instead.');
       const { InitCommand } = await import('../core/init.js');
       const initCommand = new InitCommand({
         tools: options?.tool,
@@ -547,7 +548,7 @@ const changeCmd = program
 
 // Deprecation notice for noun-based commands
 changeCmd.hook('preAction', () => {
-  console.error('Warning: The "openspec change ..." commands are deprecated. Prefer verb-first commands (e.g., "openspec list", "openspec validate --changes").');
+  console.error('Warning: The "specagile change ..." commands are deprecated. Prefer verb-first commands (e.g., "specagile list", "specagile validate --changes").');
 });
 
 changeCmd
@@ -571,12 +572,12 @@ changeCmd
 
 changeCmd
   .command('list')
-  .description('List all active changes (DEPRECATED: use "openspec list" instead)')
+  .description('List all active changes (DEPRECATED: use "specagile list" instead)')
   .option('--json', 'Output as JSON')
   .option('--long', 'Show id and title with counts')
   .action(async (options?: { json?: boolean; long?: boolean }) => {
     try {
-      console.error('Warning: "openspec change list" is deprecated. Use "openspec list".');
+      console.error('Warning: "specagile change list" is deprecated. Use "specagile list".');
       const { ChangeCommand } = await import('../commands/change.js');
       const changeCommand = new ChangeCommand();
       await changeCommand.list(options);

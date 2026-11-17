@@ -402,7 +402,7 @@ describe('store canonical remote (3.3)', { timeout: REAL_GIT_TEST_TIMEOUT_MS }, 
       // win32 double quotes (cmd/PowerShell treat ' as literal).
       const q = process.platform === 'win32' ? '"' : "'";
       expect(fix).toBe(
-        `git clone -- ${originRemote} ${q}${expectedCheckout}${q} && openspec store register ${q}${expectedCheckout}${q} --id team-context`
+        `git clone -- ${originRemote} ${q}${expectedCheckout}${q} && specagile store register ${q}${expectedCheckout}${q} --id team-context`
       );
 
       // Execute the fix's two commands with the values the shape pin

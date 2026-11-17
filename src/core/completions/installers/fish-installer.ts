@@ -3,6 +3,7 @@ import path from 'path';
 import os from 'os';
 import { FileSystemUtils } from '../../../utils/file-system.js';
 import { InstallationResult } from '../factory.js';
+import { CLI_NAME } from '../../fork/identity.js';
 
 /**
  * Installer for Fish completion scripts.
@@ -21,7 +22,7 @@ export class FishInstaller {
    * @returns Installation path
    */
   getInstallationPath(): string {
-    return path.join(this.homeDir, '.config', 'fish', 'completions', 'openspec.fish');
+    return path.join(this.homeDir, '.config', 'fish', 'completions', `${CLI_NAME}.fish`);
   }
 
   /**

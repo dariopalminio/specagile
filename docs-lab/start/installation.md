@@ -2,6 +2,18 @@
 
 > Install the `openspec` CLI on your machine, update it, and uninstall it.
 
+> [!NOTE]
+> **SpecAgile** is not published yet, so none of the methods on this page install it: they install OpenSpec, whose CLI is `openspec`. To install SpecAgile, build it from a clone of its repository (Node.js 22.12.0 or higher, and pnpm) and link it:
+>
+> ```bash
+> pnpm install
+> pnpm build
+> pnpm link --global
+> ```
+>
+> Then `specagile --version` prints the version. To update, run `git pull`, `pnpm install` and `pnpm build` in the clone, then `specagile update` in each project. SpecAgile never installs an `openspec` command, so an OpenSpec installed beside it keeps working; use one of the two in each project. The rest of the CLI docs use `specagile`.
+
+
 
 ## Install
 
@@ -215,7 +227,7 @@ In your terminal, in each project where you ran init:
 openspec update
 ```
 
-When a newer CLI is out, [`openspec update`](../reference/cli.md#openspec-update) says so and can install it for you; that upgrade is once per machine. Every run refreshes the project's generated skills, which never update on their own. A current project prints `✓ All 2 tool(s) up to date (v1.7.0)`.
+When a newer CLI is out, [`openspec update`](../reference/cli.md#specagile-update) says so and can install it for you; that upgrade is once per machine. Every run refreshes the project's generated skills, which never update on their own. A current project prints `✓ All 2 tool(s) up to date (v1.7.0)`.
 
 
 > [!WARNING]
@@ -228,7 +240,7 @@ When a newer CLI is out, [`openspec update`](../reference/cli.md#openspec-update
 
 To uninstall OpenSpec, run through the steps below; none of them touch your source code. You can also point your agent at this section and let it handle the removal.
 
-**1. Remove [shell completions](../reference/cli.md#openspec-completion)**, if you set them up, while the CLI can still do it. In your terminal:
+**1. Remove [shell completions](../reference/cli.md#specagile-completion)**, if you set them up, while the CLI can still do it. In your terminal:
 
 ```bash
 openspec completion uninstall

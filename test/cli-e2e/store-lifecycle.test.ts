@@ -458,7 +458,7 @@ describe('standalone store lifecycle journey', () => {
     );
     expect(failedApply.exitCode).not.toBe(0);
     expect(failedApply.stderr).toContain(`Using OpenSpec root: ${STORE_ID}`);
-    expect(failedApply.stderr).toContain(`openspec new change <name> --store ${STORE_ID}`);
+    expect(failedApply.stderr).toContain(`specagile new change <name> --store ${STORE_ID}`);
   }, JOURNEY_TIMEOUT_MS);
 
   it('end state is just normal OpenSpec files in both checkouts', async () => {

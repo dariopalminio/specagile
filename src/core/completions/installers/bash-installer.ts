@@ -3,6 +3,7 @@ import path from 'path';
 import os from 'os';
 import { FileSystemUtils } from '../../../utils/file-system.js';
 import { InstallationResult } from '../factory.js';
+import { CLI_NAME } from '../../fork/identity.js';
 import { shellSingleQuote } from './shell-quote.js';
 
 /**
@@ -16,8 +17,9 @@ export class BashInstaller {
    * Markers for .bashrc configuration management
    */
   private readonly BASHRC_MARKERS = {
-    start: '# OPENSPEC:START',
-    end: '# OPENSPEC:END',
+    // SpecAgile: its own markers, so OpenSpec's block beside it stays.
+    start: '# SPECAGILE:START',
+    end: '# SPECAGILE:END',
   };
 
   constructor(homeDir: string = os.homedir()) {
@@ -62,7 +64,7 @@ export class BashInstaller {
     const localCompletionDir = path.join(this.homeDir, '.local', 'share', 'bash-completion', 'completions');
 
     // For user installation, use local directory
-    return path.join(localCompletionDir, 'openspec');
+    return path.join(localCompletionDir, CLI_NAME);
   }
 
   /**

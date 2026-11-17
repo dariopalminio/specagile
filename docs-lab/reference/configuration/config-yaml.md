@@ -17,13 +17,13 @@ Each OpenSpec project keeps its config file at `openspec/config.yaml`, in the pr
 | `store` | string | No | Fallback OpenSpec root when this openspec/ is config-only |
 | `references` | list | No | Stores whose specs are indexed into instructions |
 
-Invalid fields never fail a command. Each field is validated on its own, and a bad value is dropped with a warning. A file that cannot be read or is not valid YAML is ignored with a warning, except by `openspec validate`, which exits 1 so CI catches it.
+Invalid fields never fail a command. Each field is validated on its own, and a bad value is dropped with a warning. A file that cannot be read or is not valid YAML is ignored with a warning, except by `specagile validate`, which exits 1 so CI catches it.
 
 What to write in these fields is covered in [Project configuration](../../customize/project-config.md).
 
 ### schema
 
-The workflow schema every change in this project follows. Valid values are `spec-driven` or a schema name the project defines. Run [`openspec schemas`](../cli.md#openspec-schemas) to list the available schema names.
+The workflow schema every change in this project follows. Valid values are `spec-driven` or a schema name the project defines. Run [`specagile schemas`](../cli.md#specagile-schemas) to list the available schema names.
 
 ### context
 
@@ -98,4 +98,4 @@ operations:
 
 ## Legacy names
 
-`openspec/config.yml` is read as an alias when `config.yaml` does not exist. When both files exist, `config.yaml` wins and `config.yml` is ignored. `openspec init` creates `config.yaml`.
+`openspec/config.yml` is read as an alias when `config.yaml` does not exist. When both files exist, `config.yaml` wins and `config.yml` is ignored. `specagile init` creates `config.yaml`.

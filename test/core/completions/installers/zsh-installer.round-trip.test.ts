@@ -43,7 +43,7 @@ describe('ZshInstaller .zshrc round trip', () => {
   async function roundTrip(original: string): Promise<string> {
     await fs.writeFile(zshrcPath, original);
     expect(await installer.configureZshrc(completionsDir)).toBe(true);
-    expect(await fs.readFile(zshrcPath, 'utf-8')).toContain('# OPENSPEC:START');
+    expect(await fs.readFile(zshrcPath, 'utf-8')).toContain('# SPECAGILE:START');
     expect(await installer.removeZshrcConfig()).toBe(true);
     return fs.readFile(zshrcPath, 'utf-8');
   }
@@ -62,7 +62,7 @@ describe('ZshInstaller .zshrc round trip', () => {
   it('keeps leading blank lines when the user moved the block further down', async () => {
     await fs.writeFile(
       zshrcPath,
-      ['', 'export PATH="$HOME/bin:$PATH"', '# OPENSPEC:START', '# OpenSpec shell completions configuration', '# OPENSPEC:END', 'alias ll="ls -la"', ''].join('\n')
+      ['', 'export PATH="$HOME/bin:$PATH"', '# SPECAGILE:START', '# OpenSpec shell completions configuration', '# SPECAGILE:END', 'alias ll="ls -la"', ''].join('\n')
     );
 
     expect(await installer.removeZshrcConfig()).toBe(true);
@@ -73,7 +73,7 @@ describe('ZshInstaller .zshrc round trip', () => {
     // The user deleted the separator line, so nothing blank follows the block.
     await fs.writeFile(
       zshrcPath,
-      '# OPENSPEC:START\n# OpenSpec shell completions configuration\n# OPENSPEC:END\nalias ll="ls -la"\n\nexport EDITOR=vim\n'
+      '# SPECAGILE:START\n# OpenSpec shell completions configuration\n# SPECAGILE:END\nalias ll="ls -la"\n\nexport EDITOR=vim\n'
     );
 
     expect(await installer.removeZshrcConfig()).toBe(true);

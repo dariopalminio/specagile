@@ -24,7 +24,7 @@ import { isCiEnvironment } from '../utils/ci.js';
 import { detectShell } from '../utils/shell-detection.js';
 
 export const COMPLETION_TIP_MESSAGE =
-  "Tip: Run 'openspec completion install' for shell completions";
+  "Tip: Run 'specagile completion install' for shell completions";
 
 export interface CompletionTipOptions {
   /**

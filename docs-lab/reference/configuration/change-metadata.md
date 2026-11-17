@@ -20,7 +20,7 @@ Each change keeps its metadata at `openspec/changes/<change-name>/.openspec.yaml
 
 ### schema
 
-The workflow schema this change follows. It is set when the change is created and wins over the project config, so a change keeps its schema even if `openspec/config.yaml` changes afterwards. Run [`openspec schemas`](../cli.md#openspec-schemas) to list the available schema names.
+The workflow schema this change follows. It is set when the change is created and wins over the project config, so a change keeps its schema even if `openspec/config.yaml` changes afterwards. Run [`specagile schemas`](../cli.md#specagile-schemas) to list the available schema names.
 
 ### initiative
 
@@ -57,7 +57,7 @@ x-owner:
 - **Name**: the lowercase `x-` prefix followed by at least one character, with no whitespace anywhere. Any case or spelling works after the prefix, so `x-jiraKey` and `x-trackerID` qualify. `X-Tracker`, a bare `x-`, and `x- tracker` do not, and are reported as unknown keys.
 - **Value**: any YAML value. OpenSpec does not read or validate it, and it changes no behavior.
 - **Scope**: top-level only. An `x-` key inside `initiative` is still rejected, like any other key there.
-- **Validation**: extension keys are never reported as unknown, so `openspec validate --strict` passes on a change that carries them.
+- **Validation**: extension keys are never reported as unknown, so `specagile validate --strict` passes on a change that carries them.
 - **Archive**: the file moves with the change unchanged, extension keys included.
 
 ## Example
@@ -80,4 +80,4 @@ The file is validated whenever a command writes or reads it. A write that fails 
 Unlike [config.yaml](config-yaml.md), bad values are never dropped with a warning. A metadata error stops the command.
 
 - **Unknown top-level keys**: OpenSpec ignores them. `status`, `instructions`, `validate`, and `archive` report that they have no effect. JSON output carries the warning in its structured result. [Extension keys](#extension-keys) are not unknown and are never reported.
-- **Strict validation**: `openspec validate --strict` treats an unknown-key warning as a failure. A change whose only extra keys are extension keys passes.
+- **Strict validation**: `specagile validate --strict` treats an unknown-key warning as a failure. A change whose only extra keys are extension keys passes.

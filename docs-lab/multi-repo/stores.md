@@ -57,11 +57,11 @@ You can have more than one store, though we recommend keeping the count low.
 
 One person creates the store, then everyone else joins it.
 
-1. **Create the store** (one person, once per team). Run `openspec store setup` and answer the prompts:
+1. **Create the store** (one person, once per team). Run `specagile store setup` and answer the prompts:
 
    ```bash
    # run from anywhere; it asks what to create and where
-   openspec store setup
+   specagile store setup
    ```
    
    It asks three questions:
@@ -79,7 +79,7 @@ One person creates the store, then everyone else joins it.
    Registry: registered
    
    Next: run normal OpenSpec commands against this store, for example:
-     openspec new change <change-id> --store team-plans
+     specagile new change <change-id> --store team-plans
    Share this store by committing and pushing it like any Git repo.
    ```
 
@@ -101,7 +101,7 @@ One person creates the store, then everyone else joins it.
    git clone git@github.com:acme/team-plans.git ~/openspec/team-plans
    
    # tell OpenSpec where it lives
-   openspec store register ~/openspec/team-plans
+   specagile store register ~/openspec/team-plans
    ```
 
    ```yaml
@@ -117,12 +117,12 @@ One person creates the store, then everyone else joins it.
    
    ```bash
    # any OpenSpec command reaches the store by name
-   openspec status --store team-plans
+   specagile status --store team-plans
    ```
 
    ```yaml
    Using OpenSpec root: team-plans (/Users/you/openspec/team-plans)
-   No active changes. Create one with: openspec new change <name> --store team-plans
+   No active changes. Create one with: specagile new change <name> --store team-plans
    ```
    
 ## Types of setups
@@ -135,7 +135,7 @@ OpenSpec has three setups. The rest of this page uses these names:
 
 ### The default: OpenSpec inside your repo (`repo-local`)
 
-`openspec init` puts an `openspec/` folder next to your code, and that repo's specs and changes live there. No store is involved. This is the setup [Set up your project](../start/setup.md) teaches, and most projects never need another.
+`specagile init` puts an `openspec/` folder next to your code, and that repo's specs and changes live there. No store is involved. This is the setup [Set up your project](../start/setup.md) teaches, and most projects never need another.
 
 ```
 web-app  (code repo)
@@ -213,12 +213,12 @@ Everything you or your agent run inside your project now uses the store, with no
 
 ```bash
 # inside web-app, connected
-openspec status
+specagile status
 ```
 
 ```yaml
 Using OpenSpec root: team-plans (/Users/you/openspec/team-plans)
-No active changes. Create one with: openspec new change <name> --store team-plans
+No active changes. Create one with: specagile new change <name> --store team-plans
 ```
 
 - **Without the line**: run a plain command in a store-only project and OpenSpec stops with an error listing your registered stores.
@@ -231,7 +231,7 @@ Run init from the code repo's root to install AI tool integration files without 
 
 ```bash
 # inside web-app, at the repository root
-openspec init --tools claude
+specagile init --tools claude
 ```
 
 - **Integration files**: written in the code repo.
@@ -248,13 +248,13 @@ Set it once if every project you work in uses the same store. OpenSpec falls bac
 
 ```bash
 # use team-plans whenever nothing else names a store
-openspec config set defaultStore team-plans
+specagile config set defaultStore team-plans
 
 # undo it
-openspec config unset defaultStore
+specagile config unset defaultStore
 ```
 
-**Commands that stay local.** `init`, `update`, `templates`, `schemas`, and the `openspec schema` subcommands act on the current directory only and take no `--store`.
+**Commands that stay local.** `init`, `update`, `templates`, `schemas`, and the `specagile schema` subcommands act on the current directory only and take no `--store`.
 
 ## Move a repo's specs and changes into the store
 
@@ -264,7 +264,7 @@ To take a repo from repo-local to store-only:
 2. Delete the now-empty folders, so the repo's `openspec/` folder holds only `config.yaml`.
 3. Add the `store:` line to that `config.yaml`.
 
-`openspec status` inside the repo now starts with `Using OpenSpec root: team-plans`.
+`specagile status` inside the repo now starts with `Using OpenSpec root: team-plans`.
 
 ## Work in the store
 
@@ -274,25 +274,25 @@ Create a change from inside a store-only repo and it lands in the store:
 
 ```bash
 # inside web-app; the store: line routes this to team-plans
-openspec new change add-login
+specagile new change add-login
 ```
 
 ```yaml
 Using OpenSpec root: team-plans (/Users/you/openspec/team-plans)
 Created change 'add-login' at /Users/you/openspec/team-plans/openspec/changes/add-login/
 Schema: spec-driven
-Next: openspec status --change add-login --store team-plans
+Next: specagile status --change add-login --store team-plans
 ```
 
 - **Where it went**: into the store repo, not next to your code.
 - **Sharing it**: the change exists only in your checkout until you commit and push the store repo. Teammates see it when they pull. The same goes for every artifact the workflows write.
 - **Paths in the docs**: wherever the docs show an `openspec/` path, in a store setup that folder is the store's.
 
-When artifacts get created somewhere you didn't expect, `openspec doctor` checks your setup without changing anything and prints a fix for each finding:
+When artifacts get created somewhere you didn't expect, `specagile doctor` checks your setup without changing anything and prints a fix for each finding:
 
 ```bash
 # check the current root and its stores
-openspec doctor
+specagile doctor
 ```
 
 ```yaml
@@ -307,7 +307,7 @@ References
   (none declared)
 ```
 
-`openspec context` lists the root and stores your current directory works with, when you want the same picture without the checks.
+`specagile context` lists the root and stores your current directory works with, when you want the same picture without the checks.
 
 To open the store and a repo in one editor window, so your agent can read both, see [Worksets (beta)](worksets.md).
 
@@ -330,7 +330,7 @@ When a workflow creates an artifact, its instructions gain an index of the refer
 <!-- Read-only upstream context. Fetch what you need; cite what you use. -->
 Store team-plans (/Users/you/openspec/team-plans):
   - payments: Rules for charging and refunding customers.
-  Fetch: openspec show <spec-id> --type spec --store team-plans
+  Fetch: specagile show <spec-id> --type spec --store team-plans
 </referenced_stores>
 ```
 
@@ -342,7 +342,7 @@ references:
   - { id: design-system, remote: "git@github.com:acme/design-system.git" }
 ```
 
-With the URL declared, `openspec doctor` turns a missing store into a pasteable fix:
+With the URL declared, `specagile doctor` turns a missing store into a pasteable fix:
 
 ```yaml
 # output wrapped to fit
@@ -350,11 +350,11 @@ References
   - team-plans: ok (/Users/you/openspec/team-plans)
   - design-system: Referenced store 'design-system' is not registered on this machine.
     Fix: git clone -- git@github.com:acme/design-system.git '/Users/you/openspec/design-system' &&
-         openspec store register '/Users/you/openspec/design-system' --id design-system
+         specagile store register '/Users/you/openspec/design-system' --id design-system
 ```
 
 ## Beta limits
 
 - **The shape may change**: command names, flags, and file formats can change between releases. Re-read this page after upgrading.
 - **No sync, by design**: OpenSpec never clones, pulls, or pushes. A stale checkout shows stale specs until you pull, and references are read from whatever is on disk.
-- **One checkout per store name**: registering a second folder under a name that's already registered fails, with a hint to run `openspec store unregister` first.
+- **One checkout per store name**: registering a second folder under a name that's already registered fails, with a hint to run `specagile store unregister` first.

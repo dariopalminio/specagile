@@ -38,8 +38,9 @@ import {
   assertWorkflowConditionalsResolved,
   resolveOptionalWorkflows,
 } from '../templates/optional-workflow.js';
-import { ALL_WORKFLOWS } from '../profiles.js';
+import { ALL_WORKFLOWS, type WorkflowId } from '../profiles.js';
 import { OPENSPEC_CLI_ALLOWED_TOOLS } from './allowed-tools.js';
+import { SKILL_NAME_BY_WORKFLOW, applyForkIdentity } from '../fork/identity.js';
 
 /**
  * The workflow set a template body is rendered against.
@@ -136,22 +137,24 @@ const NO_TRANSFORM = (text: string) => text;
 const renderingCache = new WeakMap<(text: string) => string, Map<string, string[]>>();
 
 function allSkillTemplates(): SkillTemplateEntry[] {
+  // SpecAgile: folder names come from the fork's identity table (`sa-*`).
+  const dir = (workflowId: WorkflowId) => ({ dirName: SKILL_NAME_BY_WORKFLOW[workflowId], workflowId });
   return [
-    { template: getExploreSkillTemplate(), dirName: 'openspec-explore', workflowId: 'explore' },
-    { template: getNewChangeSkillTemplate(), dirName: 'openspec-new-change', workflowId: 'new' },
-    { template: getContinueChangeSkillTemplate(), dirName: 'openspec-continue-change', workflowId: 'continue' },
-    { template: getApplyChangeSkillTemplate(), dirName: 'openspec-apply-change', workflowId: 'apply' },
-    { template: getUpdateChangeSkillTemplate(), dirName: 'openspec-update-change', workflowId: 'update' },
-    { template: getFfChangeSkillTemplate(), dirName: 'openspec-ff-change', workflowId: 'ff' },
-    { template: getSyncSpecsSkillTemplate(), dirName: 'openspec-sync-specs', workflowId: 'sync' },
-    { template: getArchiveChangeSkillTemplate(), dirName: 'openspec-archive-change', workflowId: 'archive' },
-    { template: getBulkArchiveChangeSkillTemplate(), dirName: 'openspec-bulk-archive-change', workflowId: 'bulk-archive' },
-    { template: getVerifyChangeSkillTemplate(), dirName: 'openspec-verify-change', workflowId: 'verify' },
-    { template: getOnboardSkillTemplate(), dirName: 'openspec-onboard', workflowId: 'onboard' },
-    { template: getOpsxProposeSkillTemplate(), dirName: 'openspec-propose', workflowId: 'propose' },
+    { template: getExploreSkillTemplate(), ...dir('explore') },
+    { template: getNewChangeSkillTemplate(), ...dir('new') },
+    { template: getContinueChangeSkillTemplate(), ...dir('continue') },
+    { template: getApplyChangeSkillTemplate(), ...dir('apply') },
+    { template: getUpdateChangeSkillTemplate(), ...dir('update') },
+    { template: getFfChangeSkillTemplate(), ...dir('ff') },
+    { template: getSyncSpecsSkillTemplate(), ...dir('sync') },
+    { template: getArchiveChangeSkillTemplate(), ...dir('archive') },
+    { template: getBulkArchiveChangeSkillTemplate(), ...dir('bulk-archive') },
+    { template: getVerifyChangeSkillTemplate(), ...dir('verify') },
+    { template: getOnboardSkillTemplate(), ...dir('onboard') },
+    { template: getOpsxProposeSkillTemplate(), ...dir('propose') },
     // SpecAgile's skill-only workflows: no command template (they never had one).
-    { template: getSpecifySkillTemplate(), dirName: 'openspec-specify', workflowId: 'specify' },
-    { template: getPlanSkillTemplate(), dirName: 'openspec-plan', workflowId: 'plan' },
+    { template: getSpecifySkillTemplate(), ...dir('specify') },
+    { template: getPlanSkillTemplate(), ...dir('plan') },
   ];
 }
 
@@ -226,7 +229,9 @@ export function generateSkillContent(
     `Skill '${template.name}' was generated without resolving its optional-workflow blocks`
   );
 
-  return `---
+  // SpecAgile: the whole file (frontmatter and body) gets the fork's CLI and
+  // skill names; upstream templates stay as written (see FORK.md).
+  return applyForkIdentity(`---
 name: ${template.name}
 description: ${template.description}
 allowed-tools: ${OPENSPEC_CLI_ALLOWED_TOOLS}
@@ -239,5 +244,5 @@ metadata:
 ---
 
 ${instructions}
-`;
+`);
 }

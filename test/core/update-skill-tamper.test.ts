@@ -63,7 +63,7 @@ describe('update detects a tampered SKILL.md', () => {
       testDir,
       '.claude',
       'skills',
-      'openspec-apply-change',
+      'sa-implement',
       'SKILL.md'
     );
   });

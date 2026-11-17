@@ -3,6 +3,8 @@
  * These are Fish-specific helper functions that never change.
  */
 
+import { CLI_NAME } from '../../fork/identity.js';
+
 export const FISH_STATIC_HELPERS = `# Helper function to match the command path at the start of the invocation
 function __fish_openspec_using_command_path
     set -l expected
@@ -120,13 +122,13 @@ end`;
 export const FISH_DYNAMIC_HELPERS = `# Dynamic completion helpers
 
 function __fish_openspec_changes
-    openspec __complete changes 2>/dev/null | while read -l id desc
+    ${CLI_NAME} __complete changes 2>/dev/null | while read -l id desc
         printf '%s\\t%s\\n' "$id" "$desc"
     end
 end
 
 function __fish_openspec_specs
-    openspec __complete specs 2>/dev/null | while read -l id desc
+    ${CLI_NAME} __complete specs 2>/dev/null | while read -l id desc
         printf '%s\\t%s\\n' "$id" "$desc"
     end
 end
@@ -137,7 +139,7 @@ function __fish_openspec_items
 end
 
 function __fish_openspec_schemas
-    openspec __complete schemas 2>/dev/null | while read -l id desc
+    ${CLI_NAME} __complete schemas 2>/dev/null | while read -l id desc
         printf '%s\\t%s\\n' "$id" "$desc"
     end
 end`;

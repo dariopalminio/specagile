@@ -18,10 +18,10 @@ OpenSpec looks for a schema in three places, in order, and uses the first one it
 2. **Your machine**: `~/.local/share/openspec/schemas` on macOS and Linux (or under `$XDG_DATA_HOME` if you set it), or `%LOCALAPPDATA%\openspec\schemas` on Windows. Schemas here are available in every project you work in.
 3. **The package**: the built-ins, like `spec-driven`, ship inside openspec itself.
 
-The same name can exist in more than one place, and the more specific location wins. `openspec schema which` shows which copy is in use:
+The same name can exist in more than one place, and the more specific location wins. `specagile schema which` shows which copy is in use:
 
 ```
-$ openspec schema which spec-driven
+$ specagile schema which spec-driven
 Schema: spec-driven
 Source: project
 Path: /your-project/openspec/schemas/spec-driven
@@ -69,14 +69,14 @@ The built-in schemas ship inside the openspec package, so you never edit them in
 There are two ways to get your own schema:
 
 1. **Fork an existing schema** and edit your copy. Start here when an existing schema is close to what you want, because everything in it already works.
-2. **Start from scratch** when none of them fit, scaffolding an empty schema with `openspec schema init`.
+2. **Start from scratch** when none of them fit, scaffolding an empty schema with `specagile schema init`.
 
 ### Fork an existing schema
 
 1. Fork the schema you want to start from, running from your project root:
 
    ```console
-   $ openspec schema fork spec-driven
+   $ specagile schema fork spec-driven
 
    Note: Schema commands are experimental and may change.
    ✔ Forked 'spec-driven' to 'spec-driven-custom'
@@ -85,14 +85,14 @@ There are two ways to get your own schema:
    Destination: /your-project/openspec/schemas/spec-driven-custom
    ```
 
-   Pass a second argument to pick the name (`openspec schema fork spec-driven team-flow`). Names are kebab-case.
+   Pass a second argument to pick the name (`specagile schema fork spec-driven team-flow`). Names are kebab-case.
 
 2. Edit the copy: schema.yaml and the templates. [Editing your fork](#editing-your-fork) covers what to change.
 
 3. Validate it:
 
    ```bash
-   openspec schema validate spec-driven-custom
+   specagile schema validate spec-driven-custom
    ```
 
    This is the one command that catches a broken schema (missing templates, bad YAML, dependency cycles) before you're in the middle of a change.
@@ -105,14 +105,14 @@ There are two ways to get your own schema:
 
 5. New change proposals now follow your schema. Changes created earlier keep the schema they started with.
 
-To replace the default everywhere without touching config.yaml, fork to the same name: `openspec schema fork spec-driven spec-driven`. Your project's copy then shadows the built-in, as [Where schemas live](#where-schemas-live) explains.
+To replace the default everywhere without touching config.yaml, fork to the same name: `specagile schema fork spec-driven spec-driven`. Your project's copy then shadows the built-in, as [Where schemas live](#where-schemas-live) explains.
 
 ### Start from scratch
 
-`openspec schema init` scaffolds a new schema instead of copying one:
+`specagile schema init` scaffolds a new schema instead of copying one:
 
 ```console
-$ openspec schema init lite --description "Lite flow" --artifacts proposal,tasks
+$ specagile schema init lite --description "Lite flow" --artifacts proposal,tasks
 
 ✔ Created schema 'lite'
 Schema created at: /your-project/openspec/schemas/lite
@@ -135,7 +135,7 @@ For example, to drop the design document for a leaner flow:
 3. Validate:
 
    ```console
-   $ openspec schema validate spec-driven-custom
+   $ specagile schema validate spec-driven-custom
 
    ✓ Schema 'spec-driven-custom' is valid
    ```
@@ -151,7 +151,7 @@ Validate after every hand-edit. A broken schema otherwise surfaces in the middle
 
 ## A fork is a snapshot
 
-`openspec update` refreshes the installed skills, and it never touches `openspec/schemas/`. Your fork keeps working exactly as you left it, which also means it stops receiving improvements when the built-in schema evolves. To pick those up later, fork the built-in again under a new name and port the differences across.
+`specagile update` refreshes the installed skills, and it never touches `openspec/schemas/`. Your fork keeps working exactly as you left it, which also means it stops receiving improvements when the built-in schema evolves. To pick those up later, fork the built-in again under a new name and port the differences across.
 
 ## Sharing schemas
 

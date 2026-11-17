@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { loadSchema } from '../../../src/core/artifact-graph/schema.js';
+import { withUpstreamIdentity } from '../../helpers/fork-identity.js';
 import { resolveCurrentPlanningHomeSync } from '../../../src/core/planning-home.js';
 
 // #1702: the `specs` instruction sent main-spec reads and edits to
@@ -25,7 +26,8 @@ function instructionFor(artifactId: string): string {
   expect(artifact, `spec-driven has no "${artifactId}" artifact`).toBeDefined();
   const instruction = artifact?.instruction;
   expect(instruction, `spec-driven "${artifactId}" has no instruction`).toBeDefined();
-  return instruction as string;
+  // SpecAgile: the schema names `specagile`; compared with upstream's names.
+  return withUpstreamIdentity(instruction as string);
 }
 
 /**

@@ -6,7 +6,8 @@
  * the user edited is kept and listed.
  */
 import path from 'path';
-import { OPENSPEC_SKILL_NAMES, RETIRED_TOOLS, type RetiredTool } from './config.js';
+import { RETIRED_TOOLS, type RetiredTool } from './config.js';
+import { KNOWN_SKILL_NAMES } from './fork/identity.js';
 import { reconcileCommandFiles } from './shared/command-reconcile.js';
 import { classifySkillFile } from './shared/skill-links.js';
 import { reachesWithoutLink } from './legacy-cleanup.js';
@@ -55,7 +56,7 @@ export async function cleanUpRetiredTools(
     const removed = [...commands.removed];
     const kept = [...commands.kept, ...commands.unchecked];
 
-    for (const skillName of OPENSPEC_SKILL_NAMES) {
+    for (const skillName of KNOWN_SKILL_NAMES) {
       const rel = `${tool.folder}/skills/${skillName}`;
       const skillDir = path.join(projectPath, ...rel.split('/'));
       if (!io.view.exists(skillDir)) continue;
@@ -89,7 +90,7 @@ export function formatRetiredToolCleanup(result: RetiredToolCleanup, successorSe
   // No advice to set up the successor when it is already (or being) set up.
   const advice = successorSetUp
     ? ''
-    : ` Set up ${tool.successorName} instead: openspec init --tools ${tool.successor}`;
+    : ` Set up ${tool.successorName} instead: specagile init --tools ${tool.successor}`;
   const lines = [`${tool.name} is no longer supported: ${tool.reason}.${advice}`];
   if (removed.length > 0) {
     lines.push(

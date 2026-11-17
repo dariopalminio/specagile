@@ -113,7 +113,7 @@ function fromStoreError(error: unknown): never {
 }
 
 function doctorFix(id: string): string {
-  return `Run openspec store doctor ${id} to inspect it.`;
+  return `Run specagile store doctor ${id} to inspect it.`;
 }
 
 function makeRoot(
@@ -171,7 +171,7 @@ async function resolveStoreRoot(
         'no_registered_stores',
         {
           target: 'store.id',
-          fix: `Run openspec store setup ${id} or openspec store register <path> first.`,
+          fix: `Run specagile store setup ${id} or specagile store register <path> first.`,
         }
       );
     }
@@ -183,7 +183,7 @@ async function resolveStoreRoot(
       'unknown_store',
       {
         target: 'store.id',
-        fix: 'Pass a registered store id, or run openspec store list.',
+        fix: 'Pass a registered store id, or run specagile store list.',
       }
     );
   }
@@ -342,7 +342,7 @@ async function resolveNearestOrDeclaredRoot(
       // they did not pass --store.
       const declarationFix =
         error.diagnostic.code === 'unknown_store'
-          ? `Register the store (openspec store register <path> --id ${pointer.value}) or edit ${pointer.filePath} to name a registered store.`
+          ? `Register the store (specagile store register <path> --id ${pointer.value}) or edit ${pointer.filePath} to name a registered store.`
           : error.diagnostic.fix;
       throw new RootSelectionError(
         `Declared in ${pointer.filePath}: ${error.message}`,
@@ -376,7 +376,7 @@ async function resolveDefaultStoreRoot(
       const staleFix =
         error.diagnostic.code === 'unknown_store' ||
         error.diagnostic.code === 'no_registered_stores'
-          ? `Register the store (openspec store register <path> --id ${id}) or clear the stale global default (openspec config unset defaultStore).`
+          ? `Register the store (specagile store register <path> --id ${id}) or clear the stale global default (specagile config unset defaultStore).`
           : error.diagnostic.fix;
       throw new RootSelectionError(
         `Global defaultStore '${id}': ${error.message}`,
@@ -426,11 +426,11 @@ export async function resolveOpenSpecRoot(
 ): Promise<ResolvedOpenSpecRoot> {
   if (options.storePath !== undefined) {
     throw new RootSelectionError(
-      '--store-path is not supported. Register the path with openspec store register <path>, then select it with --store <id>.',
+      '--store-path is not supported. Register the path with specagile store register <path>, then select it with --store <id>.',
       'store_path_not_supported',
       {
         target: 'store.id',
-        fix: 'openspec store register <path>, then rerun with --store <id>.',
+        fix: 'specagile store register <path>, then rerun with --store <id>.',
       }
     );
   }
@@ -480,11 +480,11 @@ export async function resolveOpenSpecRoot(
       );
     }
     throw new RootSelectionError(
-      `No OpenSpec root found in the current directory or its ancestors. Registered stores: ${registeredIds.join(', ')}. Pass --store <id> to use one, or run openspec init to create a local root.`,
+      `No OpenSpec root found in the current directory or its ancestors. Registered stores: ${registeredIds.join(', ')}. Pass --store <id> to use one, or run specagile init to create a local root.`,
       'no_root_with_registered_stores',
       {
         target: 'openspec.root',
-        fix: `Rerun with --store <id> (registered: ${registeredIds.join(', ')}) or run openspec init.`,
+        fix: `Rerun with --store <id> (registered: ${registeredIds.join(', ')}) or run specagile init.`,
       }
     );
   }
@@ -493,7 +493,7 @@ export async function resolveOpenSpecRoot(
     throw new RootSelectionError(
       'No OpenSpec root found from the current directory.',
       'no_openspec_root',
-      { target: 'openspec.root', fix: 'Run openspec init to create a root here.' }
+      { target: 'openspec.root', fix: 'Run specagile init to create a root here.' }
     );
   }
 

@@ -1,5 +1,6 @@
 import path from 'path';
-import { AI_TOOLS, OPENSPEC_SKILL_NAMES, type AIToolOption } from './config.js';
+import { AI_TOOLS, type AIToolOption } from './config.js';
+import { KNOWN_SKILL_NAMES } from './fork/identity.js';
 import { FileSystemUtils } from '../utils/file-system.js';
 import { DISK_VIEW, type FileView } from './file-view.js';
 import { isReleasedGeneratedContent } from './shared/generated-fingerprint.js';
@@ -63,7 +64,7 @@ export function readKeptSharedSkills(projectPath: string, view: FileView = DISK_
   try {
     FileSystemUtils.assertProjectArtifactPath(projectPath, listPath);
     if (!view.exists(listPath)) return new Set();
-    const names = new Set<string>(OPENSPEC_SKILL_NAMES);
+    const names = new Set<string>(KNOWN_SKILL_NAMES);
     return new Set(
       view
         .read(listPath)
@@ -86,7 +87,7 @@ function inferPreListTool(projectPath: string, view: FileView): string | undefin
   // check, when there is nothing to read.
   if (!view.exists(path.join(projectPath, SHARED_SKILLS_ROOT, 'skills'))) return undefined;
   let foundGenericReference = false;
-  for (const skillName of OPENSPEC_SKILL_NAMES) {
+  for (const skillName of KNOWN_SKILL_NAMES) {
     const skillFile = path.join(projectPath, SHARED_SKILLS_ROOT, 'skills', skillName, 'SKILL.md');
     if (!view.exists(skillFile)) continue;
     try {
@@ -148,7 +149,7 @@ export function isToolListed(projectPath: string, toolId: string, view: FileView
 }
 
 function hasOpenSpecSkillIn(projectPath: string, skillsDir: string, view: FileView): boolean {
-  return OPENSPEC_SKILL_NAMES.some((skillName) => {
+  return KNOWN_SKILL_NAMES.some((skillName) => {
     try {
       const skillFile = path.join(skillsDir, skillName, 'SKILL.md');
       FileSystemUtils.assertProjectArtifactPath(projectPath, skillFile);

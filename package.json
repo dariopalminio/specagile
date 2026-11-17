@@ -28,7 +28,7 @@
     }
   },
   "bin": {
-    "openspec": "./bin/openspec.js"
+    "specagile": "./bin/specagile.js"
   },
   "files": [
     "dist",
@@ -44,7 +44,7 @@
     "generate:skills": "node scripts/generate-skillssh.mjs",
     "regen:parity-hashes": "node scripts/regen-parity-hashes.mjs",
     "dev": "tsc --watch",
-    "dev:cli": "pnpm build && node bin/openspec.js",
+    "dev:cli": "pnpm build && node bin/specagile.js",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",

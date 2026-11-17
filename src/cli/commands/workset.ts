@@ -99,8 +99,8 @@ export function registerWorksetCommand(program: Command): void {
     );
     const message =
       attempted.length > 0
-        ? `Unknown command '${attempted[0]}' for 'openspec workset'. Workset subcommands: ${subcommandsLine}.`
-        : `Missing subcommand for 'openspec workset'. Workset subcommands: ${subcommandsLine}.`;
+        ? `Unknown command '${attempted[0]}' for 'specagile workset'. Workset subcommands: ${subcommandsLine}.`
+        : `Missing subcommand for 'specagile workset'. Workset subcommands: ${subcommandsLine}.`;
     if (workset.opts().json) {
       printJson({
         status: [

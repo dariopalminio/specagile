@@ -11,6 +11,7 @@
  */
 
 import { ALL_WORKFLOWS, type WorkflowId } from './profiles.js';
+import { SKILL_NAME_BY_WORKFLOW } from './fork/identity.js';
 
 export type OnboardingCommand = {
   workflow: WorkflowId;
@@ -35,12 +36,12 @@ export const DESCRIPTION_BUDGET = 17;
  * then implement.
  */
 const ONBOARDING_COMMANDS: readonly OnboardingCommand[] = [
-  { workflow: 'propose', command: '/opsx:propose', skill: 'openspec-propose', description: 'Start a change' },
-  { workflow: 'specify', command: '/opsx:specify', skill: 'openspec-specify', description: 'Specify a change' },
-  { workflow: 'plan', command: '/opsx:plan', skill: 'openspec-plan', description: 'Plan a change' },
-  { workflow: 'new', command: '/opsx:new', skill: 'openspec-new-change', description: 'Scaffold a change' },
-  { workflow: 'continue', command: '/opsx:continue', skill: 'openspec-continue-change', description: 'Next artifact' },
-  { workflow: 'apply', command: '/opsx:apply', skill: 'openspec-apply-change', description: 'Implement tasks' },
+  { workflow: 'propose', command: '/opsx:propose', skill: SKILL_NAME_BY_WORKFLOW.propose, description: 'Start a change' },
+  { workflow: 'specify', command: '/opsx:specify', skill: SKILL_NAME_BY_WORKFLOW.specify, description: 'Specify a change' },
+  { workflow: 'plan', command: '/opsx:plan', skill: SKILL_NAME_BY_WORKFLOW.plan, description: 'Plan a change' },
+  { workflow: 'new', command: '/opsx:new', skill: SKILL_NAME_BY_WORKFLOW.new, description: 'Scaffold a change' },
+  { workflow: 'continue', command: '/opsx:continue', skill: SKILL_NAME_BY_WORKFLOW.continue, description: 'Next artifact' },
+  { workflow: 'apply', command: '/opsx:apply', skill: SKILL_NAME_BY_WORKFLOW.apply, description: 'Implement tasks' },
 ];
 
 /**
@@ -80,6 +81,6 @@ export function formatOptionalWorkflowsNote(
   // naming a second command here would be one step too many.
   return [
     `Note: ${missing.length} more ${label} available (${missing.join(', ')}).`,
-    `Add ${pronoun} with \`openspec config profile\`.`,
+    `Add ${pronoun} with \`specagile config profile\`.`,
   ];
 }

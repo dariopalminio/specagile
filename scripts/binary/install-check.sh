@@ -15,7 +15,7 @@ export XDG_CONFIG_HOME="$work/config" XDG_DATA_HOME="$work/data" OPENSPEC_TELEME
 fail() { echo "FAIL: $*" >&2; exit 1; }
 
 # 1. From the Node build, into a fresh folder.
-OPENSPEC_INSTALL_DIR="$work/from-node" node bin/openspec.js install
+OPENSPEC_INSTALL_DIR="$work/from-node" node bin/specagile.js install
 cmp "$work/from-node/openspec$ext" "$asset" || fail "install from Node wrote the wrong file"
 "$work/from-node/openspec$ext" version | grep -q '(standalone)' || fail "installed copy is not standalone"
 

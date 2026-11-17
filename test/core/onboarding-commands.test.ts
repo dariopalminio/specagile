@@ -18,7 +18,7 @@ describe('getOnboardingCommands', () => {
   it('names the skill for each hint', () => {
     const skills = getOnboardingCommands(CORE_WORKFLOWS).map((c) => c.skill);
 
-    expect(skills).toEqual(['openspec-propose', 'openspec-specify', 'openspec-plan', 'openspec-apply-change']);
+    expect(skills).toEqual(['sa-propose', 'sa-specify', 'sa-plan', 'sa-implement']);
   });
 
   it('places the specify and plan stages right after propose', () => {
@@ -78,7 +78,7 @@ describe('formatOptionalWorkflowsNote', () => {
       'Note: 6 more workflows are available (new, continue, ff, bulk-archive, verify, onboard).'
     );
     expect(note?.[1]).toBe(
-      'Add them with `openspec config profile`.'
+      'Add them with `specagile config profile`.'
     );
   });
 
@@ -99,7 +99,7 @@ describe('formatOptionalWorkflowsNote', () => {
 
     expect(note?.[0]).toBe('Note: 1 more workflow is available (onboard).');
     expect(note?.[1]).toBe(
-      'Add it with `openspec config profile`.'
+      'Add it with `specagile config profile`.'
     );
   });
 

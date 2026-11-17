@@ -6,6 +6,6 @@
 
 ## Update or start fresh?
 
-## Revising artifacts with openspec-update-change
+## Revising artifacts with sa-update-change
 
 ## Advanced: revising mid-implementation

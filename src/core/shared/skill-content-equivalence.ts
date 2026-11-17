@@ -4,18 +4,20 @@ import {
   normalizeGeneratedContent as normalizeGeneratedSkill,
 } from './generated-fingerprint.js';
 
-const OPENSPEC_SKILL_NAME_SET = new Set<string>(OPENSPEC_SKILL_NAMES);
+// SpecAgile: built from the skill names this version writes (`sa-*`), not a
+// fixed `openspec-` prefix.
+const escapeForRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const DUAL_CODEX_REFERENCE = new RegExp(
+  `\\$(${[...OPENSPEC_SKILL_NAMES].sort((a, b) => b.length - a.length).map(escapeForRegExp).join('|')}) \\(Codex\\) or \\/\\1 \\(other agents\\)`,
+  'g'
+);
 
 /**
  * Converts only known generated dual references in current Codex content back
  * to the direct syntax used by legacy `.codex` output.
  */
 function toLegacyCodexReferences(content: string): string {
-  return content.replace(
-    /\$(openspec-[a-z0-9-]+) \(Codex\) or \/\1 \(other agents\)/g,
-    (match, skillName: string) =>
-      OPENSPEC_SKILL_NAME_SET.has(skillName) ? `$${skillName}` : match
-  );
+  return content.replace(DUAL_CODEX_REFERENCE, (_match, skillName: string) => `$${skillName}`);
 }
 
 /**

@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 
 import { parseSchema } from '../../../src/core/artifact-graph/schema.js';
 import { MAX_REQUIREMENT_TEXT_LENGTH } from '../../../src/core/validation/constants.js';
+import { withUpstreamIdentity } from '../../helpers/fork-identity.js';
 
 // `openspec validate` flags requirement text over MAX_REQUIREMENT_TEXT_LENGTH,
 // but the specs instruction never told agents the limit, so they kept writing
@@ -17,7 +18,8 @@ describe('specs instruction requirement length (#1976)', () => {
         'utf-8'
       )
     );
-    const instruction = schema.artifacts.find(a => a.id === 'specs')?.instruction ?? '';
+    // SpecAgile: the schema names `specagile`; compared with upstream's names.
+    const instruction = withUpstreamIdentity(schema.artifacts.find(a => a.id === 'specs')?.instruction ?? '');
 
     expect(instruction).toContain(`${MAX_REQUIREMENT_TEXT_LENGTH} characters or fewer`);
     expect(instruction).toContain('split a requirement that covers several behaviors');

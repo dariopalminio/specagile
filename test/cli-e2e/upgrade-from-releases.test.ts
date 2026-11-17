@@ -24,7 +24,7 @@ const enabled = process.env.OPENSPEC_RELEASE_UPGRADES === '1';
 const RELEASES = ['0.14.0', '0.23.0', '1.0.0', '1.2.0', '1.10.0', '1.16.0'];
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const currentBin = path.join(repoRoot, 'bin', 'openspec.js');
+const currentBin = path.join(repoRoot, 'bin', 'specagile.js');
 const cacheDir = path.resolve(
   process.env.OPENSPEC_RELEASE_CACHE ?? path.join(os.tmpdir(), 'openspec-release-cache')
 );
