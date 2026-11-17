@@ -142,7 +142,7 @@ Because it is published on its own, SpecAgile also differs from upstream in what
 - **Links and feedback** go to `REPOSITORY_URL` (`https://github.com/dariopalminio/specagile`): `specagile feedback`, and the "Learn more" lines of `init` and `update`. `package.json` names the fork in `repository`, `homepage`, `bugs` and `author`.
 - **GitHub Copilot cloud files** install `specagile` and use its CLI. `cloud-agent.ts` keeps building upstream's text and writes it through the fork's identity, so a file OpenSpec wrote is recognized as earlier output and refreshed.
 
-Publishing (`npm publish`) is the maintainer's step. Upstream's release workflows (`.github/workflows/release-prepare.yml`, `binaries.yml`, `scripts/binary/`) are not used by the fork.
+Publishing (`npm publish`) is the maintainer's step. Upstream's release workflows (`.github/workflows/release-prepare.yml`, `binaries.yml`, `scripts/binary/`) are not used by the fork to publish anything. `binaries.yml` still builds and checks the binaries on each pull request (its release job only runs in Fission-AI/OpenSpec), and its `scripts/binary/install-check.sh` checks that `install` points to npm and writes nothing, from the Node build and from the binary.
 
 ### Where it lives
 
