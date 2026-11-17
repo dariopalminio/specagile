@@ -24,7 +24,7 @@ Estado actual relevante:
 
 **Non-Goals:**
 - Renombrar archivos internos (`.openspec-target`, `.openspec-store/`, `.openspec-*` temporales), la carpeta `openspec/`, el directorio de configuración global o los nombres de funciones del autocompletado (`_openspec_completion`).
-- Cambiar los textos ligados a la publicación en npm, que seguirían instalando OpenSpec upstream: `specagile install`, el aviso de versión nueva (`version-check.ts`), los archivos del agente en la nube de Copilot (`src/core/github-copilot/cloud-agent.ts`) y `install.md`. Dependen de que el fork tenga paquete propio.
+- Publicar el paquete en npm, un binario standalone propio o un destino propio de telemetría. Los workflows de release de upstream (`release-prepare.yml`, `binaries.yml`, `scripts/binary/`) e `install.md` quedan como están: el fork no los usa.
 - Reescribir "OpenSpec" como nombre de producto en la prosa, `docs/` o `CHANGELOG.md`.
 - Cambiar las plantillas de comando 1.x (`getOpsx*CommandTemplate`), que ya no se escriben y solo sirven para reconocer archivos viejos.
 - Un alias corto de la CLI (por ejemplo `sa`). macOS trae `/usr/sbin/sa` y en Linux lo instala el paquete `acct`, así que el resultado dependería del orden del `PATH`.
@@ -95,6 +95,31 @@ Corre dentro de `init` y `update`, después de instalar los `sa-*` y antes del b
 
 `applyForkIdentity` convierte "openspec apply" en "specagile apply", "openspec implement" en "specagile implement", y lo mismo con los demás verbos de `CLI_WORDS`. Las frases "opsx …" quedan igual. `test/core/templates/workflow-verb-triggers.test.ts` pasa a exigir la frase `specagile <verbo>` (con `implement` para `apply`) y que ninguna descripción nombre `openspec <verbo>`.
 
+### 7. Paquete npm propio: `specagile`
+
+- `package.json`: `name` pasa a `specagile` (libre en npm al 2026-11-16) y `repository`, `homepage`, `bugs` y `author` apuntan al fork. La versión sigue en 2.0.0, así que no cambia el `generatedBy` de los skills ni el reconocimiento de releases.
+- El módulo de identidad suma `PACKAGE_NAME` y `REPOSITORY_URL`. Un test comprueba que `package.json` tiene ese nombre y un solo ejecutable, `specagile`.
+- `version-check.ts` ya lee el nombre de `package.json`, así que la consulta al registro y los comandos de actualización (`npm install -g specagile@latest`, `pnpm add -g …`, `npx specagile@latest update`) salen solos. Hay que cambiar a `CLI_NAME` el nombre del shim que npm escribe (`specagile.cmd`, `bin/specagile`), del que dependen la detección de una instalación global de npm y la relectura de la versión después de actualizar, y los mensajes `openspec update` de ese archivo. Sale de las excepciones del test de guarda.
+- `scripts/pack-version-check.mjs` arma la ruta del ejecutable instalado desde `package.json`; `flake.nix` usa `pname = "specagile"`.
+
+*Alternativa descartada:* un scope propio (`@specagile/cli`). El pedido es `npm i -g specagile`.
+
+### 8. Sin instalación standalone
+
+El binario standalone y su instalador son los de OpenSpec (releases de `Fission-AI/OpenSpec`, ejecutable `openspec`). En `src/cli/index.ts`, `install` queda registrado pero oculto: explica que SpecAgile se instala con npm, muestra `npm install -g specagile@latest` y termina con código 1 sin descargar nada. `update` deja de llamar a `maybeShowStandaloneTip`. Los módulos `install-standalone.ts` y `standalone-tip.ts` (y sus tests) no se tocan, para no chocar al sincronizar; quedan en las excepciones del test de guarda porque ya no se alcanzan. El registro del autocompletado deja de listar `install`.
+
+### 9. Sin telemetría
+
+`src/cli/index.ts` deja de llamar a `maybeShowTelemetryNotice`, `trackCommand` y `shutdown`. El módulo `src/telemetry/` y sus tests no cambian; `telemetry.enabled` en la configuración se sigue aceptando y no tiene efecto. El chequeo de versión no depende de la telemetría.
+
+### 10. Enlaces y comentarios al fork
+
+`feedback.ts` arma la URL del issue (y `gh issue create`) con `REPOSITORY_URL`; los "Learn more"/"Feedback" de `init` y `update` usan la misma URL.
+
+### 11. Archivos de Copilot en la nube
+
+`cloud-agent.ts` sigue armando el texto de upstream y lo escribe con la identidad del fork: `applyForkIdentity`, más `npm install -g @fission-ai/openspec` → `npm install -g specagile` y `` `openspec` CLI `` → `` `specagile` CLI ``. El texto de upstream (el actual y los anteriores) se reconoce como salida anterior, así que `update` refresca un archivo que escribió OpenSpec y conserva uno editado. El nombre del archivo (`.github/agents/openspec.agent.md`) no cambia.
+
 ## Risks / Trade-offs
 
 - **Upstream agrega un subcomando o reescribe una plantilla con una forma nueva** (por ejemplo, `openspec` sin subcomando delante de algo que no está en `CLI_WORDS`) → El test que compara `CLI_WORDS` con `program.commands` y un test que genera todos los skills y exige que ninguno contenga `openspec <palabra de CLI>` ni un nombre `openspec-*` fallan en la sincronización. Se documenta en `FORK.md`.
@@ -102,10 +127,12 @@ Corre dentro de `init` y `update`, después de instalar los `sa-*` y antes del b
 - **Proyectos que usan OpenSpec upstream y SpecAgile a la vez** → Cada `openspec update` vuelve a escribir `openspec-*`, y `specagile update` solo quita las copias que reconoce. El agente puede ver dos versiones de cada workflow. Se documenta en el README: un proyecto usa una de las dos herramientas.
 - **Conflictos al sincronizar** → Las listas de nombres (una línea cada una tras la decisión 2) y los ~180 mensajes editados pueden chocar cuando upstream cambia esas mismas líneas. `FORK.md` lista los archivos y explica cómo resolverlos: conservar el texto de upstream y volver a cambiar `openspec` por `specagile`. El test de guarda señala lo que haya quedado sin cambiar.
 - **Mensajes que siguen diciendo `openspec`** por los Non-Goals de publicación (por ejemplo `npm install -g @fission-ai/openspec`) → Quedan en la lista de excepciones del test de guarda, a la vista, para un change de empaquetado.
+- **El nombre `specagile` en npm** está libre pero no reservado hasta que el mantenedor publique → Si otro lo toma antes, hay que elegir otro nombre (solo cambian `package.json` y `PACKAGE_NAME`).
+- **Quien instaló el tarball anterior** (`@fission-ai/openspec` del fork) con `npm install -g` → Ese paquete reemplazó al OpenSpec de upstream en su prefijo; tiene que desinstalarlo y reinstalar el que corresponda. Se documenta en el README.
 - **Windows**: los enlaces de skills pueden ser junctions o copias. La migración reutiliza `classifySkillLinkSpot` y `classifySkillFile`, que ya cubren los dos casos. Las rutas se arman con `path.join` y se comparan en forma POSIX solo para mostrarlas.
 
 ## Migration Plan
 
-1. Publicar o enlazar el fork (`pnpm build && pnpm link --global`): queda disponible `specagile`. Si antes se había enlazado el fork como `openspec`, deshacer ese enlace.
+1. Instalar el fork: `npm install -g specagile` una vez publicado, o `pnpm build && pnpm link --global` desde un clon. Queda disponible `specagile`. Si antes se había enlazado el fork como `openspec`, deshacer ese enlace.
 2. En cada proyecto, `specagile update` instala `sa-*` y quita los `openspec-*` intactos. Lo conservado se informa en la salida.
 3. Vuelta atrás: reinstalar la versión anterior del fork (o OpenSpec upstream) y ejecutar `openspec update`. Esa versión vuelve a escribir los `openspec-*` y no conoce los `sa-*`, que hay que borrar a mano.

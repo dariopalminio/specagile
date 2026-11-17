@@ -30,16 +30,23 @@ SpecAgile hoy instala skills con los nombres de upstream (`openspec-propose`, `o
 - El contenido de los skills generados usa la nueva identidad: invocan la CLI como `specagile …`, se refieren a otros skills por su nombre `sa-*` (en la forma de cada herramienta: `/sa-implement`, `$sa-implement` en Codex, "el skill sa-implement" en herramientas sin barra), declaran `specagile` como CLI requerida y preaprobada, y sus frases de activación son `specagile <verbo>` (por ejemplo "specagile implement").
 - **Migración** — En un proyecto que ya tiene skills `openspec-*` (de OpenSpec upstream o de una versión anterior del fork), `specagile init` y `specagile update` lo reconocen como configurado, escriben los `sa-*` y quitan las copias `openspec-*` que siguen intactas (y los enlaces que OpenSpec creó hacia ellas). Una copia editada por el usuario, o registrada como suya, se conserva y se informa.
 - Las sugerencias de inicio de `specagile init` (`/sa-propose`, `/sa-specify`, `/sa-plan`, …), la distribución estática `skills/` y la documentación de usuario (`README.md`, `docs-lab/`) muestran los nombres nuevos.
+- **BREAKING** — **Paquete npm propio**: el fork se distribuye como el paquete **`specagile`** (antes `@fission-ai/openspec`), de modo que `npm install -g specagile` instala SpecAgile y convive con un OpenSpec instalado con npm. Se mantiene la versión 2.0.0. De ahí se desprenden:
+  - el aviso de versión nueva y la actualización que ofrece `specagile update` apuntan al paquete `specagile` (`npm install -g specagile@latest`);
+  - no hay instalación standalone: `specagile install` explica que SpecAgile se instala con npm y no descarga nada, y `update` deja de sugerir el binario standalone de OpenSpec;
+  - SpecAgile no envía telemetría (hoy iría al PostHog de OpenSpec) ni muestra el aviso de primer uso;
+  - `specagile feedback`, los enlaces "Learn more" de `init`/`update` y los metadatos del paquete (`repository`, `homepage`, `bugs`, `author`) apuntan al repositorio del fork, `github.com/dariopalminio/specagile`;
+  - los archivos del agente en la nube de GitHub Copilot instalan `specagile` con npm y usan la CLI `specagile`.
 
-Sin cambios: los ids de workflow que se guardan en la configuración global y se eligen en `specagile config profile` (`propose`, `apply`, `verify`, …), la carpeta `openspec/` del proyecto, los archivos internos (`.agents/skills/.openspec-target`, `.openspec-store/`), el directorio de configuración global, el nombre del paquete npm y el nombre "OpenSpec" en la prosa.
+Sin cambios: los ids de workflow que se guardan en la configuración global y se eligen en `specagile config profile` (`propose`, `apply`, `verify`, …), la carpeta `openspec/` del proyecto, los archivos internos (`.agents/skills/.openspec-target`, `.openspec-store/`), el directorio de configuración global y el nombre "OpenSpec" en la prosa.
 
-Fuera de alcance, para changes posteriores: el nombre del paquete y su publicación, `specagile install` (sigue descargando el binario autónomo de upstream), la carpeta `docs/` heredada de upstream y el rebranding del nombre del producto en los textos.
+Fuera de alcance, para changes posteriores: publicar el paquete en npm (`npm publish` lo hace el mantenedor con su cuenta), un binario standalone propio, un destino propio de telemetría, los workflows de release heredados de upstream (`release-prepare.yml`, `binaries.yml`), la carpeta `docs/` heredada de upstream y el rebranding del nombre del producto en los textos.
 
 ## Capabilities
 
 ### New Capabilities
 - `fork-cli-name`: el nombre con que se invoca la CLI del fork (`specagile`): ejecutable, ayuda, mensajes y sugerencias, y autocompletado de shell.
 - `fork-skill-names`: los nombres `sa-*` de los skills que instala el fork. Cubre cómo se nombran y se refieren entre sí en el contenido generado y cómo se migran los proyectos que tienen los skills `openspec-*`.
+- `fork-package`: cómo se distribuye SpecAgile: el paquete npm `specagile`, sus actualizaciones, la ausencia de instalación standalone y de telemetría, y a dónde apuntan sus enlaces, comentarios y archivos de Copilot.
 
 ### Modified Capabilities
 <!-- Ninguna. Los nombres `openspec-*` y `openspec <comando>` que aparecen en las specs de upstream (cli-init, cli-update, legacy-cleanup, …) quedan como están para no generar conflictos al sincronizar. Las dos capacidades nuevas del fork documentan el reemplazo. Las specs de opsx-specify-skill y opsx-plan-skill todavía no están archivadas en openspec/specs/, así que no admiten un delta. -->
@@ -53,3 +60,4 @@ Fuera de alcance, para changes posteriores: el nombre del paquete y su publicaci
 - **Docs**: `README.md` y las páginas de `docs-lab/` que nombran skills o comandos de la CLI (las comprueban `test/*docs-claims*.test.ts`).
 - **Upstream**: cada sincronización puede chocar en las listas de nombres de skills y en los mensajes de usuario editados. `FORK.md` documenta qué revisar.
 - **Usuarios**: hay que invocar la CLI como `specagile` y los skills como `sa-*`. Si un proyecto también usa OpenSpec upstream, `openspec update` vuelve a escribir los `openspec-*`. SpecAgile solo quita las copias que reconoce como texto de OpenSpec y conserva el resto.
+- **Paquete**: `package.json` (`name`, metadatos), el aviso de versión (`version-check.ts`), `src/cli/index.ts` (`install`, telemetría, aviso standalone), `feedback.ts`, los enlaces de `init`/`update`, `cloud-agent.ts`, `scripts/pack-version-check.mjs` y `flake.nix`. Quien instaló el fork con `npm install -g` del tarball anterior (`@fission-ai/openspec`) tiene que desinstalarlo y volver a instalarlo como `specagile`.

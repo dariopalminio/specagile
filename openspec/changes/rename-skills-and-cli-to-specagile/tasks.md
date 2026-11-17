@@ -52,8 +52,20 @@
 - [x] 8.3 Prueba de humo con el paquete instalado: `pnpm pack`, instalar el `.tgz` globalmente en Windows y en Linux, y comprobar que `specagile --version` imprime la versión del fork, que el fork no instala un ejecutable `openspec` (`Get-Command openspec` / `which openspec` solo muestra el de upstream si está) y que `specagile init --tools claude` en un proyecto nuevo deja solo skills `sa-*`
 - [x] 8.4 Registrar los resultados en la tabla "Verification record" de `FORK.md` y verificar con `pnpm test -- --run test/fork/fork-docs.test.ts`
 
+## 9. Paquete npm propio `specagile` (design D7–D11)
+
+- [x] 9.1 Cambiar `package.json` (`name: "specagile"`; `repository`, `homepage`, `bugs` y `author` al fork; versión 2.0.0), sumar `PACKAGE_NAME` y `REPOSITORY_URL` a `src/core/fork/identity.ts` y a `test/fork/identity.test.ts` (que `package.json` tenga ese nombre y solo el ejecutable `specagile`), armar la ruta en `scripts/pack-version-check.mjs` desde `package.json` y usar `pname = "specagile"` en `flake.nix`; verificar con `pnpm build` y `pnpm test -- --run test/fork/identity.test.ts`
+- [x] 9.2 En `src/core/version-check.ts`, usar `CLI_NAME` para el shim de npm (`isNpmGlobalInstall`, `upgradedBinPath`) y en los mensajes `openspec update`/`openspec install`; sacarlo de las excepciones de `test/fork/cli-name.test.ts`; actualizar `test/core/version-check.test.ts`; verificar con `pnpm test -- --run test/core/version-check.test.ts test/fork/cli-name.test.ts`
+- [x] 9.3 En `src/cli/index.ts`, dejar `install` oculto con el mensaje de instalación por npm (código 1, sin descargar) y quitar la llamada a `maybeShowStandaloneTip`; quitar `install` del registro del autocompletado; agregar a `test/fork/cli-name.test.ts` el caso `specagile install`; verificar con `pnpm test -- --run test/fork test/core/completions test/cli-e2e`
+- [x] 9.4 En `src/cli/index.ts`, quitar las llamadas a `maybeShowTelemetryNotice`, `trackCommand` y `shutdown`; agregar un test que corra un comando con la telemetría habilitada en la configuración y compruebe que no hay aviso ni envío; verificar con `pnpm test -- --run test/fork test/cli-e2e test/telemetry`
+- [x] 9.5 Usar `REPOSITORY_URL` en `src/commands/feedback.ts` (URL del issue y `gh issue create`) y en los "Learn more"/"Feedback" de `src/core/init.ts` y `src/core/update.ts`; actualizar los tests que fijan esas URL; verificar con `pnpm test -- --run test/commands/feedback.test.ts test/core/init.test.ts test/core/update.test.ts`
+- [x] 9.6 En `src/core/github-copilot/cloud-agent.ts`, escribir los archivos con la identidad del fork y reconocer el texto de upstream como salida anterior; actualizar `test/core/github-copilot-cloud-agent.test.ts` con un caso para un archivo de OpenSpec sin cambios; verificar con `pnpm test -- --run test/core/github-copilot-cloud-agent.test.ts`
+- [x] 9.7 Actualizar la documentación: `README.md` (instalar y actualizar con `npm install -g specagile`, sin telemetría, nota para quien instaló el tarball anterior), `docs-lab/start/installation.md` (instalación con npm o desde el código), las referencias a `@fission-ai/openspec`, `specagile install` y la telemetría en `docs-lab/`, `FORK.md` ("SpecAgile identity": paquete, archivos editados, excepciones del test de guarda) y `AGENTS.md`; verificar con `pnpm test -- --run test/fork test/*docs*.test.ts`
+- [x] 9.8 Ejecutar `pnpm build`, `pnpm lint` y la suite completa en Windows y en Linux (Docker), y repetir la prueba de humo con `pnpm pack`: en Linux, instalar `@fission-ai/openspec@2.0.0` y después el tarball en el mismo prefijo de npm, y comprobar que quedan `openspec` y `specagile`; registrar los resultados en "Verification record" de `FORK.md`
+
 ## Workflow follow-up
 
 - Revisar el PR con commits separados para los artefactos (grupo 1) y para el código.
-- Archivar el change después de mergear (`specagile archive rename-skills-and-cli-to-specagile`) para crear `openspec/specs/fork-cli-name/` y `openspec/specs/fork-skill-names/`.
-- Change posterior: paquete npm propio y textos de publicación (`specagile install`, aviso de versión, agente en la nube de Copilot).
+- Archivar el change después de mergear (`specagile archive rename-skills-and-cli-to-specagile`) para crear `openspec/specs/fork-cli-name/`, `openspec/specs/fork-skill-names/` y `openspec/specs/fork-package/`.
+- Publicar `specagile` en npm (`npm publish`, lo hace el mantenedor con su cuenta).
+- Change posterior: binario standalone propio, destino propio de telemetría y workflows de release del fork.
