@@ -27,7 +27,7 @@
     {
       overlays.default = final: _prev: {
         openspec = final.stdenv.mkDerivation (finalAttrs: {
-          pname = "openspec";
+          pname = "specagile";
           version = (builtins.fromJSON (builtins.readFile ./package.json)).version;
 
           src = final.lib.fileset.toSource {
@@ -91,7 +91,7 @@
 
           meta = with final.lib; {
             description = "AI-native system for spec-driven development";
-            homepage = "https://github.com/Fission-AI/OpenSpec";
+            homepage = "https://github.com/dariopalminio/specagile";
             license = licenses.mit;
             maintainers = [ ];
             mainProgram = "specagile";

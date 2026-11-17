@@ -12,7 +12,7 @@ import * as fs from 'fs';
 import { createRequire } from 'module';
 import { FileSystemUtils } from '../utils/file-system.js';
 import { getSkillReferenceTransformer, getTransformerForTool, transformToSharedSkillReferences, transformToSkillReferences } from '../utils/command-references.js';
-import { applyForkIdentity } from './fork/identity.js';
+import { REPOSITORY_URL, applyForkIdentity } from './fork/identity.js';
 import {
   formatFormerSkillMigration,
   formerSkillsKeptMessage,
@@ -650,7 +650,7 @@ export class UpdateCommand {
         }
         this.log();
       }
-      this.log(`Learn more: ${chalk.cyan('https://github.com/Fission-AI/OpenSpec')}`);
+      this.log(`Learn more: ${chalk.cyan(REPOSITORY_URL)}`);
     }
 
     await this.syncCopilotCloudFiles(resolvedProjectPath, configuredAndNewTools);

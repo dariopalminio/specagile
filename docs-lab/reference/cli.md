@@ -51,7 +51,7 @@ Your agent runs most of these during the workflow.
 | Command | What it does |
 |---|---|
 | [`specagile version`](#specagile-version) | Report the installed version and optionally check for an update. |
-| [`specagile install`](#specagile-install) | Install the standalone `openspec`, which runs without Node.js. |
+| [`specagile install`](#specagile-install) | Not available in SpecAgile: points you to `npm install -g specagile@latest`. |
 | [`specagile feedback`](#specagile-feedback) | Submit feedback about OpenSpec. |
 | [`specagile completion`](#specagile-completion) | Install or generate shell completions. |
 
@@ -377,7 +377,7 @@ Error: /home/you/.config/openspec/config.json could not be parsed, so it was lef
 Fix it with "specagile config edit", or reset it with "specagile config reset --all".
 ```
 
-Until it is fixed, telemetry and the background update check in `specagile update` stay off. An explicit `specagile version --check` still runs.
+Until it is fixed, the background update check in `specagile update` stays off. An explicit `specagile version --check` still runs.
 
 ### specagile config unset
 
@@ -1427,13 +1427,13 @@ Schema: spec-driven
 Source: package
 
 proposal:
-  /usr/local/lib/node_modules/@fission-ai/openspec/schemas/spec-driven/templates/proposal.md
+  /usr/local/lib/node_modules/specagile/schemas/spec-driven/templates/proposal.md
 specs:
-  /usr/local/lib/node_modules/@fission-ai/openspec/schemas/spec-driven/templates/spec.md
+  /usr/local/lib/node_modules/specagile/schemas/spec-driven/templates/spec.md
 design:
-  /usr/local/lib/node_modules/@fission-ai/openspec/schemas/spec-driven/templates/design.md
+  /usr/local/lib/node_modules/specagile/schemas/spec-driven/templates/design.md
 tasks:
-  /usr/local/lib/node_modules/@fission-ai/openspec/schemas/spec-driven/templates/tasks.md
+  /usr/local/lib/node_modules/specagile/schemas/spec-driven/templates/tasks.md
 ```
 
 `Source` names where the schema resolved from: `project` (`openspec/schemas/` in your project), `user` (a global override), or `package` (built into the CLI). Project wins over user, user over package.
@@ -1441,19 +1441,19 @@ tasks:
 ```json
 {
   "proposal": {
-    "path": "/usr/local/lib/node_modules/@fission-ai/openspec/schemas/spec-driven/templates/proposal.md",
+    "path": "/usr/local/lib/node_modules/specagile/schemas/spec-driven/templates/proposal.md",
     "source": "package"
   },
   "specs": {
-    "path": "/usr/local/lib/node_modules/@fission-ai/openspec/schemas/spec-driven/templates/spec.md",
+    "path": "/usr/local/lib/node_modules/specagile/schemas/spec-driven/templates/spec.md",
     "source": "package"
   },
   "design": {
-    "path": "/usr/local/lib/node_modules/@fission-ai/openspec/schemas/spec-driven/templates/design.md",
+    "path": "/usr/local/lib/node_modules/specagile/schemas/spec-driven/templates/design.md",
     "source": "package"
   },
   "tasks": {
-    "path": "/usr/local/lib/node_modules/@fission-ai/openspec/schemas/spec-driven/templates/tasks.md",
+    "path": "/usr/local/lib/node_modules/specagile/schemas/spec-driven/templates/tasks.md",
     "source": "package"
   }
 }
@@ -1564,7 +1564,7 @@ specagile schema which --all        # every schema, grouped by source
 ```
 Schema: spec-driven
 Source: package
-Path: /usr/local/lib/node_modules/@fission-ai/openspec/schemas/spec-driven
+Path: /usr/local/lib/node_modules/specagile/schemas/spec-driven
 ```
 
 When a higher-priority copy hides another, a `Shadows:` section lists the hidden copies. With `--json`:
@@ -1638,7 +1638,7 @@ specagile schema fork spec-driven my-flow
 ```
 ✔ Forked 'spec-driven' to 'my-flow'
 
-Source: /usr/local/lib/node_modules/@fission-ai/openspec/schemas/spec-driven (package)
+Source: /usr/local/lib/node_modules/specagile/schemas/spec-driven (package)
 Destination: /Users/you/projects/my-app/openspec/schemas/my-flow
 ```
 
@@ -2262,7 +2262,7 @@ Without `--check`, this command is local and makes no network request. It works 
 | Flag | Effect |
 |---|---|
 | `--json` | Print one versioned JSON document instead of text. |
-| `--check` | Check for a newer release. npm, project and source installs ask the configured npm registry. The standalone install asks GitHub releases instead (see below). |
+| `--check` | Check for a newer release of the `specagile` package on the configured npm registry. |
 
 **Output**
 
@@ -2272,7 +2272,7 @@ For a global npm install:
 OpenSpec 1.13.2 (npm, global)
 ```
 
-The install scope is `global`, `project`, `temporary` for an ephemeral runner such as npx, `source` for a checkout, or `standalone` for the [standalone install](../start/installation.md#install). OpenSpec omits details it cannot identify instead of guessing.
+The install scope is `global`, `project`, `temporary` for an ephemeral runner such as npx, or `source` for a checkout. OpenSpec omits details it cannot identify instead of guessing.
 
 `--json` keeps unknown details as explicit `null` values:
 
@@ -2281,7 +2281,7 @@ The install scope is `global`, `project`, `temporary` for an ephemeral runner su
   "schemaVersion": 1,
   "version": "1.13.2",
   "install": {
-    "location": "/opt/homebrew/lib/node_modules/@fission-ai/openspec",
+    "location": "/opt/homebrew/lib/node_modules/specagile",
     "packageManager": "npm",
     "scope": "global"
   }
@@ -2293,7 +2293,7 @@ With `--check`, an available update adds the latest version and a command when O
 ```text
 OpenSpec 1.13.2 (npm, global)
 Update available: 1.14.0
-  npm install -g @fission-ai/openspec@latest
+  npm install -g specagile@latest
 ```
 
 ```json
@@ -2301,14 +2301,14 @@ Update available: 1.14.0
   "schemaVersion": 1,
   "version": "1.13.2",
   "install": {
-    "location": "/opt/homebrew/lib/node_modules/@fission-ai/openspec",
+    "location": "/opt/homebrew/lib/node_modules/specagile",
     "packageManager": "npm",
     "scope": "global"
   },
   "update": {
     "status": "available",
     "latest": "1.14.0",
-    "command": "npm install -g @fission-ai/openspec@latest",
+    "command": "npm install -g specagile@latest",
     "canSelfUpgrade": true
   }
 }
@@ -2321,11 +2321,9 @@ Update status values:
 | `available` | A safe version newer than the running version can be installed. |
 | `current` | The check completed and found no newer version. |
 | `disabled` | `OPENSPEC_NO_UPDATE_CHECK` is set, or (npm installs only) a registry override was rejected. `latest` is `null`. |
-| `offline` | The registry or GitHub was unavailable, refused the request (for example a rate limit), or returned an unusable response. `latest` is `null`. |
+| `offline` | The registry was unavailable, refused the request (for example a rate limit), or returned an unusable response. `latest` is `null`. |
 
-For the standalone install, the update command is `specagile install`, and the check matches what that command can get: the newest stable release on GitHub that has its `SHA256SUMS` attached. A release published minutes ago whose files are not attached yet is not offered. npm registry settings do not apply to this check.
-
-Because `--check` is an explicit request, it runs even when telemetry is off (`DO_NOT_TRACK`, `OPENSPEC_TELEMETRY=0`, `telemetry.enabled: false`) and in CI. It is turned off only by `OPENSPEC_NO_UPDATE_CHECK`, or, for npm installs, by a rejected non-HTTPS registry override. The background check in `specagile update` still stays off for all of these. Disabled and offline checks still exit 0 because update availability is advisory. This command never upgrades OpenSpec; `canSelfUpgrade` only reports whether the existing `specagile update` path could safely upgrade this copy.
+Because `--check` is an explicit request, it runs even when `DO_NOT_TRACK`, `OPENSPEC_TELEMETRY=0` or `telemetry.enabled: false` is set, and in CI. (SpecAgile sends no telemetry; these settings only turn off the background check.) It is turned off only by `OPENSPEC_NO_UPDATE_CHECK`, or, for npm installs, by a rejected non-HTTPS registry override. The background check in `specagile update` still stays off for all of these. Disabled and offline checks still exit 0 because update availability is advisory. This command never upgrades OpenSpec; `canSelfUpgrade` only reports whether the existing `specagile update` path could safely upgrade this copy.
 
 **Exit codes**
 
@@ -2334,32 +2332,12 @@ Because `--check` is an explicit request, it runs even when telemetry is off (`D
 
 ## specagile install
 
-Installs the standalone `openspec`. Run it from an npm or Homebrew install to switch, or from the standalone install to upgrade it in place.
+SpecAgile has no standalone install: it is installed and updated with npm. The command is kept so a habit from OpenSpec gets an answer. It downloads nothing, prints the npm command and exits with code 1:
 
-```bash
-specagile install          # newest release
-specagile install 1.15.0   # a specific release
+```text
+SpecAgile has no standalone install. Install or update it with npm:
+  npm install -g specagile@latest
 ```
-
-It runs the [install script](../start/installation.md#install), which picks the newest release whose files are all attached and the file for your machine, and checks it against that release's `SHA256SUMS`:
-
-- **From a package manager**: installs to `~/.local/bin` (Windows: `%LOCALAPPDATA%\Programs\openspec`) and prints the command that removes the old copy, such as `npm uninstall -g @fission-ai/openspec`. It never removes that copy itself.
-- **From the standalone install**: replaces the running file where it is, under its own name.
-
-Afterwards it says which copy `openspec` now runs, since a package-manager copy earlier on your PATH keeps running until you remove it.
-
-**Arguments**
-
-| Argument | What it is |
-|---|---|
-| `version` | Release to install, like `1.15.0`. Optional; defaults to the latest. |
-
-`OPENSPEC_INSTALL_DIR` and `OPENSPEC_INSTALL_NAME` choose another folder or file name.
-
-**Exit codes**
-
-- `0`: installed.
-- `1`: the version isn't a release version, or the download or install failed. Your current copy is left as it was.
 
 ## specagile feedback
 
@@ -2370,7 +2348,7 @@ specagile feedback "Validate output is hard to scan"
 specagile feedback "Archive fails on Windows" --body "Steps: init, propose, archive. Error: EPERM."
 ```
 
-The CLI files your message as a GitHub issue on the `Fission-AI/OpenSpec` repo through your `gh` CLI. The title becomes `Feedback: <message>`. The body uses the bug form's headings: your message under `What happened`, your `--body` text under `Details`, and a `Minimal steps to reproduce` section asking you to add the steps, since the CLI can't fill those in. A footer adds CLI version, platform, and timestamp. The issue gets the `feedback` label. If the repo doesn't define that label, the CLI retries without it and says so.
+The CLI files your message as a GitHub issue on the `dariopalminio/specagile` repo through your `gh` CLI. The title becomes `Feedback: <message>`. The body uses the bug form's headings: your message under `What happened`, your `--body` text under `Details`, and a `Minimal steps to reproduce` section asking you to add the steps, since the CLI can't fill those in. A footer adds CLI version, platform, and timestamp. The issue gets the `feedback` label. If the repo doesn't define that label, the CLI retries without it and says so.
 
 **Arguments**
 
@@ -2390,7 +2368,7 @@ On success:
 
 ```
 ✓ Feedback submitted successfully!
-Issue URL: https://github.com/Fission-AI/OpenSpec/issues/1234
+Issue URL: https://github.com/dariopalminio/specagile/issues/1234
 ```
 
 Without `gh` installed, or with `gh` not logged in, nothing is submitted. The CLI prints your formatted feedback between `--- FORMATTED FEEDBACK ---` markers, then a link that opens the bug report form with the title, what happened (your message and `--body` text), CLI version, and environment (platform and Node version) filled in. You complete the rest of the form in the browser. The not-logged-in path adds `To auto-submit in the future: gh auth login`.
@@ -2418,7 +2396,7 @@ Supported shells: `zsh`, `bash`, `fish`, `powershell`. Every subcommand takes an
 | `install [shell]` | Write the script and configure your shell startup file. |
 | `uninstall [shell]` | Remove the script and the config block. |
 
-Installed with Nix, completions are already in place: the flake package ships the Bash, Fish, and Zsh scripts at the standard locations, so `install` is not needed ([Installation](../start/installation.md#nix)).
+Built with the repository's Nix flake, completions are already in place: the package ships the Bash, Fish, and Zsh scripts at the standard locations, so `install` is not needed.
 
 ### specagile completion generate
 

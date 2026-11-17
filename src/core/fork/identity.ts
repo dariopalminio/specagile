@@ -13,6 +13,12 @@ import type { WorkflowId } from '../profiles.js';
 /** The executable users run: `specagile init`, `specagile update`, ... */
 export const CLI_NAME = 'specagile';
 
+/** The npm package SpecAgile is published as: `npm install -g specagile`. */
+export const PACKAGE_NAME = 'specagile';
+
+/** SpecAgile's repository, where its links and feedback go. */
+export const REPOSITORY_URL = 'https://github.com/dariopalminio/specagile';
+
 /** The name OpenSpec upstream gives its executable. */
 export const FORMER_CLI_NAME = 'openspec';
 

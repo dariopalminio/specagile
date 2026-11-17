@@ -21,7 +21,7 @@ import { findRepoPlanningRootSync } from './planning-home.js';
 import { resolveOpenSpecRoot } from './root-selection.js';
 import { ANCHORED_OPENSPEC_DIRS, ensureDirectoryAnchor } from './openspec-root.js';
 import { getSkillReferenceTransformer, getTransformerForTool, transformToSkillReferences, usesNaturalLanguageSkillReferences } from '../utils/command-references.js';
-import { applyForkIdentity } from './fork/identity.js';
+import { REPOSITORY_URL, applyForkIdentity } from './fork/identity.js';
 import { formerSkillsKeptMessage, migrateFormerSkills } from './fork/former-skills.js';
 import {
   AI_TOOLS,
@@ -1438,8 +1438,8 @@ export class InitCommand {
 
     // Links
     console.log();
-    console.log(`Learn more: ${chalk.cyan('https://github.com/Fission-AI/OpenSpec')}`);
-    console.log(`Feedback:   ${chalk.cyan('https://github.com/Fission-AI/OpenSpec/issues')}`);
+    console.log(`Learn more: ${chalk.cyan(REPOSITORY_URL)}`);
+    console.log(`Feedback:   ${chalk.cyan(`${REPOSITORY_URL}/issues`)}`);
 
     // Restart instruction for successfully configured IDE/editor-resident tools
     // with a supported surface under the active delivery. The rule and wording live in

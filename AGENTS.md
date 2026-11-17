@@ -62,6 +62,10 @@ Upstream 2.0.0 no trae `specify` ni `plan`. Estado del fork:
   `COMMAND_IDS`.
 - Ya los trae upstream, no son cambios del fork: `archive --skip-specs` y
   `skip_specs: true` en `.openspec.yaml`.
+- Paquete npm propio: `specagile` (`npm install -g specagile`), versión 2.0.0.
+  Sin instalación standalone (`specagile install` solo indica npm) y sin
+  telemetría; los enlaces y `feedback` van a `github.com/dariopalminio/specagile`.
+  Publicar (`npm publish`) lo hace el mantenedor; no publicar desde un agente.
 - Identidad SpecAgile (CLI `specagile`, skills `sa-*`): la fuente única es
   `src/core/fork/identity.ts`; ver "SpecAgile identity" en `FORK.md`. No editar
   las plantillas de upstream (`src/core/templates/workflows/`): la identidad se

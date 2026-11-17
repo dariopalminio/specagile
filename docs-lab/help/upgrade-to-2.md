@@ -122,7 +122,7 @@ Most tools read `.agents/skills/` directly. If yours reads only its own folder, 
 
 ## Stay on 1.x
 
-You don't have to upgrade yet. 1.x keeps working as it is. Pin it the way you installed it.
+You don't have to upgrade yet. 1.x keeps working as it is. That is OpenSpec 1.x: SpecAgile starts at 2.0, so staying on 1.x means keeping OpenSpec and its `openspec` command. Pin it the way you installed it.
 
 On npm, in your terminal:
 
@@ -130,7 +130,7 @@ On npm, in your terminal:
 npm install -g @fission-ai/openspec@1
 ```
 
-With the standalone install, name the release ([Install options](../start/installation.md#install-options)):
+With OpenSpec's standalone install, name the release:
 
 ```bash
 curl -fsSL https://openspec.dev/cli/install.sh | OPENSPEC_VERSION=v1.17.0 sh
@@ -143,4 +143,4 @@ $env:OPENSPEC_VERSION = 'v1.17.0'
 irm https://openspec.dev/cli/install.ps1 | iex
 ```
 
-When `specagile update` offers to upgrade the CLI, decline. To stop the offer, set `OPENSPEC_NO_UPDATE_CHECK=1`.
+When `openspec update` offers to upgrade the CLI, decline. To stop the offer, set `OPENSPEC_NO_UPDATE_CHECK=1`.

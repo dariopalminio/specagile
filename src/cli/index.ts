@@ -21,7 +21,7 @@ import type {
   NewChangeOptions,
 } from '../commands/workflow/index.js';
 import { COMMON_FLAGS } from '../core/completions/shared-flags.js';
-import { CLI_NAME } from '../core/fork/identity.js';
+import { CLI_NAME, PACKAGE_NAME } from '../core/fork/identity.js';
 
 // Startup cost: every command's implementation, and the packages it uses,
 // loads with `await import()` inside its action. This module and
@@ -212,16 +212,8 @@ program.hook('preAction', async (thisCommand, actionCommand) => {
     return;
   }
 
-  // Show first-run telemetry notice (if not seen). It's written to stderr, so it
-  // never pollutes stdout — but --json runs still defer it (see isJsonRun) so the
-  // very first invocation stays free of any incidental output on either stream.
-  const { maybeShowTelemetryNotice, trackCommand } = await import('../telemetry/index.js');
-  await maybeShowTelemetryNotice({ silent: isJsonRun(actionCommand) });
-
-  // Track command execution (use actionCommand to get the actual subcommand)
-  const commandPath = getCommandPath(actionCommand);
-
-  await trackCommand(commandPath, version);
+  // SpecAgile sends no telemetry: no first-run notice and no tracked commands
+  // (upstream's would go to OpenSpec's analytics). src/telemetry/ stays as is.
 });
 
 // Shutdown telemetry after command completes
@@ -238,17 +230,11 @@ program.hook('postAction', async (_thisCommand, actionCommand) => {
   // screen. Deferred — not consumed — whenever nobody would read it: JSON runs,
   // `openspec completion ...`, and a stderr that is not a terminal (agents and
   // pipes would otherwise silently burn the user's one-shot tip).
-  try {
-    const { maybeShowCompletionTip } = await import('../core/completion-tip.js');
-    await maybeShowCompletionTip({
-      silent: shouldDeferCompletionTip(actionCommand, Boolean(process.stderr.isTTY)),
-    });
-  } finally {
-    // The flush runs even if the hint throws: parse() is synchronous, so a
-    // rejection here has no catch anywhere above it.
-    const { shutdown } = await import('../telemetry/index.js');
-    await shutdown();
-  }
+  // SpecAgile: no telemetry to flush afterwards (see preAction).
+  const { maybeShowCompletionTip } = await import('../core/completion-tip.js');
+  await maybeShowCompletionTip({
+    silent: shouldDeferCompletionTip(actionCommand, Boolean(process.stderr.isTTY)),
+  });
 });
 
 const availableToolIds = AI_TOOLS
@@ -432,10 +418,8 @@ program
         displayCliUpdateNote(latestVersion, targetPath);
       }
 
-      // Once per machine, a package-manager user hears the standalone install
-      // exists. Offered, never pushed; deferred when stderr is not a terminal.
-      const { maybeShowStandaloneTip } = await import('../core/standalone-tip.js');
-      await maybeShowStandaloneTip({ silent: !process.stderr.isTTY });
+      // SpecAgile has no standalone install, so upstream's once-per-machine
+      // standalone tip is not shown (src/core/standalone-tip.ts stays as is).
     } catch (error) {
       // The --json dry run follows the agent contract: exactly one JSON
       // document on stdout, even on failure.
@@ -452,17 +436,16 @@ program
     }
   );
 
+// SpecAgile has no standalone binary (upstream's installer would fetch
+// OpenSpec's): `install` stays registered, hidden, and points to npm.
 program
-  .command('install [version]')
-  .description('Install the standalone openspec, which runs without Node.js (latest release unless [version] is given)')
-  .action(async (version?: string) => {
-    try {
-      const { installStandalone } = await import('../commands/install-standalone.js');
-      await installStandalone({ version });
-    } catch (error) {
-      await failWithError(error);
-      process.exit(1);
-    }
+  .command('install [version]', { hidden: true })
+  .description('Not available in SpecAgile: install and update it with npm')
+  .action(() => {
+    console.error(
+      `SpecAgile has no standalone install. Install or update it with npm:\n  npm install -g ${PACKAGE_NAME}@latest`
+    );
+    process.exitCode = 1;
   });
 
 program

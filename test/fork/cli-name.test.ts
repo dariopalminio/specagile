@@ -19,16 +19,14 @@ const srcRoot = path.join(repoRoot, 'src');
 const TEMPLATES = path.join(srcRoot, 'core', 'templates', 'workflows');
 
 /**
- * Files that keep `openspec` on purpose, with the reason. They name OpenSpec's
- * published package and standalone binary, which SpecAgile still installs and
- * checks until it has a package of its own (see the change's Non-Goals).
+ * Files that keep `openspec` on purpose, with the reason.
  */
 const EXCEPTIONS: Record<string, string> = {
   'src/core/github-copilot/cloud-agent.ts':
-    'the Copilot cloud agent installs the published @fission-ai/openspec package and runs it as openspec',
-  'src/core/version-check.ts': "the update notice names the published package's own upgrade command",
-  'src/commands/install-standalone.ts': 'downloads and installs the standalone openspec binary',
-  'src/core/standalone-tip.ts': 'offers the standalone openspec binary',
+    "keeps upstream's text as the source; the Copilot files are written with the fork's identity",
+  'src/commands/install-standalone.ts':
+    "OpenSpec's standalone installer; SpecAgile never calls it (`specagile install` points to npm)",
+  'src/core/standalone-tip.ts': "OpenSpec's standalone tip; SpecAgile never shows it",
 };
 
 const escape = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -124,6 +122,38 @@ describe('specagile CLI output', () => {
 
     expect(result.exitCode, result.stderr).toBe(0);
     expect(result.stdout).toMatch(/^Usage: specagile config profile\b/m);
+  });
+
+  it('points specagile install to npm and downloads nothing', async () => {
+    const result = await runCLI(['install'], { cwd: dir, env });
+
+    expect(result.exitCode).not.toBe(0);
+    expect(result.stderr).toContain('SpecAgile has no standalone install');
+    expect(result.stderr).toContain('npm install -g specagile@latest');
+    expect(fs.readdirSync(dir).sort()).toEqual([]);
+  });
+
+  it('sends no telemetry and shows no notice, even with telemetry enabled in the config', async () => {
+    const configFile = path.join(env.XDG_CONFIG_HOME!, 'openspec', 'config.json');
+    fs.mkdirSync(path.dirname(configFile), { recursive: true });
+    const config = JSON.stringify({ telemetry: { enabled: true } });
+    fs.writeFileSync(configFile, config);
+
+    const result = await runCLI(['config', 'path'], {
+      cwd: dir,
+      env: { ...env, OPENSPEC_TELEMETRY: '1', DO_NOT_TRACK: '0', CI: 'false' },
+    });
+
+    expect(result.exitCode, result.stderr).toBe(0);
+    expect(`${result.stdout}\n${result.stderr}`).not.toMatch(/usage stats|telemetry/i);
+    // Upstream's first run records the notice and an anonymous id here.
+    expect(fs.readFileSync(configFile, 'utf-8')).toBe(config);
+  });
+
+  it('hides install from the help', async () => {
+    const result = await runCLI(['--help'], { cwd: dir, env });
+
+    expect(result.stdout).not.toMatch(/^\s+install\b/m);
   });
 
   it('shows specagile in the top-level usage line, with no openspec-prefixed command', async () => {

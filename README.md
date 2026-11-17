@@ -13,7 +13,7 @@
 
 <p align="center">
   <a href="https://github.com/Fission-AI/OpenSpec/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/Fission-AI/OpenSpec/actions/workflows/ci.yml/badge.svg" /></a>
-  <a href="https://www.npmjs.com/package/@fission-ai/openspec"><img alt="npm version" src="https://img.shields.io/npm/v/@fission-ai/openspec?style=flat-square" /></a>
+  <a href="https://www.npmjs.com/package/specagile"><img alt="npm version" src="https://img.shields.io/npm/v/specagile?style=flat-square" /></a>
   <a href="./LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square" /></a>
   <a href="https://discord.gg/YctCnvvshC"><img alt="Discord" src="https://img.shields.io/discord/1411657095639601154?style=flat-square&logo=discord&logoColor=white&label=Discord&suffix=%20online" /></a>
 </p>
@@ -22,7 +22,7 @@
 <summary><strong>The most loved spec framework.</strong></summary>
 
 [![Stars](https://img.shields.io/github/stars/Fission-AI/OpenSpec?style=flat-square&label=Stars)](https://github.com/Fission-AI/OpenSpec/stargazers)
-[![Downloads](https://img.shields.io/npm/dm/@fission-ai/openspec?style=flat-square&label=Downloads/mo)](https://www.npmjs.com/package/@fission-ai/openspec)
+[![Downloads](https://img.shields.io/npm/dm/specagile?style=flat-square&label=Downloads/mo)](https://www.npmjs.com/package/specagile)
 [![Contributors](https://img.shields.io/github/contributors/Fission-AI/OpenSpec?style=flat-square&label=Contributors)](https://github.com/Fission-AI/OpenSpec/graphs/contributors)
 
 </details>
@@ -124,17 +124,26 @@ Solo, OpenSpec keeps you and your AI honest on a single repo. On a team, the har
 
 ## Quick Start
 
-SpecAgile is not published as a package yet. Install it from this repository (needs Node.js 22.12.0 or higher and pnpm):
+Install SpecAgile from npm (needs Node.js 22.12.0 or higher):
 
 ```bash
-git clone <this-repository> specagile
-cd specagile
+npm install -g specagile
+```
+
+With another package manager: `pnpm add -g specagile`, `yarn global add specagile` or `bun add -g specagile`.
+
+That puts `specagile` on your `PATH`. SpecAgile is its own npm package, so it never installs an `openspec` executable: an OpenSpec installed beside it keeps working as `openspec`. (The curl, PowerShell and Homebrew installers on openspec.dev, and `npm install -g @fission-ai/openspec`, install OpenSpec, not SpecAgile.)
+
+To work on SpecAgile itself, install it from a clone of [its repository](https://github.com/dariopalminio/specagile) instead (needs pnpm):
+
+```bash
 pnpm install
 pnpm build
 pnpm link --global
 ```
 
-That puts `specagile` on your `PATH`. It does not install an `openspec` executable, so an OpenSpec installed beside it keeps working as `openspec`. (The curl, PowerShell, npm and Homebrew installers on openspec.dev install OpenSpec, not SpecAgile.)
+> [!NOTE]
+> If you installed an earlier build of this fork globally from its tarball, it was named `@fission-ai/openspec` and replaced any OpenSpec in the same npm folder. Remove it with `npm uninstall -g @fission-ai/openspec`, install `specagile`, and reinstall OpenSpec if you also use it.
 
 Then navigate to your project directory and initialize:
 
@@ -200,15 +209,11 @@ AI coding assistants are powerful but unpredictable when requirements live only 
 
 **Upgrade the CLI**
 
-In your clone of this repository:
-
 ```bash
-git pull
-pnpm install
-pnpm build
+npm install -g specagile@latest
 ```
 
-The global `specagile` link points at the clone, so it picks up the new build.
+`specagile update` tells you when a newer version is out, and offers to run that command for an npm install. From a clone, run `git pull`, `pnpm install` and `pnpm build` instead; the global link picks up the new build.
 
 **Refresh agent instructions**
 
@@ -235,13 +240,7 @@ Every change starts as an issue. We discuss it there, and if we agree to pursue 
 <details>
 <summary><strong>Telemetry</strong></summary>
 
-OpenSpec collects anonymous usage stats.
-
-We collect only command names and version to understand usage patterns. No arguments, paths, content, or PII. Automatically disabled in CI.
-
-**Opt-out (any one is enough):**
-- `specagile config set telemetry.enabled false` (global config; unset means on)
-- `export OPENSPEC_TELEMETRY=0` or `export DO_NOT_TRACK=1` (env overrides config)
+SpecAgile sends no telemetry: it records no usage and shows no first-run notice, whatever `telemetry.enabled` says in the config. (OpenSpec collects anonymous usage stats; SpecAgile turned that off.)
 
 </details>
 

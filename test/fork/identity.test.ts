@@ -1,3 +1,5 @@
+import { readFileSync } from 'fs';
+import path from 'path';
 import { describe, expect, it } from 'vitest';
 
 import { program } from '../../src/cli/index.js';
@@ -7,6 +9,8 @@ import {
   CLI_WORDS,
   FORMER_SKILL_NAME_BY_WORKFLOW,
   KNOWN_SKILL_NAMES,
+  PACKAGE_NAME,
+  REPOSITORY_URL,
   SKILL_NAME_BY_WORKFLOW,
   applyForkIdentity,
 } from '../../src/core/fork/identity.js';
@@ -32,6 +36,20 @@ const EXPECTED_SKILL_NAMES: Record<WorkflowId, [former: string, current: string]
 describe('fork identity tables', () => {
   it('names the CLI specagile', () => {
     expect(CLI_NAME).toBe('specagile');
+  });
+
+  it('is published as the specagile package, with only the specagile executable', () => {
+    const pkg = JSON.parse(readFileSync(path.join(__dirname, '..', '..', 'package.json'), 'utf-8')) as {
+      name: string;
+      bin: Record<string, string>;
+      repository: { url: string };
+      homepage: string;
+    };
+    expect(PACKAGE_NAME).toBe('specagile');
+    expect(pkg.name).toBe(PACKAGE_NAME);
+    expect(pkg.bin).toEqual({ [CLI_NAME]: './bin/specagile.js' });
+    expect(pkg.repository.url).toBe(REPOSITORY_URL);
+    expect(pkg.homepage).toBe(REPOSITORY_URL);
   });
 
   it('maps every workflow to the names in the spec', () => {

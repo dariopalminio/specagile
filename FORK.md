@@ -121,7 +121,7 @@ Registering them added one line each to these upstream lists, which can conflict
 
 ## SpecAgile identity
 
-SpecAgile's CLI is `specagile` (`bin/specagile.js`); the fork installs no `openspec` executable. Its skills are named `sa-*`:
+SpecAgile is the npm package `specagile` (`npm install -g specagile`), version 2.0.0 like the upstream release it starts from. Its CLI is `specagile` (`bin/specagile.js`); the fork installs no `openspec` executable, so it coexists with an OpenSpec installed by npm. Its skills are named `sa-*`:
 
 | Workflow | Skill | Former name |
 |---|---|---|
@@ -132,7 +132,17 @@ SpecAgile's CLI is `specagile` (`bin/specagile.js`); the fork installs no `opens
 | `new`, `continue`, `ff`, `bulk-archive`, `update` | `sa-<workflow>-change` | `openspec-<workflow>-change` |
 | `sync` | `sa-sync-specs` | `openspec-sync-specs` |
 
-Workflow ids (`apply`, `verify`, …), the project's `openspec/` folder, internal files (`.openspec-target`, `.openspec-store/`), the global config directory, the npm package name and "OpenSpec" in prose keep upstream's names.
+Workflow ids (`apply`, `verify`, …), the project's `openspec/` folder, internal files (`.openspec-target`, `.openspec-store/`), the global config directory and "OpenSpec" in prose keep upstream's names.
+
+Because it is published on its own, SpecAgile also differs from upstream in what it installs and sends:
+
+- **Updates** name the `specagile` package (`npm install -g specagile@latest`, `npx specagile@latest update`). `version-check.ts` reads the name from `package.json`; the shim npm writes (`specagile.cmd`, `bin/specagile`) and its messages use `CLI_NAME`.
+- **No standalone install.** The standalone binary and its installer are OpenSpec's. `specagile install` is hidden and only prints `npm install -g specagile@latest` (exit code 1); `update` does not show the standalone tip. `src/commands/install-standalone.ts` and `src/core/standalone-tip.ts` are left as upstream wrote them and are no longer reached.
+- **No telemetry.** `src/cli/index.ts` does not call the telemetry hooks, so nothing goes to OpenSpec's analytics and no first-run notice appears. `src/telemetry/` is left as is; `telemetry.enabled`, `OPENSPEC_TELEMETRY` and `DO_NOT_TRACK` still turn off the background update check.
+- **Links and feedback** go to `REPOSITORY_URL` (`https://github.com/dariopalminio/specagile`): `specagile feedback`, and the "Learn more" lines of `init` and `update`. `package.json` names the fork in `repository`, `homepage`, `bugs` and `author`.
+- **GitHub Copilot cloud files** install `specagile` and use its CLI. `cloud-agent.ts` keeps building upstream's text and writes it through the fork's identity, so a file OpenSpec wrote is recognized as earlier output and refreshed.
+
+Publishing (`npm publish`) is the maintainer's step. Upstream's release workflows (`.github/workflows/release-prepare.yml`, `binaries.yml`, `scripts/binary/`) are not used by the fork.
 
 ### Where it lives
 
@@ -155,22 +165,24 @@ Upstream code that reads the tables: `WORKFLOW_TO_SKILL_DIR` (`src/core/profile-
 
 These can conflict when upstream changes the same lines:
 
-- **CLI name**: `package.json` (`bin`, `dev:cli`), `src/cli/index.ts` (`.name(CLI_NAME)`, `getCommandPath`), `scripts/pack-version-check.mjs`, `scripts/binary/install-check.sh`, `flake.nix` and the Nix check in `.github/workflows/ci.yml`.
+- **CLI and package name**: `package.json` (`name`, `bin`, `dev:cli`, `repository`, `homepage`, `bugs`, `author`), `src/cli/index.ts` (`.name(CLI_NAME)`, `getCommandPath`, the hidden `install`, no standalone tip, no telemetry hooks), `src/core/version-check.ts`, `src/commands/feedback.ts`, the "Learn more" lines in `src/core/init.ts` and `src/core/update.ts`, `src/core/github-copilot/cloud-agent.ts`, `scripts/pack-version-check.mjs`, `scripts/binary/install-check.sh`, `flake.nix` (`pname`, completions) and the Nix check in `.github/workflows/ci.yml`.
 - **Messages**: every `openspec <subcommand>` a user reads in `src/cli/`, `src/commands/`, `src/core/` and `src/telemetry/` now says `specagile <subcommand>`. Comments were left alone.
 - **Built-in schema**: `schemas/spec-driven/schema.yaml` and `schemas/spec-driven/templates/proposal.md`.
-- **Shell completions** (`src/core/completions/`): the scripts register and call `CLI_NAME`, the installers write `specagile` files (`_specagile`, `specagile.fish`, `SpecAgileCompletion.ps1`, …) and mark their block in shell config with `# SPECAGILE:START`/`# SPECAGILE:END`, so an OpenSpec completion installed beside them is left alone. Internal function names (`_openspec_*`) are unchanged.
+- **Shell completions** (`src/core/completions/`): the registry does not list `install`; the scripts register and call `CLI_NAME`, the installers write `specagile` files (`_specagile`, `specagile.fish`, `SpecAgileCompletion.ps1`, …) and mark their block in shell config with `# SPECAGILE:START`/`# SPECAGILE:END`, so an OpenSpec completion installed beside them is left alone. Internal function names (`_openspec_*`) are unchanged.
 - **Tests**: names in the tests that pin what this version installs; `scripts/parity-hash-shared.mjs` accepts `sa-*` keys. Upstream tests that pin a template's wording on generated text compare it through `withUpstreamIdentity` (`test/helpers/fork-identity.ts`), so their assertions stay as upstream wrote them.
 - **Docs**: `README.md` and `docs-lab/`.
 
 ### Texts that keep `openspec` on purpose
 
-Until the fork has a package of its own, these still name OpenSpec's published package and standalone binary, and are the exceptions in `test/fork/cli-name.test.ts`: `src/core/github-copilot/cloud-agent.ts`, `src/core/version-check.ts`, `src/commands/install-standalone.ts`, `src/core/standalone-tip.ts`. `specagile install` still downloads OpenSpec's standalone binary.
+These are the exceptions in `test/fork/cli-name.test.ts`: `src/core/github-copilot/cloud-agent.ts` (upstream's text is the source; the files are written with the fork's identity), and `src/commands/install-standalone.ts` and `src/core/standalone-tip.ts` (OpenSpec's standalone install, which SpecAgile never reaches). `test/cli-e2e/upgrade-from-releases.test.ts` and `scripts/capture-released-fingerprints.mjs` install OpenSpec's released `@fission-ai/openspec` packages on purpose: they are earlier output SpecAgile must recognize.
 
 ### When a sync touches the identity
 
 - **A conflict in a message or list above**: keep upstream's new text, then change `openspec <subcommand>` back to `specagile <subcommand>` (or the skill name to read the tables).
 - **A new message naming `openspec <subcommand>`**: `test/fork/cli-name.test.ts` lists it; change it to `specagile`, or add the file to the exceptions with the reason.
 - **A new subcommand**: `test/fork/identity.test.ts` fails until it is added to `CLI_SUBCOMMANDS`.
+- **New telemetry or standalone calls** in `src/cli/index.ts`: keep them out (SpecAgile has neither); `test/cli-e2e/startup-modules.test.ts` and `test/fork/cli-name.test.ts` fail if the telemetry module loads or a notice appears.
+- **A new hard-coded `Fission-AI/OpenSpec` link or `@fission-ai/openspec` install** in user-facing code: point it at `REPOSITORY_URL` or `PACKAGE_NAME`.
 - **A new workflow**: the build fails until it has a name in both tables; add it to `test/fork/identity.test.ts` too.
 - **A template with a new wording**: `test/fork/generated-skills-identity.test.ts` fails when a generated skill still names a former skill or `openspec <word>`.
 
@@ -185,9 +197,9 @@ pnpm test -- --run test/fork test/core/templates
 
 | Platform | Scope | Result | Notes |
 |:---|:---|:---|:---|
-| Windows 11 (local) | `pnpm build`, `pnpm lint`, `test/fork/` + full suite | ✅ Passed | `rename-skills-and-cli-to-specagile`, working tree on `0d9a508f`. PowerShell, Node 26.13.0, git 2.37.1, pnpm 10.34.5. `test/fork/` 147/147; `test/fork test/core/templates test/core/shared test/commands test/utils` has no failure beyond the ones `0d9a508f` has. Full suite: 7012 passed, 75 failed; the failures not on `0d9a508f` are the validation tests' `EBUSY` on their temp folders in the repo root (a lock on this machine; they pass on Linux) and `update-flake-script` (`bash` resolves to WSL here, which also fails on `0d9a508f`) |
-| Linux (Docker, `node:22-bookworm`) | Full suite | ✅ Passed | Same working tree, checked out with LF as a clone would be; unprivileged user, Node 22.23.5, git 2.39.5, pnpm 10.34.5. 7248 passed, 0 failed, 18 skipped |
-| Packed install (Windows, Linux) | `pnpm pack`, global install, `specagile init --tools claude` | ✅ Passed | The package installs only a `specagile` executable (`specagile`, `.cmd`, `.ps1` on Windows); `specagile --version` prints 2.0.0; a new project gets only `sa-*` skills. Windows used a temporary npm prefix. On Linux, installing the tarball with npm into a prefix that already holds OpenSpec upstream replaces its `openspec` command: both are still the npm package `@fission-ai/openspec` |
+| Windows 11 (local) | `pnpm build`, `pnpm lint`, `test/fork/` + full suite | ✅ Passed | `rename-skills-and-cli-to-specagile` with the `specagile` package, working tree on `b3766ff9`. PowerShell, Node 26.13.0, git 2.37.1, pnpm 10.34.5. `test/fork/` passes. Full suite: 7019 passed, 73 failed; besides the failures `0d9a508f` already has, only the validation tests' `EBUSY` on their temp folders in the repo root (a lock on this machine; they pass on Linux) and `update-flake-script` (`bash` resolves to WSL here; also fails on `0d9a508f`). The two other new failures that run showed were tests fixed afterwards and re-run green |
+| Linux (Docker, `node:22-bookworm`) | Full suite | ✅ Passed | Same working tree, checked out with LF as a clone would be; unprivileged user, Node 22.23.5, git 2.39.5, pnpm 10.34.5. 7253 passed, 0 failed, 18 skipped |
+| Packed install (Windows, Linux) | `pnpm pack` → `specagile-2.0.0.tgz`, global install, `specagile init --tools claude` | ✅ Passed | The package installs only `specagile` (`specagile`, `.cmd`, `.ps1` on Windows); `specagile --version` prints 2.0.0; `specagile install` prints `npm install -g specagile@latest` and exits 1; a new project gets only `sa-*` skills, with no telemetry notice and nothing written to the global config. Installing `@fission-ai/openspec@2.0.0` and then `specagile` into the same npm prefix leaves both `openspec` and `specagile` working (Linux, and a temporary prefix on Windows) |
 | CI (GitHub Actions) | Full suite | ⚪ Not run | Actions never triggered on the fork; would require pushing the branch |
 
 The fork's CI is not enabled. Verification is local only until the branch is
