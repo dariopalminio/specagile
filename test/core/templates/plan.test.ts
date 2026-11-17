@@ -7,6 +7,7 @@ import { generateSkillContent } from '../../../src/core/shared/skill-generation.
 import { STORE_SELECTION_GUIDANCE } from '../../../src/core/templates/workflows/store-selection.js';
 import { PROJECT_ROOT_GUARD } from '../../../src/core/templates/workflows/project-root.js';
 import { ALL_WORKFLOWS } from '../../../src/core/profiles.js';
+import { applyForkIdentity } from '../../../src/core/fork/identity.js';
 
 // The plan skill is the planning stage of the fork's three-step flow. These
 // guards pin its contract (specs/opsx-plan-skill/spec.md) in the text an agent
@@ -39,8 +40,9 @@ const completeness = (body: string) =>
   section(body, '**Check that the specification is complete**', '**Find the planning work**');
 
 describe('plan skill template', () => {
-  it('is the openspec-plan skill, triggered by its own phrases', () => {
+  it('is the sa-plan skill, triggered by its own phrases', () => {
     const { name, description } = getPlanSkillTemplate();
+    // Written with OpenSpec's names; generation gives it SpecAgile's (FORK.md).
     expect(name).toBe('openspec-plan');
     expect(description).toContain('OpenSpec');
     expect(description).toContain('"openspec plan"');
@@ -50,14 +52,19 @@ describe('plan skill template', () => {
 
     const frontmatter = /^---\n([\s\S]*?)\n---\n/.exec(withAll)?.[1];
     expect(frontmatter).toBeDefined();
-    expect((parseYaml(frontmatter!) as { description: string }).description).toBe(description);
+    const parsed = parseYaml(frontmatter!) as { name: string; description: string };
+    expect(parsed.name).toBe('sa-plan');
+    expect(parsed.description).toBe(applyForkIdentity(description));
+    expect(parsed.description).toContain('"specagile plan"');
   });
 
   it('reads store selection and the project check before any step', () => {
-    const store = withAll.indexOf(STORE_SELECTION_GUIDANCE);
+    const storeGuidance = applyForkIdentity(STORE_SELECTION_GUIDANCE);
+    const rootGuard = applyForkIdentity(PROJECT_ROOT_GUARD);
+    const store = withAll.indexOf(storeGuidance);
     expect(store).toBeGreaterThanOrEqual(0);
-    expect(withAll.indexOf(PROJECT_ROOT_GUARD)).toBe(store + STORE_SELECTION_GUIDANCE.length + 2);
-    expect(withAll.indexOf(PROJECT_ROOT_GUARD)).toBeLessThan(withAll.indexOf('**Steps**'));
+    expect(withAll.indexOf(rootGuard)).toBe(store + storeGuidance.length + 2);
+    expect(withAll.indexOf(rootGuard)).toBeLessThan(withAll.indexOf('**Steps**'));
   });
 
   it('renders cleanly for every combination of the workflows it names', () => {
@@ -76,7 +83,7 @@ describe('plan skill template', () => {
     it('never creates a change', () => {
       expect(select).toContain('It never creates one');
       expect(select).toContain('Do not create a change or any file');
-      expect(withAll).not.toMatch(/```bash\s*\n\s*openspec new change/);
+      expect(withAll).not.toMatch(/```bash\s*\n\s*specagile new change/);
       expect(withAll).toContain('Never create a change, and never edit the proposal, the delta specs');
     });
 
@@ -92,7 +99,7 @@ describe('plan skill template', () => {
 
       const fallback = section(render(without('specify')), '**Select the change**', '**Get the artifact graph');
       expect(fallback).not.toContain('/opsx:specify');
-      expect(fallback).toContain('`openspec new change "<name>"`');
+      expect(fallback).toContain('`specagile new change "<name>"`');
     });
   });
 
@@ -154,7 +161,7 @@ describe('plan skill template', () => {
       expect(stop(EVERY)).toContain('if no artifact has id `specs`, write nothing');
       expect(stop(EVERY)).toContain('`/opsx:propose`');
       expect(stop(without('propose'))).not.toContain('/opsx:propose');
-      expect(stop(without('propose'))).toContain('`openspec instructions <artifact-id> --change "<name>"`');
+      expect(stop(without('propose'))).toContain('`specagile instructions <artifact-id> --change "<name>"`');
     });
   });
 
@@ -235,7 +242,7 @@ describe('plan skill template', () => {
     it('never names apply when it is not installed, and points at the CLI instead', () => {
       const body = render(without('apply'));
       expect(body).not.toContain('/opsx:apply');
-      expect(output(without('apply'))).toContain('run `openspec instructions apply --change "<name>" --json` to get the tasks');
+      expect(output(without('apply'))).toContain('run `specagile instructions apply --change "<name>" --json` to get the tasks');
     });
 
     it('stops after summarizing', () => {

@@ -394,20 +394,20 @@ jobs:
             echo "Error: Nix build output 'result' symlink not found"
             exit 1
           fi
-          if [ ! -f "result/bin/openspec" ]; then
-            echo "Error: openspec binary not found in build output"
+          if [ ! -f "result/bin/specagile" ]; then
+            echo "Error: specagile binary not found in build output"
             exit 1
           fi
           for completion in \
-            "share/bash-completion/completions/openspec.bash" \
-            "share/fish/vendor_completions.d/openspec.fish" \
-            "share/zsh/site-functions/_openspec"; do
+            "share/bash-completion/completions/specagile.bash" \
+            "share/fish/vendor_completions.d/specagile.fish" \
+            "share/zsh/site-functions/_specagile"; do
             if [ ! -s "result/$completion" ]; then
               echo "Error: completion script missing or empty: $completion"
               exit 1
             fi
           done
-          if [ "$(head -1 result/share/zsh/site-functions/_openspec)" != "#compdef openspec" ]; then
+          if [ "$(head -1 result/share/zsh/site-functions/_specagile)" != "#compdef specagile" ]; then
             echo "Error: zsh completion is not autoloadable (missing #compdef header)"
             exit 1
           fi

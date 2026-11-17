@@ -59,7 +59,7 @@ describe('available-tools', () => {
         'home',
         '.minimax',
         'skills',
-        'openspec-explore',
+        'sa-explore',
         'SKILL.md'
       );
       await fs.mkdir(path.dirname(globalSkill), { recursive: true });
@@ -72,7 +72,7 @@ describe('available-tools', () => {
         testDir,
         '.minimax',
         'skills',
-        'openspec-explore',
+        'sa-explore',
         'SKILL.md'
       );
       await fs.mkdir(path.dirname(localSkill), { recursive: true });
@@ -271,7 +271,7 @@ describe('available-tools', () => {
         'home',
         '.minimax',
         'skills',
-        'openspec-explore',
+        'sa-explore',
         'SKILL.md'
       );
       await fs.mkdir(sharedSkills, { recursive: true });
@@ -290,7 +290,7 @@ describe('available-tools', () => {
         testDir,
         '.agents',
         'skills',
-        'openspec-propose',
+        'sa-propose',
         'SKILL.md'
       );
       await fs.mkdir(path.dirname(skillFile), { recursive: true });
@@ -304,7 +304,7 @@ describe('available-tools', () => {
       'should preserve generic content when the shared marker is %j',
       async (marker) => {
         const skillsDir = path.join(testDir, '.agents', 'skills');
-        const skillFile = path.join(skillsDir, 'openspec-propose', 'SKILL.md');
+        const skillFile = path.join(skillsDir, 'sa-propose', 'SKILL.md');
         await fs.mkdir(path.dirname(skillFile), { recursive: true });
         await fs.writeFile(skillFile, AGENTS_SKILL);
         await fs.writeFile(path.join(skillsDir, '.openspec-target'), `${marker}\n`);
@@ -319,14 +319,14 @@ describe('available-tools', () => {
         testDir,
         '.agents',
         'skills',
-        'openspec-propose',
+        'sa-propose',
         'SKILL.md'
       );
       const codexSkill = path.join(
         testDir,
         '.codex',
         'skills',
-        'openspec-propose',
+        'sa-propose',
         'SKILL.md'
       );
       await fs.mkdir(path.dirname(agentsSkill), { recursive: true });
@@ -344,15 +344,15 @@ describe('available-tools', () => {
       const outsideDir = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-legacy-outside-'));
       try {
         const legacySkills = path.join(testDir, '.codex', 'skills');
-        await fs.mkdir(path.join(legacySkills, 'openspec-propose'), { recursive: true });
+        await fs.mkdir(path.join(legacySkills, 'sa-propose'), { recursive: true });
         await fs.writeFile(
-          path.join(legacySkills, 'openspec-propose', 'SKILL.md'),
-          'Next: $openspec-apply-change'
+          path.join(legacySkills, 'sa-propose', 'SKILL.md'),
+          'Next: $sa-implement'
         );
         await fs.mkdir(outsideDir, { recursive: true });
         await fs.symlink(
           outsideDir,
-          path.join(legacySkills, 'openspec-explore'),
+          path.join(legacySkills, 'sa-explore'),
           process.platform === 'win32' ? 'junction' : 'dir'
         );
 

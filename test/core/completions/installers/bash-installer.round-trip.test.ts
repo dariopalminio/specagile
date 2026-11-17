@@ -33,7 +33,7 @@ describe('BashInstaller .bashrc round trip', () => {
   async function roundTrip(original: string): Promise<string> {
     await fs.writeFile(bashrcPath, original);
     expect(await installer.configureBashrc(completionsDir)).toBe(true);
-    expect(await fs.readFile(bashrcPath, 'utf-8')).toContain('# OPENSPEC:START');
+    expect(await fs.readFile(bashrcPath, 'utf-8')).toContain('# SPECAGILE:START');
     expect(await installer.removeBashrcConfig()).toBe(true);
     return fs.readFile(bashrcPath, 'utf-8');
   }
@@ -65,7 +65,7 @@ describe('BashInstaller .bashrc round trip', () => {
     expect(await installer.configureBashrc(completionsDir)).toBe(true);
 
     const installed = await fs.readFile(bashrcPath, 'utf-8');
-    expect(installed.split('# OPENSPEC:START')).toHaveLength(2);
+    expect(installed.split('# SPECAGILE:START')).toHaveLength(2);
 
     expect(await installer.removeBashrcConfig()).toBe(true);
     expect(await fs.readFile(bashrcPath, 'utf-8')).toBe(original);
@@ -78,7 +78,7 @@ describe('BashInstaller .bashrc round trip', () => {
   });
 
   it('leaves an empty file when .bashrc holds only the OpenSpec block', async () => {
-    await fs.writeFile(bashrcPath, '# OPENSPEC:START\n# OpenSpec shell completions configuration\n# OPENSPEC:END\n');
+    await fs.writeFile(bashrcPath, '# SPECAGILE:START\n# OpenSpec shell completions configuration\n# SPECAGILE:END\n');
     expect(await installer.removeBashrcConfig()).toBe(true);
     expect(await fs.readFile(bashrcPath, 'utf-8')).toBe('');
   });
@@ -88,9 +88,9 @@ describe('BashInstaller .bashrc round trip', () => {
       bashrcPath,
       [
         'export PATH="$HOME/bin:$PATH"',
-        '# OPENSPEC:START',
+        '# SPECAGILE:START',
         '# OpenSpec shell completions configuration',
-        '# OPENSPEC:END',
+        '# SPECAGILE:END',
         'alias ll="ls -la"',
         '',
       ].join('\n')
@@ -104,7 +104,7 @@ describe('BashInstaller .bashrc round trip', () => {
     // The user deleted the separator line, so nothing blank follows the block.
     await fs.writeFile(
       bashrcPath,
-      '# OPENSPEC:START\n# OpenSpec shell completions configuration\n# OPENSPEC:END\nalias ll="ls -la"\n\nexport EDITOR=vim\n'
+      '# SPECAGILE:START\n# OpenSpec shell completions configuration\n# SPECAGILE:END\nalias ll="ls -la"\n\nexport EDITOR=vim\n'
     );
 
     expect(await installer.removeBashrcConfig()).toBe(true);
@@ -154,7 +154,7 @@ describe('openspec completion install/uninstall bash (end to end)', () => {
 
     const installed = await runCLI(['completion', 'install', 'bash'], { cwd: home, env, timeoutMs: 60_000 });
     expect(installed.exitCode).toBe(0);
-    expect(await fs.readFile(rc, 'utf-8')).toContain('# OPENSPEC:START');
+    expect(await fs.readFile(rc, 'utf-8')).toContain('# SPECAGILE:START');
 
     const removed = await runCLI(['completion', 'uninstall', 'bash', '--yes'], { cwd: home, env, timeoutMs: 60_000 });
     expect(removed.exitCode).toBe(0);

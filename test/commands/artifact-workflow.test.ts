@@ -165,7 +165,7 @@ describe('artifact-workflow CLI commands', () => {
 
       const json = JSON.parse(result.stdout);
       expect(json.artifacts.map((a: any) => a.id)).toEqual(['proposal', 'specs', 'design', 'tasks']);
-      expect(json.nextSteps[0]).toContain('openspec instructions specs');
+      expect(json.nextSteps[0]).toContain('specagile instructions specs');
     });
 
     // #906: the text surface reported state and no verb, so someone resuming a
@@ -190,7 +190,7 @@ describe('artifact-workflow CLI commands', () => {
 
         expect(result.exitCode).toBe(0);
         expect(lastLine(result)).toBe(
-          'Next: openspec instructions specs --change "resume-planning" --json'
+          'Next: specagile instructions specs --change "resume-planning" --json'
         );
       });
 
@@ -204,7 +204,7 @@ describe('artifact-workflow CLI commands', () => {
         // remain, so it must be followed by the command that resumes the work.
         expect(result.stdout).toContain('All planning artifacts complete!');
         expect(lastLine(result)).toBe(
-          'Next: openspec instructions apply --change "resume-apply" --json'
+          'Next: specagile instructions apply --change "resume-apply" --json'
         );
       });
 
@@ -246,7 +246,7 @@ describe('artifact-workflow CLI commands', () => {
         const ready = await runCLI(['status', '--change', 'lean-change'], { cwd: tempDir });
         expect(ready.exitCode).toBe(0);
         expect(lastLine(ready)).toBe(
-          'Next: openspec instructions plan --change "lean-change" --json'
+          'Next: specagile instructions plan --change "lean-change" --json'
         );
 
         await fs.writeFile(path.join(changeDir, 'plan.md'), '# Plan\n\nThe plan.\n');
@@ -254,7 +254,7 @@ describe('artifact-workflow CLI commands', () => {
         const complete = await runCLI(['status', '--change', 'lean-change'], { cwd: tempDir });
         expect(complete.exitCode).toBe(0);
         expect(lastLine(complete)).toBe(
-          'Next: openspec instructions apply --change "lean-change" --json'
+          'Next: specagile instructions apply --change "lean-change" --json'
         );
       });
 
@@ -273,7 +273,7 @@ describe('artifact-workflow CLI commands', () => {
         // change forbids.
         expect(result.stdout).toContain('[~] specs');
         expect(lastLine(result)).toBe(
-          'Next: openspec instructions design --change "skip-next-step" --json'
+          'Next: specagile instructions design --change "skip-next-step" --json'
         );
       });
 
@@ -339,7 +339,7 @@ describe('artifact-workflow CLI commands', () => {
       expect(status.isPlanningComplete).toBe(true);
       expect(status.isComplete).toBe(true);
       expect(status.nextSteps[0]).toContain(
-        'openspec instructions apply --change "planned-change" --json'
+        'specagile instructions apply --change "planned-change" --json'
       );
       expect(status.nextSteps[0]).not.toContain('before implementation');
       expect(apply.state).toBe('ready');
@@ -386,7 +386,7 @@ describe('artifact-workflow CLI commands', () => {
       const result = await runCLI(['status'], { cwd: tempDir });
       expect(result.exitCode).toBe(0);
       expect(result.stdout).toContain('No active changes');
-      expect(result.stdout).toContain('openspec new change');
+      expect(result.stdout).toContain('specagile new change');
     });
 
     it('exits gracefully with JSON when no changes exist', async () => {
@@ -1612,7 +1612,7 @@ operations:
       });
       expect(result.exitCode).toBe(0);
 
-      const skillFile = path.join(tempDir, '.agents', 'skills', 'openspec-explore', 'SKILL.md');
+      const skillFile = path.join(tempDir, '.agents', 'skills', 'sa-explore', 'SKILL.md');
       const stat = await fs.stat(skillFile);
       expect(stat.isFile()).toBe(true);
     });
@@ -1627,7 +1627,7 @@ operations:
       expect(output).toContain('.claude/');
 
       // Verify skill files were created
-      const skillFile = path.join(tempDir, '.claude', 'skills', 'openspec-explore', 'SKILL.md');
+      const skillFile = path.join(tempDir, '.claude', 'skills', 'sa-explore', 'SKILL.md');
       const stat = await fs.stat(skillFile);
       expect(stat.isFile()).toBe(true);
     });
@@ -1642,7 +1642,7 @@ operations:
       expect(output).toContain('.agents/skills/');
 
       // Cursor reads the one shared copy of the skills.
-      const skillFile = path.join(tempDir, '.agents', 'skills', 'openspec-explore', 'SKILL.md');
+      const skillFile = path.join(tempDir, '.agents', 'skills', 'sa-explore', 'SKILL.md');
       const stat = await fs.stat(skillFile);
       expect(stat.isFile()).toBe(true);
 
@@ -1663,7 +1663,7 @@ operations:
 
       // Verify skill files were created
       // Devin Desktop reads the one shared copy of the skills.
-      const skillFile = path.join(tempDir, '.agents', 'skills', 'openspec-explore', 'SKILL.md');
+      const skillFile = path.join(tempDir, '.agents', 'skills', 'sa-explore', 'SKILL.md');
       const stat = await fs.stat(skillFile);
       expect(stat.isFile()).toBe(true);
     });

@@ -12,6 +12,7 @@ import { WORKFLOW_TO_SKILL_DIR } from './profile-sync-drift.js';
 import { COMMAND_IDS } from './shared/tool-detection.js';
 import { ALL_WORKFLOWS, CORE_WORKFLOWS } from './profiles.js';
 import { getSkillReferenceTransformer } from '../utils/command-references.js';
+import { FORMER_SKILL_NAME_BY_WORKFLOW, applyForkIdentity } from './fork/identity.js';
 import { FileSystemUtils } from '../utils/file-system.js';
 import { isToolListed, readKeptSharedSkills } from './shared-skill-target.js';
 import { DISK_VIEW, type FileView } from './file-view.js';
@@ -110,7 +111,10 @@ type FileDisposition = 'move' | 'drop' | 'keep' | 'skip';
 function classifyManagedFile(
   source: string,
   destination: string,
-  view: FileView = DISK_VIEW
+  view: FileView = DISK_VIEW,
+  // SpecAgile: the source has a skill's former name; compare it with the
+  // fork's identity applied too.
+  formerName = false
 ): FileDisposition {
   if (isSamePath(source, destination)) return 'skip';
   if (!view.exists(destination)) return 'move';
@@ -119,7 +123,8 @@ function classifyManagedFile(
     const destinationContent = view.read(destination);
     const isSkillFile =
       path.basename(source) === 'SKILL.md' && path.basename(destination) === 'SKILL.md';
-    return isRedundantLegacyCopy(sourceContent, destinationContent, isSkillFile)
+    return isRedundantLegacyCopy(sourceContent, destinationContent, isSkillFile) ||
+      (formerName && isRedundantLegacyCopy(applyForkIdentity(sourceContent), destinationContent, isSkillFile))
       ? 'drop'
       : 'keep';
   } catch {
@@ -291,13 +296,26 @@ function migrateSkillDirs(
   let moved = 0;
   let kept = 0;
 
-  for (const workflowId of ALL_WORKFLOWS) {
-    const dirName = WORKFLOW_TO_SKILL_DIR[workflowId];
+  // SpecAgile: a skill there has its current name or, as an earlier release
+  // wrote it, its former `openspec-*` one. Before generation a former one moves
+  // under its own name (src/core/fork/former-skills.ts then retires it from the
+  // current root); after generation it is judged against the current skill
+  // with the fork's identity applied, and dropped or kept, never moved.
+  const candidates = ALL_WORKFLOWS.flatMap((workflowId) => {
+    const current = WORKFLOW_TO_SKILL_DIR[workflowId];
+    const former = FORMER_SKILL_NAME_BY_WORKFLOW[workflowId];
+    return [
+      { dirName: current, destinationName: current, formerName: false },
+      { dirName: former, destinationName: requireDestination ? current : former, formerName: true },
+    ];
+  });
+
+  for (const { dirName, destinationName, formerName } of candidates) {
     const source = path.join(legacySkillsDir, dirName);
     const sourceSkill = path.join(source, 'SKILL.md');
     if (!fs.existsSync(sourceSkill)) continue;
 
-    const destination = path.join(currentSkillsDir, dirName);
+    const destination = path.join(currentSkillsDir, destinationName);
     const destinationSkill = path.join(destination, 'SKILL.md');
     if (requireDestination && !view.exists(destinationSkill)) continue;
     if (!areProjectArtifacts(projectPath, sourceSkill, destinationSkill)) {
@@ -306,7 +324,14 @@ function migrateSkillDirs(
       );
       continue;
     }
-    const disposition = classifyManagedFile(sourceSkill, destinationSkill, view);
+    const disposition = classifyManagedFile(
+      sourceSkill,
+      destinationSkill,
+      view,
+      formerName && destinationName !== dirName
+    );
+    // Never carry a former skill onto the current one's spot.
+    if (disposition === 'move' && destinationName !== dirName) continue;
     if (disposition === 'skip') continue;
     if (disposition === 'keep') {
       kept++;
@@ -554,12 +579,14 @@ function scanInstalledWorkflowArtifacts(
 
     for (const skillsDir of skillsDirs) {
       for (const workflowId of ALL_WORKFLOWS) {
-        const skillDirName = WORKFLOW_TO_SKILL_DIR[workflowId];
-        const skillFile = path.join(skillsDir, skillDirName, 'SKILL.md');
-        // A skill kept as the user's in the shared folder is not an install.
-        if (view.exists(skillFile) && !kept.has(skillDirName)) {
-          installed.add(workflowId);
-          hasSkills = true;
+        // SpecAgile: under its current name, or its former `openspec-*` one.
+        for (const skillDirName of [WORKFLOW_TO_SKILL_DIR[workflowId], FORMER_SKILL_NAME_BY_WORKFLOW[workflowId]]) {
+          const skillFile = path.join(skillsDir, skillDirName, 'SKILL.md');
+          // A skill kept as the user's in the shared folder is not an install.
+          if (view.exists(skillFile) && !kept.has(skillDirName)) {
+            installed.add(workflowId);
+            hasSkills = true;
+          }
         }
       }
     }
@@ -709,7 +736,8 @@ export function migrateIfNeeded(projectPath: string, tools: AIToolOption[]): voi
   const proposeReferences = new Set(
     tools.map((tool) => getSkillReferenceTransformer(tool.value)('/opsx:propose'))
   );
-  const proposeReference =
-    proposeReferences.size === 1 ? [...proposeReferences][0] : 'the openspec-propose skill';
-  console.log(`New in this version: ${proposeReference}. Try 'openspec config profile core' for the streamlined experience.`);
+  const proposeReference = applyForkIdentity(
+    proposeReferences.size === 1 ? [...proposeReferences][0] : 'the openspec-propose skill'
+  );
+  console.log(`New in this version: ${proposeReference}. Try 'specagile config profile core' for the streamlined experience.`);
 }

@@ -24,7 +24,7 @@ const enabled = process.env.OPENSPEC_RELEASE_UPGRADES === '1';
 const RELEASES = ['0.14.0', '0.23.0', '1.0.0', '1.2.0', '1.10.0', '1.16.0'];
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const currentBin = path.join(repoRoot, 'bin', 'openspec.js');
+const currentBin = path.join(repoRoot, 'bin', 'specagile.js');
 const cacheDir = path.resolve(
   process.env.OPENSPEC_RELEASE_CACHE ?? path.join(os.tmpdir(), 'openspec-release-cache')
 );
@@ -293,8 +293,8 @@ describe.skipIf(!enabled)('upgrading projects from released versions', () => {
     expect(await fs.readFile(edited, 'utf8')).toBe(editedText);
     const commands = listFiles(box.project).filter((rel) => /(^|\/)opsx[-/:][^/]+$/.test(rel));
     expect(commands).toEqual(['.claude/commands/opsx/apply.md']);
-    expect(existsSync(path.join(box.project, '.agents', 'skills', 'openspec-propose', 'SKILL.md'))).toBe(true);
-    expect(existsSync(path.join(box.project, '.claude', 'skills', 'openspec-propose', 'SKILL.md'))).toBe(true);
+    expect(existsSync(path.join(box.project, '.agents', 'skills', 'sa-propose', 'SKILL.md'))).toBe(true);
+    expect(existsSync(path.join(box.project, '.claude', 'skills', 'sa-propose', 'SKILL.md'))).toBe(true);
 
     const before = snapshot(box.project);
     expect(run(currentBin, ['update'], box).output).toContain('up to date');
@@ -357,7 +357,7 @@ describe.skipIf(!enabled)('upgrading projects from released versions', () => {
     expect(result.status, result.output).toBe(0);
     // 2.0 installs skills only: Antigravity gets them in the shared folder,
     // and its old commands are removed rather than moved.
-    expect(existsSync(path.join(box.project, '.agents', 'skills', 'openspec-propose', 'SKILL.md'))).toBe(true);
+    expect(existsSync(path.join(box.project, '.agents', 'skills', 'sa-propose', 'SKILL.md'))).toBe(true);
     for (const name of old) {
       expect(existsSync(path.join(box.project, '.agents', 'workflows', name)), name).toBe(false);
     }

@@ -590,7 +590,7 @@ operations:
       const output = result.stdout + result.stderr;
       expect(output).toContain('team-context');
       expect(output).toContain('--store <id>');
-      expect(output).toContain('openspec init');
+      expect(output).toContain('specagile init');
       expectNoLocalOpenSpec();
     });
 
@@ -673,7 +673,7 @@ operations:
       // what to delete if this was not the project they meant. The path is
       // relative to where the command ran, so it reads the same on Windows.
       expect(firstOutput).toContain('created at openspec/.');
-      expect(firstOutput).toContain('openspec init');
+      expect(firstOutput).toContain('specagile init');
       expect(fs.existsSync(path.join(appRepo, 'openspec', 'changes', 'adopt-me'))).toBe(true);
 
       // The root exists now, so the notice must not repeat on every change.
@@ -1068,7 +1068,7 @@ operations:
         { cwd: appRepo, env }
       );
       expect(result.exitCode).toBe(0);
-      expect(result.stdout).toContain('openspec new change <change-id> --store fresh-context');
+      expect(result.stdout).toContain('specagile new change <change-id> --store fresh-context');
     });
 
     it('shows --store usage after register', async () => {
@@ -1084,7 +1084,7 @@ operations:
         env,
       });
       expect(result.exitCode).toBe(0);
-      expect(result.stdout).toContain('openspec new change <change-id> --store register-context');
+      expect(result.stdout).toContain('specagile new change <change-id> --store register-context');
     });
   });
 });

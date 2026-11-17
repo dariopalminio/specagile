@@ -10,8 +10,8 @@ function readPage(relativePath: string): string {
 }
 
 const CLI_INIT = readPage('docs-lab/reference/cli.md')
-  .split('## openspec init')[1]
-  .split('## openspec update')[0];
+  .split('## specagile init')[1]
+  .split('## specagile update')[0];
 const STORE_INTEGRATIONS = readPage('docs-lab/multi-repo/stores.md')
   .split('### Install integrations in a store-only repo')[1]
   .split('### `defaultStore` on your machine')[0];

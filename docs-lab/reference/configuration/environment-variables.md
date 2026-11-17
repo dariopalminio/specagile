@@ -7,6 +7,8 @@
 what's collected. start/installation.md's Deno section links here to explain
 its network-permission flag. XDG vars move the config/data directories. -->
 
+SpecAgile sends no telemetry. It still reads `OPENSPEC_TELEMETRY` and `DO_NOT_TRACK`: either one turns off the background update check in `specagile update`.
+
 ## OPENSPEC_TELEMETRY
 
 ## DO_NOT_TRACK

@@ -22,6 +22,7 @@ import { MAX_CONTEXT_SIZE } from '../../../src/core/project-config.js';
 import { resolveOptionalWorkflows } from '../../../src/core/templates/optional-workflow.js';
 import { ALL_WORKFLOWS } from '../../../src/core/profiles.js';
 import { parseTaskLines } from '../../../src/utils/task-progress.js';
+import { withUpstreamIdentity } from '../../helpers/fork-identity.js';
 
 // Templates carry optional-workflow conditionals; a body only means anything
 // once resolved against a workflow set. Unless a test says otherwise, these are
@@ -42,7 +43,8 @@ const asDeployed = <T extends { instructions: string }>(template: T): T => ({
 });
 
 const proposeBodies: Array<[string, string]> = [
-  ['propose skill', generateSkillContent(asDeployed(getOpsxProposeSkillTemplate()), 'TEST')],
+  // SpecAgile: compared with upstream's names; the fork's are pinned in test/fork/.
+  ['propose skill', withUpstreamIdentity(generateSkillContent(asDeployed(getOpsxProposeSkillTemplate()), 'TEST'))],
   ['propose command', proposeCommandBody],
 ];
 

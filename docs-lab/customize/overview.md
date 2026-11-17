@@ -19,7 +19,7 @@ Config and schemas are two levels of customization. Pick by how hands-on you wan
 - **Start with [project configuration](project-config.md)**: it's lighter, and for most projects it's enough. You keep the standard artifacts and add your own context and rules on top.
 - **Fork a [schema](schemas.md) when adding isn't enough**: config only adds on top of the core workflow. It can add a rule like "tasks always include tests," but it can't drop the design doc or rename a file. That's schema territory. Forking gives you your own copy to edit.
 
-*"Fork" here means the `openspec schema fork` command, not forking a git repo. [Schemas](schemas.md) has the details.*
+*"Fork" here means the `specagile schema fork` command, not forking a git repo. [Schemas](schemas.md) has the details.*
 
 ```mermaid
 flowchart LR
@@ -28,5 +28,5 @@ flowchart LR
     c["Different artifacts, file names, or document structure"] --> schema
     d["The built-in instructions say things my team does differently"] --> schema
     config["Project configuration<br/>(config.yaml)"]
-    schema["Fork a schema<br/>(openspec schema fork)"]
+    schema["Fork a schema<br/>(specagile schema fork)"]
 ```

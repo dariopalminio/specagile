@@ -10,6 +10,7 @@ import { isTelemetryOptedOutByEnv } from '../telemetry/opt-out.js';
 import { FileSystemUtils } from '../utils/file-system.js';
 import { getGlobalConfig, isGlobalConfigUnreadable } from './global-config.js';
 import { findCopiesOnPath, samePath } from '../utils/executable-path.js';
+import { CLI_NAME } from './fork/identity.js';
 
 const require = createRequire(import.meta.url);
 const { name: PACKAGE_NAME, version: OPENSPEC_VERSION } = require('../../package.json');
@@ -52,7 +53,7 @@ export function getStandaloneBinaryPath(): string | null {
 function standaloneUpgradeCommand(): string | null {
   if (!standaloneBinaryPath) return null;
   const first = findCopiesOnPath()[0];
-  if (first && samePath(first, standaloneBinaryPath)) return 'openspec install';
+  if (first && samePath(first, standaloneBinaryPath)) return `${CLI_NAME} install`;
   return process.platform === 'win32'
     ? `& '${standaloneBinaryPath.replace(/'/g, "''")}' install`
     : `'${standaloneBinaryPath.replace(/'/g, `'\\''`)}' install`;
@@ -582,7 +583,7 @@ export function isNpmGlobalInstall(
     // parent of the node_modules dir the CLI resolved from, so a hand-copied
     // portable tree would pass and be offered an npm upgrade it never had.
     return fs.existsSync(
-      process.platform === 'win32' ? path.join(prefix, 'openspec.cmd') : path.join(prefix, 'bin')
+      process.platform === 'win32' ? path.join(prefix, `${CLI_NAME}.cmd`) : path.join(prefix, 'bin')
     );
   } catch {
     return false;
@@ -763,7 +764,7 @@ export function buildUpgradeCommandLines(
   const standalone = standaloneUpgradeCommand();
   if (standalone) {
     lines.push(`  ${standalone}`);
-    lines.push('  Then run "openspec update" again to pick up new workflows.');
+    lines.push(`  Then run "${CLI_NAME} update" again to pick up new workflows.`);
     return lines;
   }
 
@@ -780,7 +781,7 @@ export function buildUpgradeCommandLines(
     lines.push(`  ${GLOBAL_UPGRADE_COMMANDS[detectPackageManager(installDir)]}`);
   }
 
-  lines.push('  Then run "openspec update" again to pick up new workflows.');
+  lines.push(`  Then run "${CLI_NAME} update" again to pick up new workflows.`);
   return lines;
 }
 
@@ -881,8 +882,8 @@ export function upgradedBinPath(
     // (%APPDATA%\\npm\\openspec.cmd) and in <prefix>/bin on POSIX.
     const candidates =
       process.platform === 'win32'
-        ? [path.join(path.dirname(root), 'openspec.cmd')]
-        : [path.resolve(root, '..', '..', 'bin', 'openspec')];
+        ? [path.join(path.dirname(root), `${CLI_NAME}.cmd`)]
+        : [path.resolve(root, '..', '..', 'bin', CLI_NAME)];
 
     for (const candidate of candidates) {
       try {
@@ -982,14 +983,14 @@ export async function offerCliUpgrade(latestVersion: string): Promise<UpgradeOut
   }
 
   const binPath = upgradedBinPath();
-  const version = await readCliVersion(binPath ?? 'openspec');
+  const version = await readCliVersion(binPath ?? CLI_NAME);
 
   if (!version) {
-    console.log(chalk.yellow('Upgrade finished, but no "openspec" could be run to confirm it.'));
+    console.log(chalk.yellow(`Upgrade finished, but no "${CLI_NAME}" could be run to confirm it.`));
     return 'not-on-path';
   }
   if (compareVersions(version, OPENSPEC_VERSION) <= 0) {
-    console.log(chalk.yellow(`Upgrade finished, but "openspec" still reports v${version}.`));
+    console.log(chalk.yellow(`Upgrade finished, but "${CLI_NAME}" still reports v${version}.`));
     console.log(
       chalk.dim(
         binPath
@@ -1017,7 +1018,7 @@ export async function rerunUpdateWithUpgradedCli(
   options: { force?: boolean; binPath?: string } = {}
 ): Promise<number> {
   const spawn = loadSpawn();
-  const binPath = options.binPath ?? upgradedBinPath() ?? 'openspec';
+  const binPath = options.binPath ?? upgradedBinPath() ?? CLI_NAME;
   // The re-run stands in for the command the user typed, so it has to carry
   // the flags they typed with it.
   const args = ['update'];
@@ -1042,7 +1043,7 @@ export async function rerunUpdateWithUpgradedCli(
       // Nothing to hand off to: the upgrade landed but the instruction files
       // are still the old ones, so this run did not do what was asked.
       console.log(chalk.yellow('Instruction files were not regenerated.'));
-      console.log(chalk.dim('  Run "openspec update" to pick up the new workflows.'));
+      console.log(chalk.dim(`  Run "${CLI_NAME} update" to pick up the new workflows.`));
       resolve(1);
     });
     // A child killed by a signal reports no code; that is not success.

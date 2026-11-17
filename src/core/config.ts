@@ -1,21 +1,9 @@
+import { CURRENT_SKILL_NAMES } from './fork/identity.js';
+
 export const OPENSPEC_DIR_NAME = 'openspec';
 
-export const OPENSPEC_SKILL_NAMES = [
-  'openspec-explore',
-  'openspec-new-change',
-  'openspec-continue-change',
-  'openspec-apply-change',
-  'openspec-update-change',
-  'openspec-ff-change',
-  'openspec-sync-specs',
-  'openspec-archive-change',
-  'openspec-bulk-archive-change',
-  'openspec-verify-change',
-  'openspec-onboard',
-  'openspec-propose',
-  'openspec-specify',
-  'openspec-plan',
-] as const;
+// SpecAgile: the skills this version writes (`sa-*`), from src/core/fork/identity.ts.
+export const OPENSPEC_SKILL_NAMES: readonly string[] = CURRENT_SKILL_NAMES;
 
 export const OPENSPEC_MARKERS = {
   start: '<!-- OPENSPEC:START -->',
@@ -98,7 +86,7 @@ export function findRetiredTool(toolId: string): RetiredTool | undefined {
 
 /** The line `init --tools <retired id>` fails with. */
 export function formatRetiredToolError(tool: RetiredTool): string {
-  return `${tool.name} is no longer supported: ${tool.reason}. Set up ${tool.successorName} instead: openspec init --tools ${tool.successor}`;
+  return `${tool.name} is no longer supported: ${tool.reason}. Set up ${tool.successorName} instead: specagile init --tools ${tool.successor}`;
 }
 
 export const AI_TOOLS: AIToolOption[] = [

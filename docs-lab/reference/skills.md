@@ -42,30 +42,30 @@ The skills come in two sets:
 Every skill expects a project that already uses OpenSpec. Before its first step that writes anything, a skill checks for a resolved root. What happens when there is none depends on how the skill was reached:
 
 - **Auto-selected**: your agent picked the skill on its own, without you naming OpenSpec. It drops OpenSpec and answers your request normally, the way it would with OpenSpec not installed.
-- **Explicit OpenSpec request**: you named OpenSpec or invoked the skill by name. It stops before writing and asks how to proceed: run `openspec init` here, target a store with `--store <id>`, or continue without OpenSpec. It waits for your answer.
+- **Explicit OpenSpec request**: you named OpenSpec or invoked the skill by name. It stops before writing and asks how to proceed: run `specagile init` here, target a store with `--store <id>`, or continue without OpenSpec. It waits for your answer.
 
 Invoking a skill by name is always the second case. A project whose `openspec/config.yaml` names a store this machine cannot resolve (not registered, or a malformed `store:` line) is not treated as uninitialized: the skill stops and shows the store error with its fix. No skill creates an `openspec/` directory on its own in either case. The entries below describe what each skill does once a root is in place.
 
 | Skill | Job | Type |
 |---|---|---|
-| [openspec-explore](#openspec-explore) | Think through an idea before it becomes a change proposal | Core |
-| [openspec-propose](#openspec-propose) | Create a change proposal with all its planning artifacts in one step | Core |
-| [openspec-specify](#openspec-specify) | Write a change proposal's specification, stopping before the technical plan | Core |
-| [openspec-plan](#openspec-plan) | Create or revise the technical plan of a specified change proposal | Core |
-| [openspec-apply-change](#openspec-apply-change) | Implement a change proposal's tasks | Core |
-| [openspec-update-change](#openspec-update-change) | Revise a change proposal's plan | Core |
-| [openspec-sync-specs](#openspec-sync-specs) | Merge a change proposal's spec updates into `specs/` | Core |
-| [openspec-archive-change](#openspec-archive-change) | Move a finished change proposal to the archive | Core |
-| [openspec-new-change](#openspec-new-change) | Start a change proposal as an empty scaffold | Optional |
-| [openspec-continue-change](#openspec-continue-change) | Create the next planning artifact, one at a time | Optional |
-| [openspec-ff-change](#openspec-ff-change) | Create a change proposal with every artifact implementation needs, in one pass | Optional |
-| [openspec-verify-change](#openspec-verify-change) | Check the implementation matches the plan | Optional |
-| [openspec-bulk-archive-change](#openspec-bulk-archive-change) | Archive several change proposals at once | Optional |
-| [openspec-onboard](#openspec-onboard) | Learn the workflow by doing one real change proposal end to end | Optional |
+| [sa-explore](#sa-explore) | Think through an idea before it becomes a change proposal | Core |
+| [sa-propose](#sa-propose) | Create a change proposal with all its planning artifacts in one step | Core |
+| [sa-specify](#sa-specify) | Write a change proposal's specification, stopping before the technical plan | Core |
+| [sa-plan](#sa-plan) | Create or revise the technical plan of a specified change proposal | Core |
+| [sa-implement](#sa-implement) | Implement a change proposal's tasks | Core |
+| [sa-update-change](#sa-update-change) | Revise a change proposal's plan | Core |
+| [sa-sync-specs](#sa-sync-specs) | Merge a change proposal's spec updates into `specs/` | Core |
+| [sa-archive](#sa-archive) | Move a finished change proposal to the archive | Core |
+| [sa-new-change](#sa-new-change) | Start a change proposal as an empty scaffold | Optional |
+| [sa-continue-change](#sa-continue-change) | Create the next planning artifact, one at a time | Optional |
+| [sa-ff-change](#sa-ff-change) | Create a change proposal with every artifact implementation needs, in one pass | Optional |
+| [sa-verify](#sa-verify) | Check the implementation matches the plan | Optional |
+| [sa-bulk-archive-change](#sa-bulk-archive-change) | Archive several change proposals at once | Optional |
+| [sa-onboard](#sa-onboard) | Learn the workflow by doing one real change proposal end to end | Optional |
 
-Each entry below names the skill that owns the next step. When your profile leaves that skill out, the installed files never name it: the handoff becomes the equivalent `openspec` command, or a plain request to you, and a line that exists only to point at a missing skill is not written at all. So the skills you have always hand off to skills you have. Which set you get is [Profiles](../customize/profiles.md).
+Each entry below names the skill that owns the next step. When your profile leaves that skill out, the installed files never name it: the handoff becomes the equivalent `specagile` command, or a plain request to you, and a line that exists only to point at a missing skill is not written at all. So the skills you have always hand off to skills you have. Which set you get is [Profiles](../customize/profiles.md).
 
-## openspec-explore
+## sa-explore
 
 Think through an idea before it becomes a change proposal.
 
@@ -75,7 +75,7 @@ Think through an idea before it becomes a change proposal.
 | **Creates** | Nothing by default. It reads and investigates only. On request it captures insights: a new change proposal under `openspec/changes/<name>/`, or updates to an existing one's proposal, design, specs, or tasks. Never code. |
 | **Response** | An open conversation with no required output. When thinking crystallizes it summarizes the problem, approach, open questions, and next steps, and offers to capture them. You decide. Implementation never starts here. |
 
-## openspec-propose
+## sa-propose
 
 Create a change proposal and generate all its planning artifacts in one step.
 
@@ -83,29 +83,29 @@ Create a change proposal and generate all its planning artifacts in one step.
 |---|---|
 | **Arguments** | A kebab-case name (`add-dark-mode`) or a plain description. Asks if you give neither. |
 | **Creates** | `openspec/changes/<name>/` with every artifact the schema defines, in dependency order (spec-driven: proposal, spec deltas, design, tasks). Never code. |
-| **Response** | The created artifacts, ready for review, and the next step. Stops there; implementation waits for `openspec-apply-change`. |
+| **Response** | The created artifacts, ready for review, and the next step. Stops there; implementation waits for `sa-implement`. |
 
-## openspec-specify
+## sa-specify
 
 Write a change proposal's specification, the proposal and its spec deltas, and stop before the technical plan.
 
 | Contract | Description |
 |---|---|
 | **Arguments** | A plain description to start a new change proposal, or the name of an active one to continue or revise. Asks if you give neither. If the name derived from a description is already taken, it asks whether to continue that change proposal or start one under another name before writing anything. |
-| **Creates** | Only the specification artifacts (spec-driven: `proposal.md` and one `specs/<capability-path>/spec.md` per capability the proposal lists; the proposal alone when the change proposal declares `skip_specs`). A new change proposal goes in `openspec/changes/<name>/`. In an existing one it writes the missing artifacts and revises existing ones only after you confirm each, including deleting or moving the spec delta of a capability you removed or renamed. A schema with no `specs` artifact gets nothing; it points to `openspec-propose` instead. Never design, tasks, main specs, or code. |
-| **Response** | The artifacts created or revised, and a warning when an existing plan may now be out of date. A complete specification with nothing to change is summarized instead, and it asks what to revise. Stops there; planning waits for `openspec-plan`. |
+| **Creates** | Only the specification artifacts (spec-driven: `proposal.md` and one `specs/<capability-path>/spec.md` per capability the proposal lists; the proposal alone when the change proposal declares `skip_specs`). A new change proposal goes in `openspec/changes/<name>/`. In an existing one it writes the missing artifacts and revises existing ones only after you confirm each, including deleting or moving the spec delta of a capability you removed or renamed. A schema with no `specs` artifact gets nothing; it points to `sa-propose` instead. Never design, tasks, main specs, or code. |
+| **Response** | The artifacts created or revised, and a warning when an existing plan may now be out of date. A complete specification with nothing to change is summarized instead, and it asks what to revise. Stops there; planning waits for `sa-plan`. |
 
-## openspec-plan
+## sa-plan
 
 Create or revise the technical plan of a change proposal whose specification is complete.
 
 | Contract | Description |
 |---|---|
-| **Arguments** | A change proposal name, optional. If the target is ambiguous it lists the active change proposals and asks you to pick. It never creates one: a name that matches none lists the active change proposals and points to `openspec-specify`. |
-| **Creates** | The artifacts the schema requires for implementation beyond the specification, in dependency order (spec-driven: `design.md`, unless its conditions do not apply, and `tasks.md`). Existing ones are revised against the current proposal and spec deltas only after you confirm each, and completed tasks keep their marks. Writes nothing while the specification is incomplete or inconsistent: a missing proposal, a capability without its spec delta, or a spec delta for a capability the proposal does not list. It points to `openspec-specify` instead. Never the proposal, spec deltas, main specs, or code. |
-| **Response** | The planning artifacts created, revised, or skipped and why, and that the change proposal is ready to implement. Problems it finds in the specification are reported, not fixed. Stops there; implementation waits for `openspec-apply-change`. |
+| **Arguments** | A change proposal name, optional. If the target is ambiguous it lists the active change proposals and asks you to pick. It never creates one: a name that matches none lists the active change proposals and points to `sa-specify`. |
+| **Creates** | The artifacts the schema requires for implementation beyond the specification, in dependency order (spec-driven: `design.md`, unless its conditions do not apply, and `tasks.md`). Existing ones are revised against the current proposal and spec deltas only after you confirm each, and completed tasks keep their marks. Writes nothing while the specification is incomplete or inconsistent: a missing proposal, a capability without its spec delta, or a spec delta for a capability the proposal does not list. It points to `sa-specify` instead. Never the proposal, spec deltas, main specs, or code. |
+| **Response** | The planning artifacts created, revised, or skipped and why, and that the change proposal is ready to implement. Problems it finds in the specification are reported, not fixed. Stops there; implementation waits for `sa-implement`. |
 
-## openspec-apply-change
+## sa-implement
 
 Implement a change proposal's tasks, working through the list until done or blocked.
 
@@ -113,9 +113,9 @@ Implement a change proposal's tasks, working through the list until done or bloc
 |---|---|
 | **Arguments** | A change proposal name (`add-auth`), optional. If the target is ambiguous it lists the active change proposals and asks you to pick. |
 | **Creates** | Code: the minimal changes each task calls for, in your project files. In the change proposal it checks off each finished task (`- [ ]` to `- [x]`) in the tracked file identified by `sourcePath` and one-based `line`. A schema may track tasks across multiple files. |
-| **Response** | Progress per task, then an overall count (N/M tasks complete). All done: suggests `openspec-archive-change`. Blocked by missing artifacts: points to `openspec-continue-change`, or to `openspec status` and `openspec instructions` when that skill is not installed (the core profile leaves it out). Unclear tasks or errors: pauses and asks. |
+| **Response** | Progress per task, then an overall count (N/M tasks complete). All done: suggests `sa-archive`. Blocked by missing artifacts: points to `sa-continue-change`, or to `specagile status` and `specagile instructions` when that skill is not installed (the core profile leaves it out). Unclear tasks or errors: pauses and asks. |
 
-## openspec-update-change
+## sa-update-change
 
 Revise a change proposal's existing planning artifacts and keep them coherent with each
 other.
@@ -123,10 +123,10 @@ other.
 | Contract | Description |
 |---|---|
 | **Arguments** | A change proposal name, optional, plus the revision you want. With no revision stated it runs a coherence review: artifacts checked against each other for contradictions, gaps, and duplication. |
-| **Creates** | Edits artifact files that already exist. One exception: for an artifact written as a glob, such as `specs/**/*.md`, that already has at least one file, it can add a missing companion file once you confirm the path. An artifact with no files yet is `openspec-continue-change`'s job. Without that skill (the core profile leaves it out), it points to `openspec status` and `openspec instructions` instead. Never code. |
-| **Response** | Shows each proposed revision and writes it only after you confirm, one artifact at a time. Ends with what was revised and the next step; implementation waits for `openspec-apply-change`. |
+| **Creates** | Edits artifact files that already exist. One exception: for an artifact written as a glob, such as `specs/**/*.md`, that already has at least one file, it can add a missing companion file once you confirm the path. An artifact with no files yet is `sa-continue-change`'s job. Without that skill (the core profile leaves it out), it points to `specagile status` and `specagile instructions` instead. Never code. |
+| **Response** | Shows each proposed revision and writes it only after you confirm, one artifact at a time. Ends with what was revised and the next step; implementation waits for `sa-implement`. |
 
-## openspec-sync-specs
+## sa-sync-specs
 
 Merge a change proposal's spec updates into `specs/` without archiving it.
 
@@ -134,19 +134,19 @@ Merge a change proposal's spec updates into `specs/` without archiving it.
 |---|---|
 | **Arguments** | A change proposal name, optional. You can also name a subset of its delta specs, and only those sync. |
 | **Creates** | Edits or creates `openspec/specs/<capability-path>/spec.md` for each delta spec, merging added, modified, removed, and renamed requirements into the main spec. Never code. |
-| **Response** | A per-capability summary of requirements added, modified, removed, or renamed, after the updated specs validate. The change proposal stays active; archiving waits for `openspec-archive-change`. |
+| **Response** | A per-capability summary of requirements added, modified, removed, or renamed, after the updated specs validate. The change proposal stays active; archiving waits for `sa-archive`. |
 
-## openspec-archive-change
+## sa-archive
 
 Move a finished change proposal to the archive.
 
 | Contract | Description |
 |---|---|
 | **Arguments** | A change proposal name, optional. |
-| **Creates** | Moves the change proposal folder to `openspec/changes/archive/YYYY-MM-DD-<name>/` (no date added if the name already starts with one). With your approval it first syncs outstanding delta specs. When `openspec-sync-specs` is installed, it runs that workflow. Otherwise, it merges the delta specs into the main specs itself. Never code. |
+| **Creates** | Moves the change proposal folder to `openspec/changes/archive/YYYY-MM-DD-<name>/` (no date added if the name already starts with one). With your approval it first syncs outstanding delta specs. When `sa-sync-specs` is installed, it runs that workflow. Otherwise, it merges the delta specs into the main specs itself. Never code. |
 | **Response** | Warns and asks before archiving with incomplete artifacts or tasks, and asks whether to sync when delta specs exist. Ends with a summary: name, schema, archive location, spec sync status, and any warnings. |
 
-## openspec-new-change
+## sa-new-change
 
 Start a change proposal as an empty scaffold.
 
@@ -154,9 +154,9 @@ Start a change proposal as an empty scaffold.
 |---|---|
 | **Arguments** | A kebab-case name (`add-user-auth`) or a plain description, plus a schema name only for a non-default workflow. Asks what you want to build if you give neither. |
 | **Creates** | `openspec/changes/<name>/` as an empty scaffold: no artifacts yet, never code. |
-| **Response** | The scaffold's name and location, the workflow's artifact sequence, status (0/N complete), and the first artifact's template. Drafting artifacts waits for `openspec-continue-change`. |
+| **Response** | The scaffold's name and location, the workflow's artifact sequence, status (0/N complete), and the first artifact's template. Drafting artifacts waits for `sa-continue-change`. |
 
-## openspec-continue-change
+## sa-continue-change
 
 Create the next planning artifact in a change proposal, one at a time.
 
@@ -164,9 +164,9 @@ Create the next planning artifact in a change proposal, one at a time.
 |---|---|
 | **Arguments** | A change proposal name, optional. If still ambiguous it asks you to pick from the most recently modified. |
 | **Creates** | The single next ready artifact in the schema's sequence, written into the change proposal folder. One artifact per run, never code. |
-| **Response** | The created artifact, progress (N of M complete), and which artifacts that unlocked. When planning is complete it says so; implementation moves to `openspec-apply-change`. |
+| **Response** | The created artifact, progress (N of M complete), and which artifacts that unlocked. When planning is complete it says so; implementation moves to `sa-implement`. |
 
-## openspec-ff-change
+## sa-ff-change
 
 Create a change proposal and every planning artifact implementation needs, in one pass.
 
@@ -174,9 +174,9 @@ Create a change proposal and every planning artifact implementation needs, in on
 |---|---|
 | **Arguments** | A kebab-case name or a plain description. Asks if you give neither. If the named change proposal already exists it suggests continuing it instead. |
 | **Creates** | `openspec/changes/<name>/` and every planning artifact implementation requires, in dependency order (spec-driven: proposal, specs, design, tasks), leaving out only artifacts marked skipped or conditional. Never code. |
-| **Response** | The change proposal's name and location, each artifact created, and any conditional artifact skipped and why. Stops there; implementation waits for `openspec-apply-change`. |
+| **Response** | The change proposal's name and location, each artifact created, and any conditional artifact skipped and why. Stops there; implementation waits for `sa-implement`. |
 
-## openspec-verify-change
+## sa-verify
 
 Check that the implementation matches the change proposal's artifacts.
 
@@ -186,17 +186,17 @@ Check that the implementation matches the change proposal's artifacts.
 | **Creates** | Nothing. It reads the change proposal's artifacts and the codebase. Verification is report-only. |
 | **Response** | A report: a scorecard for Completeness, Correctness, and Coherence, then CRITICAL, WARNING, and SUGGESTION issues with recommendations, and a final archive-readiness assessment. It changes nothing and does not archive. |
 
-## openspec-bulk-archive-change
+## sa-bulk-archive-change
 
 Archive several change proposals at once.
 
 | Contract | Description |
 |---|---|
 | **Arguments** | None. It lists the active change proposals and asks you to select any number, with an option for all. If none are active it says so and stops. |
-| **Creates** | `openspec/changes/archive/YYYY-MM-DD-<name>/` per archived change proposal (already-dated names keep their prefix). Each one's spec deltas sync first via `openspec-sync-specs`. Never code. |
+| **Creates** | `openspec/changes/archive/YYYY-MM-DD-<name>/` per archived change proposal (already-dated names keep their prefix). Each one's spec deltas sync first via `sa-sync-specs`. Never code. |
 | **Response** | A status table per change proposal and one confirmation for the whole batch, then a summary of archived, skipped, and failed, plus spec sync results. When two change proposals touch the same spec it checks the codebase and syncs implemented deltas oldest first. |
 
-## openspec-onboard
+## sa-onboard
 
 Learn the workflow by doing one real change proposal end to end.
 
@@ -204,4 +204,4 @@ Learn the workflow by doing one real change proposal end to end.
 |---|---|
 | **Arguments** | None. It scans your codebase for small starter tasks and asks you to pick one or describe your own. |
 | **Creates** | A real change proposal for the chosen task, one artifact at a time, then real code once you confirm implementation. Archives the change proposal at the end. |
-| **Response** | A narrated walkthrough of the full cycle with pauses for your input: explore, create, build each artifact, implement, archive. Ends with a recap and a pointer to `openspec-propose`. Takes about 15 to 20 minutes. |
+| **Response** | A narrated walkthrough of the full cycle with pauses for your input: explore, create, build each artifact, implement, archive. Ends with a recap and a pointer to `sa-propose`. Takes about 15 to 20 minutes. |

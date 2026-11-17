@@ -3,10 +3,12 @@
  * These are PowerShell-specific helper functions that never change.
  */
 
+import { CLI_NAME } from '../../fork/identity.js';
+
 export const POWERSHELL_DYNAMIC_HELPERS = `# Dynamic completion helpers
 
 function Get-OpenSpecChanges {
-    $output = openspec __complete changes 2>$null
+    $output = ${CLI_NAME} __complete changes 2>$null
     if ($output) {
         $output | ForEach-Object {
             ($_ -split "\\t")[0]
@@ -15,7 +17,7 @@ function Get-OpenSpecChanges {
 }
 
 function Get-OpenSpecSpecs {
-    $output = openspec __complete specs 2>$null
+    $output = ${CLI_NAME} __complete specs 2>$null
     if ($output) {
         $output | ForEach-Object {
             ($_ -split "\\t")[0]
@@ -24,7 +26,7 @@ function Get-OpenSpecSpecs {
 }
 
 function Get-OpenSpecSchemas {
-    $output = openspec __complete schemas 2>$null
+    $output = ${CLI_NAME} __complete schemas 2>$null
     if ($output) {
         $output | ForEach-Object {
             ($_ -split "\\t")[0]

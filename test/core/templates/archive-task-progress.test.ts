@@ -95,7 +95,8 @@ describe('archive task discovery uses schema-resolved CLI progress', () => {
       // single workflow read tasks.md, and bulk assumed an artifact id "tasks";
       // neither can find this schema's implementation checklist.
       const step = content.split('3. **')[1].split('4. **')[0];
-      const command = step.match(/`openspec (list[^`]*)`/);
+      // Skills name SpecAgile's CLI (`specagile`); 1.x command bodies keep upstream's.
+      const command = step.match(/`(?:openspec|specagile) (list[^`]*)`/);
       expect(command, surface).not.toBeNull();
       expect(step).toContain('same selected-root flags');
       expect(step).toMatch(/name` exactly matches/);

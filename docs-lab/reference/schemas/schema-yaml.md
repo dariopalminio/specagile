@@ -29,7 +29,7 @@ If `XDG_DATA_HOME` is set, the user directory moves to `$XDG_DATA_HOME/openspec/
 
 The directory name is the lookup key used by `--schema`, `config.yaml`, and [`.openspec.yaml`](../configuration/change-metadata.md#schema). If the `name` field differs from the directory name, OpenSpec still uses the directory name for lookup.
 
-[`openspec schema which <name>`](../cli.md#openspec-schema-which) prints the active directory and any lower-priority copies it hides.
+[`specagile schema which <name>`](../cli.md#specagile-schema-which) prints the active directory and any lower-priority copies it hides.
 
 ## Top-level fields
 
@@ -37,7 +37,7 @@ The directory name is the lookup key used by `--schema`, `config.yaml`, and [`.o
 |---|---|
 | `name` | **Required.** A non-empty string stored as the schema name. Lookup still uses the directory name. |
 | `version` | **Required.** A positive integer stored as the schema revision. The value doesn't change OpenSpec's behavior. |
-| `description` | An optional string printed by `openspec schemas`. With no value, the schema has no description. |
+| `description` | An optional string printed by `specagile schemas`. With no value, the schema has no description. |
 | `artifacts` | **Required.** A non-empty list of [artifact entries](#artifact-fields). |
 | `apply` | Optional [apply settings](#apply-fields). With no block, OpenSpec uses the [apply defaults](#apply-defaults). |
 
@@ -161,7 +161,7 @@ The tracked files drive the apply state:
 - **`ready`**: at least one task is pending, or a matched file could not be read while another provides tasks.
 - **`all_done`**: every tracked task is checked and every matched file was read.
 
-If a matched file cannot be read, apply keeps the tasks and progress from readable files but does not mark the change `all_done`. [Apply JSON output](../cli.md#openspec-instructions) identifies each unavailable file and the reason.
+If a matched file cannot be read, apply keeps the tasks and progress from readable files but does not mark the change `all_done`. [Apply JSON output](../cli.md#specagile-instructions) identifies each unavailable file and the reason.
 
 OpenSpec rejects absolute paths and paths containing a `..` segment.
 
@@ -208,7 +208,7 @@ apply:
 
 ## Validation
 
-[`openspec schema validate <name>`](../cli.md#openspec-schema-validate) checks:
+[`specagile schema validate <name>`](../cli.md#specagile-schema-validate) checks:
 
 - Field types and required fields
 - Relative paths
@@ -218,7 +218,7 @@ apply:
 
 A schema with an unknown `apply.requires` ID doesn't load, so every command that uses it reports the error.
 
-Validation warns, without failing, when `apply.tracks` isn't exactly equal to some artifact's `generates` value. OpenSpec finds the tracked artifact by comparing those two strings, so anything else leaves it unable to tell which artifact's progress the file belongs to. That includes a typo like `task.md`, and also `tracks: tasks/main.md` against `generates: tasks/*.md`, where the glob does produce the file but the strings still differ. Apply keeps reading the file either way, but `openspec list` and `openspec status` count `tasks.md` instead.
+Validation warns, without failing, when `apply.tracks` isn't exactly equal to some artifact's `generates` value. OpenSpec finds the tracked artifact by comparing those two strings, so anything else leaves it unable to tell which artifact's progress the file belongs to. That includes a typo like `task.md`, and also `tracks: tasks/main.md` against `generates: tasks/*.md`, where the glob does produce the file but the strings still differ. Apply keeps reading the file either way, but `specagile list` and `specagile status` count `tasks.md` instead.
 
 Validation doesn't catch these mistakes:
 

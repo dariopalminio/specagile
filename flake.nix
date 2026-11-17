@@ -27,7 +27,7 @@
     {
       overlays.default = final: _prev: {
         openspec = final.stdenv.mkDerivation (finalAttrs: {
-          pname = "openspec";
+          pname = "specagile";
           version = (builtins.fromJSON (builtins.readFile ./package.json)).version;
 
           src = final.lib.fileset.toSource {
@@ -74,27 +74,27 @@
 
           dontNpmPrune = true;
 
-          # `openspec completion generate` renders a static command registry, so it
+          # `specagile completion generate` renders a static command registry, so it
           # needs no project and no network. Opting out of telemetry also disables
           # the update check, keeping the build offline.
           postInstall = final.lib.optionalString (final.stdenv.buildPlatform.canExecute final.stdenv.hostPlatform) ''
             export OPENSPEC_TELEMETRY=0
             completions=$(mktemp -d)
             for shell in bash fish zsh; do
-              $out/bin/openspec completion generate "$shell" > "$completions/openspec.$shell"
+              $out/bin/specagile completion generate "$shell" > "$completions/specagile.$shell"
             done
-            installShellCompletion --cmd openspec \
-              --bash "$completions/openspec.bash" \
-              --fish "$completions/openspec.fish" \
-              --zsh "$completions/openspec.zsh"
+            installShellCompletion --cmd specagile \
+              --bash "$completions/specagile.bash" \
+              --fish "$completions/specagile.fish" \
+              --zsh "$completions/specagile.zsh"
           '';
 
           meta = with final.lib; {
             description = "AI-native system for spec-driven development";
-            homepage = "https://github.com/Fission-AI/OpenSpec";
+            homepage = "https://github.com/dariopalminio/specagile";
             license = licenses.mit;
             maintainers = [ ];
-            mainProgram = "openspec";
+            mainProgram = "specagile";
           };
         });
       };
@@ -113,7 +113,7 @@
       apps = forAllSystems (system: {
         default = {
           type = "app";
-          program = "${self.packages.${system}.default}/bin/openspec";
+          program = "${self.packages.${system}.default}/bin/specagile";
         };
       });
 

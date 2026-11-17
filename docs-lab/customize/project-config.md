@@ -22,13 +22,13 @@ config.yaml holds instructions the agent receives when it creates artifacts or w
 
 Here's what happens on every run:
 
-1. You run a workflow (e.g. `/openspec-propose`).
-2. The agent calls the [`openspec instructions`](../reference/cli.md) command.
+1. You run a workflow (e.g. `/sa-propose`).
+2. The agent calls the [`specagile instructions`](../reference/cli.md) command.
 3. The command reads your context and rules from config.yaml.
 4. OpenSpec's built-in instructions and your customizations are combined into a single prompt for the agent.
 5. The agent follows that prompt to write the artifact.
 
-For example, with a `context` field and the rule from the top of this page, here's what [`openspec instructions`](../reference/cli.md) returns for tasks.md (trimmed and annotated):
+For example, with a `context` field and the rule from the top of this page, here's what [`specagile instructions`](../reference/cli.md) returns for tasks.md (trimmed and annotated):
 
 ```xml
 <artifact id="tasks" change="add-dark-mode" schema="spec-driven">

@@ -54,7 +54,7 @@ describe('CompletionCommand', () => {
 
       expect(consoleLogSpy).toHaveBeenCalled();
       const output = consoleLogSpy.mock.calls[0][0];
-      expect(output).toContain('#compdef openspec');
+      expect(output).toContain('#compdef specagile');
       expect(output).toContain('_openspec() {');
     });
 
@@ -65,7 +65,7 @@ describe('CompletionCommand', () => {
 
       expect(consoleLogSpy).toHaveBeenCalled();
       const output = consoleLogSpy.mock.calls[0][0];
-      expect(output).toContain('#compdef openspec');
+      expect(output).toContain('#compdef specagile');
     });
 
     it('should show error when shell cannot be auto-detected', async () => {
@@ -93,7 +93,7 @@ describe('CompletionCommand', () => {
 
       expect(consoleLogSpy).toHaveBeenCalled();
       const output = consoleLogSpy.mock.calls[0][0];
-      expect(output).toContain('#compdef openspec');
+      expect(output).toContain('#compdef specagile');
     });
   });
 
@@ -278,7 +278,7 @@ describe('CompletionCommand', () => {
 
       expect(consoleLogSpy).toHaveBeenCalled();
       const output = consoleLogSpy.mock.calls[0][0];
-      expect(output).toContain('#compdef openspec');
+      expect(output).toContain('#compdef specagile');
     });
   });
 });

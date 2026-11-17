@@ -91,10 +91,10 @@ describe('welcome screen', () => {
 
     const output = writtenOutput();
 
-    expect(output).toContain('openspec-propose');
-    expect(output).toContain('openspec-apply-change');
-    expect(output).not.toContain('openspec-new-change');
-    expect(output).not.toContain('openspec-continue-change');
+    expect(output).toContain('sa-propose');
+    expect(output).toContain('sa-implement');
+    expect(output).not.toContain('sa-new-change');
+    expect(output).not.toContain('sa-continue-change');
     expect(output).not.toContain('/opsx:');
   });
 
@@ -106,9 +106,9 @@ describe('welcome screen', () => {
 
     const output = writtenOutput();
 
-    expect(output).toContain('openspec-new-change');
-    expect(output).toContain('openspec-continue-change');
-    expect(output).not.toContain('openspec-propose');
+    expect(output).toContain('sa-new-change');
+    expect(output).toContain('sa-continue-change');
+    expect(output).not.toContain('sa-propose');
   });
 
   it('omits the quick start block when no onboarding workflow is installed', async () => {
@@ -143,13 +143,13 @@ describe('welcome screen', () => {
     renderStatically();
 
     // The quick start shows skill names, but this screen renders one prompt
-    // before tools are picked — a Claude Code user types /openspec-propose
-    // and a Codex user $openspec-propose, neither of which is shown here.
+    // before tools are picked — a Claude Code user types /sa-propose
+    // and a Codex user $sa-propose, neither of which is shown here.
     await showWelcomeScreen(['propose']);
 
     const output = writtenOutput();
 
-    expect(output).toContain('openspec-propose');
+    expect(output).toContain('sa-propose');
     expect(output).toContain('spelling varies by tool');
   });
 

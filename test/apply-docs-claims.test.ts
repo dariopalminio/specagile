@@ -12,11 +12,11 @@ const SKILLS = fs.readFileSync(
   path.join(REPO_ROOT, 'docs-lab', 'reference', 'skills.md'),
   'utf-8'
 );
-const APPLY_INSTRUCTIONS = CLI.split('## openspec instructions')[1].split(
-  '## openspec templates'
+const APPLY_INSTRUCTIONS = CLI.split('## specagile instructions')[1].split(
+  '## specagile templates'
 )[0];
-const APPLY_SKILL = SKILLS.split('## openspec-apply-change')[1].split(
-  '## openspec-update-change'
+const APPLY_SKILL = SKILLS.split('## sa-implement')[1].split(
+  '## sa-update-change'
 )[0];
 
 describe('apply documentation', () => {

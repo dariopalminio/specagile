@@ -13,13 +13,13 @@ describe('FishGenerator', () => {
   function completionLine(script: string, needle: string): string | undefined {
     return script
       .split('\n')
-      .find((line) => line.includes('complete -c openspec') && line.includes(needle));
+      .find((line) => line.includes('complete -c specagile') && line.includes(needle));
   }
 
   function completionLines(script: string, needle: string): string[] {
     return script
       .split('\n')
-      .filter((line) => line.includes('complete -c openspec') && line.includes(needle));
+      .filter((line) => line.includes('complete -c specagile') && line.includes(needle));
   }
 
   describe('interface compliance', () => {
@@ -61,7 +61,7 @@ describe('FishGenerator', () => {
 
       expect(script).toContain('function __fish_openspec_using_command_path');
       expect(script).toContain('function __fish_openspec_no_subcommand');
-      expect(script).toContain("complete -c openspec -l no-color -f -d 'Disable color output'");
+      expect(script).toContain("complete -c specagile -l no-color -f -d 'Disable color output'");
       expect(script).toContain('function __fish_openspec_completing_option_value');
       expect(script).toContain('function __fish_openspec_complete_attached_short_path');
       expect(script).toContain('string match -q -- "$option=*" "$current"');
@@ -93,7 +93,7 @@ describe('FishGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain("complete -c openspec");
+      expect(script).toContain("complete -c specagile");
       expect(script).toContain("-f -a 'init'");
       expect(script).toContain("'Initialize OpenSpec'");
       expect(script).toContain("-a 'validate'");
@@ -206,7 +206,7 @@ describe('FishGenerator', () => {
       const valueLine = pathLines.find((line) => line.includes('__fish_openspec_completing_option_value'));
 
       expect(script).toContain(
-        "complete -c openspec -n '__fish_openspec_using_command_path store setup' -f"
+        "complete -c specagile -n '__fish_openspec_using_command_path store setup' -f"
       );
       expect(optionLine).toContain('-r -f');
       expect(valueLine).toContain('__fish_openspec_completing_option_value --path -p');
@@ -417,7 +417,7 @@ describe('FishGenerator', () => {
 
       expect(line).toContain('-f');
       expect(script).toContain('__fish_openspec_schemas');
-      expect(script).toContain('openspec __complete schemas 2>/dev/null');
+      expect(script).toContain('specagile __complete schemas 2>/dev/null');
     });
 
     it('should handle indexed positional arguments for schema fork', () => {
@@ -540,7 +540,7 @@ describe('FishGenerator', () => {
 
       expect(line).toContain('-f');
       expect(script).toContain('function __fish_openspec_changes');
-      expect(script).toContain('openspec __complete changes 2>/dev/null');
+      expect(script).toContain('specagile __complete changes 2>/dev/null');
       expect(script).toContain('while read -l id desc');
       expect(script).toContain('printf');
     });
@@ -561,7 +561,7 @@ describe('FishGenerator', () => {
 
       expect(line).toContain('-f');
       expect(script).toContain('function __fish_openspec_specs');
-      expect(script).toContain('openspec __complete specs 2>/dev/null');
+      expect(script).toContain('specagile __complete specs 2>/dev/null');
     });
 
     it('should generate dynamic completion helper for items', () => {
@@ -753,7 +753,7 @@ describe('FishGenerator', () => {
       const line = completionLine(script, "-a 'test'");
 
       expect(line).toBe(
-        "complete -c openspec -n '__fish_openspec_no_subcommand' -f -a 'test' -d 'Dangerous: $(rm -rf /) `cat /etc/passwd` $HOME \\'first\\' and \\'second\\' \\\\ path'"
+        "complete -c specagile -n '__fish_openspec_no_subcommand' -f -a 'test' -d 'Dangerous: $(rm -rf /) `cat /etc/passwd` $HOME \\'first\\' and \\'second\\' \\\\ path'"
       );
     });
   });

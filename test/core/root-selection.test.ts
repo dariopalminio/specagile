@@ -264,7 +264,7 @@ describe('resolveOpenSpecRoot', () => {
     );
     expect(error.message).toContain('team-context');
     expect(error.message).toContain('--store <id>');
-    expect(error.message).toContain('openspec init');
+    expect(error.message).toContain('specagile init');
     // No scaffolding happened.
     expect(fs.existsSync(path.join(appRepo, 'openspec'))).toBe(false);
   });
@@ -638,7 +638,7 @@ describe('resolveOpenSpecRoot', () => {
         'unknown_store'
       );
       expect(error.message).toContain("Global defaultStore 'ghost-plans'");
-      expect(error.diagnostic.fix).toContain('openspec config unset defaultStore');
+      expect(error.diagnostic.fix).toContain('specagile config unset defaultStore');
     });
 
     it('falls through to the registered-store hint when no default is set', async () => {

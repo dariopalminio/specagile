@@ -76,7 +76,7 @@ describe('openspec CLI e2e basics', () => {
   it('shows help output', async () => {
     const result = await runCLI(['--help']);
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('Usage: openspec');
+    expect(result.stdout).toContain('Usage: specagile');
     expect(result.stderr).toBe('');
 
   });
@@ -286,7 +286,7 @@ describe('openspec CLI e2e basics', () => {
 
       expect(result.exitCode).toBe(0);
       expect(result.stdout).toBe(output);
-      expect(result.stderr).toContain('Warning: "openspec change list" is deprecated. Use "openspec list".');
+      expect(result.stderr).toContain('Warning: "specagile change list" is deprecated. Use "specagile list".');
     });
 
     it('preserves JSON output and warns on stderr', async () => {
@@ -297,7 +297,7 @@ describe('openspec CLI e2e basics', () => {
       expect(JSON.parse(result.stdout)).toEqual([
         { id: 'c1', title: 'Test Change', deltaCount: 1, taskStatus: { total: 0, completed: 0 } },
       ]);
-      expect(result.stderr).toContain('Warning: "openspec change list" is deprecated. Use "openspec list".');
+      expect(result.stderr).toContain('Warning: "specagile change list" is deprecated. Use "specagile list".');
     });
 
     it('rejects the unsupported --all option', async () => {
@@ -449,11 +449,11 @@ describe('openspec CLI e2e basics', () => {
       expect(result.stdout).toContain('OpenSpec Setup Complete');
 
       // One shared copy every tool reads; Claude reaches it through a link.
-      const claudeSkillPath = path.join(emptyProjectDir, '.claude/skills/openspec-explore/SKILL.md');
-      const cursorSkillPath = path.join(emptyProjectDir, '.agents/skills/openspec-explore/SKILL.md');
+      const claudeSkillPath = path.join(emptyProjectDir, '.claude/skills/sa-explore/SKILL.md');
+      const cursorSkillPath = path.join(emptyProjectDir, '.agents/skills/sa-explore/SKILL.md');
       const minimaxSkillPath = path.join(
         testHome,
-        '.minimax/skills/openspec-explore/SKILL.md'
+        '.minimax/skills/sa-explore/SKILL.md'
       );
       expect(await fileExists(claudeSkillPath)).toBe(true);
       expect(await fileExists(cursorSkillPath)).toBe(true);
@@ -471,8 +471,8 @@ describe('openspec CLI e2e basics', () => {
       expect(result.stdout).toContain('Claude Code');
 
       // New init creates skills, not CLAUDE.md
-      const claudeSkillPath = path.join(emptyProjectDir, '.claude/skills/openspec-explore/SKILL.md');
-      const cursorSkillPath = path.join(emptyProjectDir, '.cursor/skills/openspec-explore/SKILL.md');
+      const claudeSkillPath = path.join(emptyProjectDir, '.claude/skills/sa-explore/SKILL.md');
+      const cursorSkillPath = path.join(emptyProjectDir, '.cursor/skills/sa-explore/SKILL.md');
       expect(await fileExists(claudeSkillPath)).toBe(true);
       expect(await fileExists(cursorSkillPath)).toBe(false); // Not selected
     });
@@ -486,7 +486,7 @@ describe('openspec CLI e2e basics', () => {
       expect(result.exitCode).toBe(0);
       expect(result.stdout).toContain('OpenSpec Setup Complete');
 
-      const skillPath = path.join(emptyProjectDir, '.agents', 'skills', 'openspec-explore', 'SKILL.md');
+      const skillPath = path.join(emptyProjectDir, '.agents', 'skills', 'sa-explore', 'SKILL.md');
       expect(await fileExists(skillPath)).toBe(true);
     });
 
@@ -501,7 +501,7 @@ describe('openspec CLI e2e basics', () => {
       expect(result.stdout).toContain('Zed Agent');
       expect(result.stdout).not.toContain('Restart your IDE');
 
-      const skillPath = path.join(emptyProjectDir, '.agents', 'skills', 'openspec-explore', 'SKILL.md');
+      const skillPath = path.join(emptyProjectDir, '.agents', 'skills', 'sa-explore', 'SKILL.md');
       expect(await fileExists(skillPath)).toBe(true);
       expect(await fs.readFile(
         path.join(emptyProjectDir, '.agents', 'skills', '.openspec-target'),
@@ -516,7 +516,7 @@ describe('openspec CLI e2e basics', () => {
       )).toBe('zed\n');
       const updatedSkill = await fs.readFile(skillPath, 'utf-8');
       // The shared copy names skills plainly, right for every tool reading it.
-      expect(updatedSkill).toContain('`openspec-propose`');
+      expect(updatedSkill).toContain('`sa-propose`');
       expect(updatedSkill).not.toContain('$openspec-');
       expect(updatedSkill).not.toContain('/openspec-');
     });
@@ -531,8 +531,8 @@ describe('openspec CLI e2e basics', () => {
       expect(result.stdout).toContain('OpenSpec Setup Complete');
 
       // With --tools none, no tool skills should be created
-      const claudeSkillPath = path.join(emptyProjectDir, '.claude/skills/openspec-explore/SKILL.md');
-      const cursorSkillPath = path.join(emptyProjectDir, '.agents/skills/openspec-explore/SKILL.md');
+      const claudeSkillPath = path.join(emptyProjectDir, '.claude/skills/sa-explore/SKILL.md');
+      const cursorSkillPath = path.join(emptyProjectDir, '.agents/skills/sa-explore/SKILL.md');
 
       expect(await fileExists(claudeSkillPath)).toBe(false);
       expect(await fileExists(cursorSkillPath)).toBe(false);
@@ -592,7 +592,7 @@ describe('openspec CLI e2e basics', () => {
       expect(result.exitCode).toBe(1);
       expect(output).not.toContain('force closed the prompt');
       expect(output).toContain('no answer could be read from stdin');
-      expect(output).toContain('openspec archive add-greeting --yes');
+      expect(output).toContain('specagile archive add-greeting --yes');
 
       // The change is untouched: nothing was archived or merged.
       expect(await fileExists(path.join(projectDir, 'openspec', 'changes', 'add-greeting', 'proposal.md'))).toBe(true);
@@ -607,7 +607,7 @@ describe('openspec CLI e2e basics', () => {
       expect(result.exitCode).toBe(1);
       expect(output).not.toContain('force closed the prompt');
       expect(output).toContain('1 incomplete task(s) found');
-      expect(output).toContain('openspec archive add-greeting --yes');
+      expect(output).toContain('specagile archive add-greeting --yes');
     });
 
     it('keeps the caller\'s own flags in the suggested rerun', async () => {
@@ -618,7 +618,7 @@ describe('openspec CLI e2e basics', () => {
 
       const output = `${result.stdout}${result.stderr}`;
       expect(result.exitCode).toBe(1);
-      expect(output).toContain('openspec archive add-greeting --skip-specs --yes');
+      expect(output).toContain('specagile archive add-greeting --skip-specs --yes');
     });
 
     it('reports the skip-validation prompt the same way', async () => {
@@ -629,7 +629,7 @@ describe('openspec CLI e2e basics', () => {
       expect(result.exitCode).toBe(1);
       expect(output).not.toContain('force closed the prompt');
       expect(output).toContain('Skipping validation requires confirmation');
-      expect(output).toContain('openspec archive add-greeting --no-validate --yes');
+      expect(output).toContain('specagile archive add-greeting --no-validate --yes');
     });
 
     it('archives normally once that flag is passed', async () => {
@@ -681,7 +681,7 @@ describe('openspec CLI e2e basics', () => {
 
       const output = `${result.stdout}${result.stderr}`;
       expect(result.exitCode).toBe(1);
-      expect(output).toContain('openspec archive add-greeting --yes --store team-store');
+      expect(output).toContain('specagile archive add-greeting --yes --store team-store');
     });
 
     it('keeps --store in front of the `--` for a dash-leading change name', async () => {
@@ -718,7 +718,7 @@ describe('openspec CLI e2e basics', () => {
 
       const output = `${result.stdout}${result.stderr}`;
       expect(result.exitCode).toBe(1);
-      expect(output).toContain('openspec archive --yes --store team-store -- --force');
+      expect(output).toContain('specagile archive --yes --store team-store -- --force');
     });
   });
 });

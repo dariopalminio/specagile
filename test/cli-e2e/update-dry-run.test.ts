@@ -9,7 +9,7 @@ import { runCLI } from '../helpers/run-cli.js';
  * pipe, so stdout must hold exactly one JSON document - on success and on
  * failure - and the exit code must say which.
  */
-describe('openspec update --dry-run --json over a pipe', () => {
+describe('specagile update --dry-run --json over a pipe', () => {
   let tempRoot: string;
 
   beforeEach(async () => {
@@ -40,7 +40,7 @@ describe('openspec update --dry-run --json over a pipe', () => {
     const env = { HOME: tempRoot, USERPROFILE: tempRoot, XDG_CONFIG_HOME: path.join(tempRoot, 'xdg') };
     const init = await runCLI(['init', '--tools', 'claude'], { cwd: project, env });
     expect(init.exitCode).toBe(0);
-    const skill = path.join(project, '.claude', 'skills', 'openspec-propose', 'SKILL.md');
+    const skill = path.join(project, '.claude', 'skills', 'sa-propose', 'SKILL.md');
     await fs.writeFile(skill, 'hand-edited\n');
 
     const result = await runCLI(['update', '--dry-run', '--json'], { cwd: project, env });
@@ -49,7 +49,7 @@ describe('openspec update --dry-run --json over a pipe', () => {
     // The edit went through Claude's link into the one shared copy, which
     // belongs to every tool.
     expect(JSON.parse(result.stdout).changes).toContainEqual({
-      path: '.agents/skills/openspec-propose/SKILL.md',
+      path: '.agents/skills/sa-propose/SKILL.md',
       action: 'update',
       tool: 'openspec',
     });

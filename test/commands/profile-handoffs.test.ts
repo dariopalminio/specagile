@@ -66,7 +66,7 @@ describe('profile handoff CLI regressions (#1734)', () => {
     // Explicit opt-in still works; switching back removes the optional files.
     await fs.writeFile(configFile, JSON.stringify({ profile: 'custom', delivery, workflows: ALL_WORKFLOWS }));
     await cli(['update']);
-    const continueFile = path.join(project, '.claude', 'skills', 'openspec-continue-change', 'SKILL.md');
+    const continueFile = path.join(project, '.claude', 'skills', 'sa-continue-change', 'SKILL.md');
     expect(await fs.readFile(continueFile, 'utf-8')).toContain('Continue working on a change');
     await fs.writeFile(configFile, JSON.stringify({ profile: 'core', delivery }));
     await cli(['update']);
@@ -103,10 +103,10 @@ apply:
     const before = await fs.readdir(changeRoot);
     const blocked = JSON.parse(await cli(['instructions', 'apply', '--change', 'original', '--json', ...flags]));
     expect(blocked.state).toBe('blocked');
-    expect(blocked.instruction).not.toContain('openspec-continue-change');
-    expect(blocked.instruction).toContain(`openspec status --change original`);
+    expect(blocked.instruction).not.toContain('sa-continue-change');
+    expect(blocked.instruction).toContain(`specagile status --change original`);
     const blockedText = await cli(['instructions', 'apply', '--change', 'original', ...flags]);
-    expect(blockedText).not.toContain('openspec-continue-change');
+    expect(blockedText).not.toContain('sa-continue-change');
     const status = JSON.parse(await cli(['status', '--change', 'original', '--json', ...flags]));
     const next = status.artifacts.find((artifact: { status: string }) => artifact.status === 'ready');
     expect(next.id).toBe('brief');
@@ -166,10 +166,10 @@ apply:
     expect(blocked.missingArtifacts).toBeUndefined();
     expect(blocked.progress).toEqual({ total, complete: 0, remaining: total });
     expect(blocked.tasks).toEqual([]);
-    expect(blocked.instruction).not.toContain('openspec-continue-change');
+    expect(blocked.instruction).not.toContain('sa-continue-change');
     expect(blocked.instruction).toContain('checklist.md');
-    expect(blocked.instruction).toContain('openspec status --change tracking');
-    expect(await cli(['instructions', 'apply', '--change', 'tracking'])).not.toContain('openspec-continue-change');
+    expect(blocked.instruction).toContain('specagile status --change tracking');
+    expect(await cli(['instructions', 'apply', '--change', 'tracking'])).not.toContain('sa-continue-change');
     if (content === undefined) {
       await expect(fs.stat(trackingPath)).rejects.toMatchObject({ code: 'ENOENT' });
     } else {

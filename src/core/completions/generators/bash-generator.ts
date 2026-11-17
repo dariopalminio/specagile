@@ -1,3 +1,4 @@
+import { CLI_NAME } from '../../fork/identity.js';
 import {
   CompletionGenerator,
   CommandDefinition,
@@ -76,7 +77,7 @@ ${commandCases}
 }
 
 ${helpers}
-complete -F _openspec_completion openspec
+complete -F _openspec_completion ${CLI_NAME}
 `;
   }
 

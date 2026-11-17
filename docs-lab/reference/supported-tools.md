@@ -16,14 +16,14 @@ A project set up for Claude Code, Cursor, and Codex:
 my-project/
 ├── .agents/skills/
 │   ├── .openspec-target           the tools set up here, one per line
-│   └── openspec-propose/SKILL.md  the one copy every tool reads
+│   └── sa-propose/SKILL.md  the one copy every tool reads
 └── .claude/
-    └── skills/openspec-propose    link to ../../.agents/skills/openspec-propose
+    └── skills/sa-propose    link to ../../.agents/skills/sa-propose
 ```
 
 Cursor and Codex read `.agents/skills/` themselves, so they need nothing else.
 
-`.openspec-target` is how `openspec update` knows what is OpenSpec's. Each line is one of:
+`.openspec-target` is how `specagile update` knows what is OpenSpec's. Each line is one of:
 
 | Line | Meaning |
 |---|---|
@@ -33,63 +33,63 @@ Cursor and Codex read `.agents/skills/` themselves, so they need nothing else.
 
 - **Links**: Claude Code, Continue, ForgeCode, Kiro, CodeBuddy, EasyCode, iFlow, CodeArts, Lingma, GigaCode, Veai, Rovo Dev, Code Studio, and Hermes Agent.
 - **No link**: every other tool reads `.agents/skills/` directly, so it never loads a skill twice.
-- **Where a link can't be made**: OpenSpec writes a plain copy instead, and refreshes it on `openspec update`.
+- **Where a link can't be made**: OpenSpec writes a plain copy instead, and refreshes it on `specagile update`.
 
 To add a tool that isn't listed, see [Link another tool](#link-another-tool).
 
 ## Support matrix
 
 Invocations are shown for the apply workflow. Every workflow follows the same shape.
-The id goes to `openspec init --tools <id>` to skip the picker ([CLI](cli.md)).
+The id goes to `specagile init --tools <id>` to skip the picker ([CLI](cli.md)).
 
 | Tool | `--tools` id | Skills | Skill invocation |
 |---|---|---|---|
-| Amp | `amp` | `.agents/skills/` | `/openspec-apply-change` |
-| Antigravity | `antigravity` | `.agents/skills/` | `/openspec-apply-change` |
-| AtomCode | `atomcode` | `.agents/skills/` | `/openspec-apply-change` |
-| Auggie (Augment CLI) | `auggie` | `.agents/skills/` | `/openspec-apply-change` |
-| IBM Bob | `bob` | `.agents/skills/` | `/openspec-apply-change` |
-| Claude Code | `claude` | `.agents/skills/` (links in `.claude/skills/`) | `/openspec-apply-change` |
-| Cline | `cline` | `.agents/skills/` | `/openspec-apply-change` |
-| CodeArts | `codeartsagent` | `.agents/skills/` (links in `.codeartsdoer/skills/`) | `/openspec-apply-change` |
-| CodeBuddy Code (CLI) | `codebuddy` | `.agents/skills/` (links in `.codebuddy/skills/`) | `/openspec-apply-change` |
-| Code Studio | `codestudio` | `.agents/skills/` (links in `.codestudio/skills/`) | `/openspec-apply-change` |
-| Codex | `codex` | `.agents/skills/` | `$openspec-apply-change` |
-| Continue | `continue` | `.agents/skills/` (links in `.continue/skills/`) | `/openspec-apply-change` |
-| CoStrict | `costrict` | `.agents/skills/` | `/openspec-apply-change` |
-| Crush | `crush` | `.agents/skills/` | `/openspec-apply-change` |
-| Cursor | `cursor` | `.agents/skills/` | `/openspec-apply-change` |
-| DeepSeek Harness | `dsh` | `.agents/skills/` | `/openspec-apply-change` |
-| Devin Desktop (formerly Windsurf) | `devin` | `.agents/skills/` | `/openspec-apply-change` |
-| EasyCode | `easycode` | `.agents/skills/` (links in `.easycode/skills/`) | `/openspec-apply-change` |
-| Factory Droid | `factory` | `.agents/skills/` | `/openspec-apply-change` |
-| ForgeCode | `forgecode` | `.agents/skills/` (links in `.forge/skills/`) | `/openspec-apply-change` |
-| Gemini CLI | `gemini` | `.agents/skills/` | `/openspec-apply-change` |
-| GigaCode | `gigacode` | `.agents/skills/` (links in `.gigacode/skills/`) | `/openspec-apply-change` |
-| GitHub Copilot | `github-copilot` | `.agents/skills/` | `/openspec-apply-change` |
-| Grok Build | `grok` | `.agents/skills/` | `/openspec-apply-change` |
-| GSD | `gsd` | `.agents/skills/` | ask for `openspec-apply-change` |
-| Hermes Agent | `hermes` | `.agents/skills/` (links in `.hermes/skills/`) | `/openspec-apply-change` |
-| iFlow | `iflow` | `.agents/skills/` (links in `.iflow/skills/`) | `/openspec-apply-change` |
-| Junie | `junie` | `.agents/skills/` | `/openspec-apply-change` |
-| Kilo Code | `kilocode` | `.agents/skills/` | `/openspec-apply-change` |
-| Kimi Code | `kimi` | `.agents/skills/` | `/skill:openspec-apply-change` |
-| Kiro | `kiro` | `.agents/skills/` (links in `.kiro/skills/`) | `/openspec-apply-change` |
-| Lingma | `lingma` | `.agents/skills/` (links in `.lingma/skills/`) | `/openspec-apply-change` |
-| MiniMax Code | `minimax-code` | `~/.minimax/skills/` (global) | `/openspec-apply-change` |
-| Mistral Vibe | `vibe` | `.agents/skills/` | `/openspec-apply-change` |
-| Oh My Pi | `oh-my-pi` | `.agents/skills/` | `/openspec-apply-change` |
-| OpenCode | `opencode` | `.agents/skills/` | `/openspec-apply-change` |
-| Pi | `pi` | `.agents/skills/` | `/openspec-apply-change` |
-| Qoder | `qoder` | `.agents/skills/` | `/openspec-apply-change` |
-| Qwen Code | `qwen` | `.agents/skills/` | `/openspec-apply-change` |
-| Rovo Dev CLI | `rovodev` | `.agents/skills/` (links in `.rovodev/skills/`) | ask for `openspec-apply-change` |
-| Trae | `trae` | `.agents/skills/` | `/openspec-apply-change` |
-| [Veai](https://veai.ru/docs/veai/download) | `veai` | `.agents/skills/` (links in `.veai/skills/`) | `/openspec-apply-change` |
-| Warp | `warp` | `.agents/skills/` | `/openspec-apply-change` |
-| ZCode | `zcode` | `.agents/skills/` | `/openspec-apply-change` |
-| Zoo Code | `roocode` | `.agents/skills/` | `/openspec-apply-change` |
-| Other / Universal | `agents` | `.agents/skills/` | `/openspec-apply-change` |
+| Amp | `amp` | `.agents/skills/` | `/sa-implement` |
+| Antigravity | `antigravity` | `.agents/skills/` | `/sa-implement` |
+| AtomCode | `atomcode` | `.agents/skills/` | `/sa-implement` |
+| Auggie (Augment CLI) | `auggie` | `.agents/skills/` | `/sa-implement` |
+| IBM Bob | `bob` | `.agents/skills/` | `/sa-implement` |
+| Claude Code | `claude` | `.agents/skills/` (links in `.claude/skills/`) | `/sa-implement` |
+| Cline | `cline` | `.agents/skills/` | `/sa-implement` |
+| CodeArts | `codeartsagent` | `.agents/skills/` (links in `.codeartsdoer/skills/`) | `/sa-implement` |
+| CodeBuddy Code (CLI) | `codebuddy` | `.agents/skills/` (links in `.codebuddy/skills/`) | `/sa-implement` |
+| Code Studio | `codestudio` | `.agents/skills/` (links in `.codestudio/skills/`) | `/sa-implement` |
+| Codex | `codex` | `.agents/skills/` | `$sa-implement` |
+| Continue | `continue` | `.agents/skills/` (links in `.continue/skills/`) | `/sa-implement` |
+| CoStrict | `costrict` | `.agents/skills/` | `/sa-implement` |
+| Crush | `crush` | `.agents/skills/` | `/sa-implement` |
+| Cursor | `cursor` | `.agents/skills/` | `/sa-implement` |
+| DeepSeek Harness | `dsh` | `.agents/skills/` | `/sa-implement` |
+| Devin Desktop (formerly Windsurf) | `devin` | `.agents/skills/` | `/sa-implement` |
+| EasyCode | `easycode` | `.agents/skills/` (links in `.easycode/skills/`) | `/sa-implement` |
+| Factory Droid | `factory` | `.agents/skills/` | `/sa-implement` |
+| ForgeCode | `forgecode` | `.agents/skills/` (links in `.forge/skills/`) | `/sa-implement` |
+| Gemini CLI | `gemini` | `.agents/skills/` | `/sa-implement` |
+| GigaCode | `gigacode` | `.agents/skills/` (links in `.gigacode/skills/`) | `/sa-implement` |
+| GitHub Copilot | `github-copilot` | `.agents/skills/` | `/sa-implement` |
+| Grok Build | `grok` | `.agents/skills/` | `/sa-implement` |
+| GSD | `gsd` | `.agents/skills/` | ask for `sa-implement` |
+| Hermes Agent | `hermes` | `.agents/skills/` (links in `.hermes/skills/`) | `/sa-implement` |
+| iFlow | `iflow` | `.agents/skills/` (links in `.iflow/skills/`) | `/sa-implement` |
+| Junie | `junie` | `.agents/skills/` | `/sa-implement` |
+| Kilo Code | `kilocode` | `.agents/skills/` | `/sa-implement` |
+| Kimi Code | `kimi` | `.agents/skills/` | `/skill:sa-implement` |
+| Kiro | `kiro` | `.agents/skills/` (links in `.kiro/skills/`) | `/sa-implement` |
+| Lingma | `lingma` | `.agents/skills/` (links in `.lingma/skills/`) | `/sa-implement` |
+| MiniMax Code | `minimax-code` | `~/.minimax/skills/` (global) | `/sa-implement` |
+| Mistral Vibe | `vibe` | `.agents/skills/` | `/sa-implement` |
+| Oh My Pi | `oh-my-pi` | `.agents/skills/` | `/sa-implement` |
+| OpenCode | `opencode` | `.agents/skills/` | `/sa-implement` |
+| Pi | `pi` | `.agents/skills/` | `/sa-implement` |
+| Qoder | `qoder` | `.agents/skills/` | `/sa-implement` |
+| Qwen Code | `qwen` | `.agents/skills/` | `/sa-implement` |
+| Rovo Dev CLI | `rovodev` | `.agents/skills/` (links in `.rovodev/skills/`) | ask for `sa-implement` |
+| Trae | `trae` | `.agents/skills/` | `/sa-implement` |
+| [Veai](https://veai.ru/docs/veai/download) | `veai` | `.agents/skills/` (links in `.veai/skills/`) | `/sa-implement` |
+| Warp | `warp` | `.agents/skills/` | `/sa-implement` |
+| ZCode | `zcode` | `.agents/skills/` | `/sa-implement` |
+| Zoo Code | `roocode` | `.agents/skills/` | `/sa-implement` |
+| Other / Universal | `agents` | `.agents/skills/` | `/sa-implement` |
 
 - **Skill invocation**: whether a tool registers skills as typed entries is the tool's
   own behavior. The column shows the spelling OpenSpec uses in generated files and in
@@ -111,9 +111,9 @@ mkdir .mytool
 mklink /J .mytool\skills .agents\skills
 ```
 
-Replace `.mytool` with your tool's folder. If the tool already has a `skills/` folder of its own, link each skill instead: `ln -s ../../.agents/skills/openspec-propose .mytool/skills/openspec-propose`.
+Replace `.mytool` with your tool's folder. If the tool already has a `skills/` folder of its own, link each skill instead: `ln -s ../../.agents/skills/sa-propose .mytool/skills/sa-propose`.
 
-**Committing links**: Git stores links as links. A teammate on Windows should run `git config --global core.symlinks true` (or clone with `git clone -c core.symlinks=true <url>`) and enable Developer Mode so links can be created. Otherwise each link checks out as a small text file, which `openspec update` replaces with a plain copy of the skill. A junction made with `mklink /J` is not committed as a link; recreate it on each machine.
+**Committing links**: Git stores links as links. A teammate on Windows should run `git config --global core.symlinks true` (or clone with `git clone -c core.symlinks=true <url>`) and enable Developer Mode so links can be created. Otherwise each link checks out as a small text file, which `specagile update` replaces with a plain copy of the skill. A junction made with `mklink /J` is not committed as a link; recreate it on each machine.
 
 ## Per-tool notes
 
@@ -122,10 +122,10 @@ A tool not listed here behaves exactly as its row reads.
 ### Amazon Q Developer (retired)
 
 OpenSpec 2.0 no longer supports Amazon Q Developer: it can't load skills, and AWS is
-retiring it in favor of Kiro. `openspec init --tools amazon-q` stops with that
-message. In a project set up for it, `openspec update` removes the prompts and skills
+retiring it in favor of Kiro. `specagile init --tools amazon-q` stops with that
+message. In a project set up for it, `specagile update` removes the prompts and skills
 OpenSpec wrote in `.amazonq/`, and keeps and lists any you edited. Set up Kiro
-instead: `openspec init --tools kiro`.
+instead: `specagile init --tools kiro`.
 
 ### Antigravity
 
@@ -146,27 +146,27 @@ left alone.
 
 ### Codex
 
-- **CLI and IDE extension**: mention `$openspec-propose` with your idea, or run
-  `/skills` to select the skill. Codex does not recognize `/openspec-propose`
+- **CLI and IDE extension**: mention `$sa-propose` with your idea, or run
+  `/skills` to select the skill. Codex does not recognize `/sa-propose`
   ([upstream issue](https://github.com/openai/codex/issues/11817)).
-- **Desktop app**: open Skills in the sidebar and select `openspec-propose`.
+- **Desktop app**: open Skills in the sidebar and select `sa-propose`.
   [OpenAI's skills documentation](https://learn.chatgpt.com/docs/build-skills)
   describes both interfaces.
 - **Shared folder**: Codex reads the same `.agents/skills/` copy as every other tool.
-  Skills name each other by skill name (`openspec-apply-change`), which Codex
-  invokes as `$openspec-apply-change`.
+  Skills name each other by skill name (`sa-implement`), which Codex
+  invokes as `$sa-implement`.
 - **Legacy path**: skills installed under `.codex/skills/` by older versions are
-  migrated on the next `openspec update`.
+  migrated on the next `specagile update`.
 
 ### DeepSeek Harness
 
 - **Project root**: DSH uses the nearest `.git` ancestor, or the current directory
-  outside Git. Run `openspec init --tools dsh` there. For a nested OpenSpec project,
+  outside Git. Run `specagile init --tools dsh` there. For a nested OpenSpec project,
   add the absolute path to its `.agents/skills/` directory to DSH's `customSkillDirs`.
   Git-root skills still win if names overlap
   ([upstream discovery rules](https://github.com/deepseek-ai/deepseek-harness/tree/master/packages/skill/skill-filesystem)).
 - **Old copies**: a `.dsh/skills/` copy from before 2.0 would take precedence over
-  `.agents/skills/`. `openspec update` removes untouched ones and reports any you
+  `.agents/skills/`. `specagile update` removes untouched ones and reports any you
   changed.
 
 ### Devin Desktop (formerly Windsurf)
@@ -175,13 +175,13 @@ left alone.
   Workflows OpenSpec wrote to `.devin/workflows/` before 2.0 are removed on update.
 - **Rename**: `--tools windsurf` still resolves to `devin`. A project holding
   OpenSpec files in the legacy `.windsurf/` folder is offered the move on the next
-  `openspec update`.
+  `specagile update`.
 
 ### GitHub Copilot
 
-- **Skills**: Copilot loads `.agents/skills/openspec-*/SKILL.md`. Invoke a skill as
-  `/openspec-<skill>`. In the CLI, if a skill disappears while its file still exists,
-  run `/skills reload`, then `/skills info openspec-propose` to confirm discovery. In
+- **Skills**: Copilot loads `.agents/skills/sa-*/SKILL.md`. Invoke a skill as
+  `/sa-<skill>`. In the CLI, if a skill disappears while its file still exists,
+  run `/skills reload`, then `/skills info sa-propose` to confirm discovery. In
   an IDE, restart it.
 - **Old prompt files**: the `.github/prompts/opsx-*.prompt.md` files OpenSpec wrote
   before 2.0 are removed on update.
@@ -190,7 +190,7 @@ left alone.
 
 - **Project skills**: GSD reads OpenSpec workflows from
   [`.agents/skills/`](https://github.com/open-gsd/gsd-pi/blob/main/docs/user-docs/skills.md).
-- **Invocation**: ask GSD to use the `openspec-<workflow>` skill. GSD can also select
+- **Invocation**: ask GSD to use the `sa-<workflow>` skill. GSD can also select
   a matching skill through its skill discovery setting.
 - **No subagent files**: [`.gsd/agents/`](https://github.com/open-gsd/gsd-pi/blob/main/docs/user-docs/subagents.md)
   contains GSD subagent definitions. OpenSpec does not write workflow skills there.
@@ -224,10 +224,10 @@ instead. Init prints this reminder after install.
 - **Alongside other tools**: every tool reads this one skill tree. `.openspec-target`
   lists the tools set up in the project. To remove a tool, delete its folder (or, for a tool
   with no folder of its own, its line in `.openspec-target`).
-- **Your own `openspec-*` skills**: a skill already in `.agents/skills/` before
+- **Your own `sa-*` skills**: a skill already in `.agents/skills/` before
   OpenSpec used the folder is kept, never written over, and recorded as
   `keep <skill>` in `.openspec-target`. Delete that skill to let OpenSpec write its own.
-- **What OpenSpec claims**: only the `openspec-*` folders and the `.openspec-target`
+- **What OpenSpec claims**: only the `sa-*` folders (and the former `openspec-*` ones it migrates) and the `.openspec-target`
   list. Anything else under `.agents/` is left alone.
 - **`AGENTS.md`**: not created or edited. The target is the `.agents/` folder, not
   the file.

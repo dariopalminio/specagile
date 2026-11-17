@@ -53,7 +53,7 @@ describe('retired tools', () => {
   it('is no longer a tool OpenSpec sets up', () => {
     expect(AI_TOOLS.some((tool) => tool.value === 'amazon-q')).toBe(false);
     const amazonQ = findRetiredTool('amazon-q')!;
-    expect(formatRetiredToolError(amazonQ)).toContain('Set up Kiro instead: openspec init --tools kiro');
+    expect(formatRetiredToolError(amazonQ)).toContain('Set up Kiro instead: specagile init --tools kiro');
   });
 
   it('removes what a release generated and the folder it emptied', async () => {
@@ -72,7 +72,7 @@ describe('retired tools', () => {
     );
     expect(result.kept).toEqual([]);
     expect(await exists('.amazonq')).toBe(false);
-    expect(formatRetiredToolCleanup(result)[0]).toContain('openspec init --tools kiro');
+    expect(formatRetiredToolCleanup(result)[0]).toContain('specagile init --tools kiro');
     // Already set up: no advice to set it up.
     expect(formatRetiredToolCleanup(result, true)[0]).not.toContain('Set up Kiro');
   });

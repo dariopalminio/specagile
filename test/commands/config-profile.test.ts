@@ -89,22 +89,22 @@ describe('config profile interactive flow', () => {
 
   function setupDriftedProjectArtifacts(projectDir: string): void {
     fs.mkdirSync(path.join(projectDir, 'openspec'), { recursive: true });
-    const exploreSkillPath = path.join(projectDir, '.claude', 'skills', 'openspec-explore', 'SKILL.md');
+    const exploreSkillPath = path.join(projectDir, '.claude', 'skills', 'sa-explore', 'SKILL.md');
     fs.mkdirSync(path.dirname(exploreSkillPath), { recursive: true });
-    fs.writeFileSync(exploreSkillPath, 'name: openspec-explore\n', 'utf-8');
+    fs.writeFileSync(exploreSkillPath, 'name: sa-explore\n', 'utf-8');
   }
 
   function setupSyncedCoreBothArtifacts(projectDir: string): void {
     fs.mkdirSync(path.join(projectDir, 'openspec'), { recursive: true });
     const coreSkillDirs = [
-      'openspec-propose',
-      'openspec-explore',
-      'openspec-specify',
-      'openspec-plan',
-      'openspec-apply-change',
-      'openspec-update-change',
-      'openspec-sync-specs',
-      'openspec-archive-change',
+      'sa-propose',
+      'sa-explore',
+      'sa-specify',
+      'sa-plan',
+      'sa-implement',
+      'sa-update-change',
+      'sa-sync-specs',
+      'sa-archive',
     ];
     // As 2.0 writes them: one shared copy, Claude's links to it, Claude listed.
     for (const dirName of coreSkillDirs) {
@@ -125,7 +125,7 @@ describe('config profile interactive flow', () => {
 
   function addExtraVerifyWorkflowArtifacts(projectDir: string): void {
     // As 2.0 writes it: the shared copy and Claude's link to it.
-    const dirName = 'openspec-verify-change';
+    const dirName = 'sa-verify';
     const sharedDir = path.join(projectDir, '.agents', 'skills', dirName);
     fs.mkdirSync(sharedDir, { recursive: true });
     fs.writeFileSync(path.join(sharedDir, 'SKILL.md'), `name: ${dirName}\n`, 'utf-8');
@@ -438,7 +438,7 @@ describe('config profile interactive flow', () => {
     expect(process.exitCode).toBeUndefined();
     expect(consoleErrorSpy).not.toHaveBeenCalled();
     expect(consoleLogSpy).toHaveBeenCalledWith('No configured tools found.');
-    expect(consoleLogSpy).toHaveBeenCalledWith('Run `openspec update` in your other projects to apply.');
+    expect(consoleLogSpy).toHaveBeenCalledWith('Run `specagile update` in your other projects to apply.');
   });
 
   it('confirmed project apply should report the update failure reason', async () => {
@@ -461,7 +461,7 @@ describe('config profile interactive flow', () => {
       executeSpy.mockRestore();
     }
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith('`openspec update` failed: permission denied');
+    expect(consoleErrorSpy).toHaveBeenCalledWith('`specagile update` failed: permission denied');
     expect(consoleErrorSpy).toHaveBeenCalledWith('Please run it manually to apply the profile changes.');
     expect(process.exitCode).toBe(1);
   });

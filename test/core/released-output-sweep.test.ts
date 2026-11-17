@@ -181,7 +181,7 @@ describe('stale released output', () => {
     const command = '.windsurf/commands/opsx/new.md';
     expect(RELEASED_GENERATED_PATHS).toContain(command);
     await write(command, await codexPrompt());
-    await write('.agents/skills/openspec-new-change/SKILL.md', 'current');
+    await write('.agents/skills/sa-new-change/SKILL.md', 'current');
     await write('.agents/skills/.openspec-target', 'devin\n');
     // The Windsurf → Devin move asks first. While it still has skills or
     // commands to move (it was declined, or delivery is commands-only), the
@@ -189,7 +189,8 @@ describe('stale released output', () => {
     await write('.windsurf/workflows/opsx-new.md', 'not moved yet');
     expect(await findStaleReleasedFiles(project)).not.toContain(command);
     await fs.rm(path.join(project, '.windsurf/workflows/opsx-new.md'));
-    await write('.windsurf/skills/openspec-new-change/SKILL.md', 'not moved yet');
+    // SpecAgile: the move carries skills under their current (`sa-*`) names.
+    await write('.windsurf/skills/sa-new-change/SKILL.md', 'not moved yet');
     expect(await findStaleReleasedFiles(project)).not.toContain(command);
     // Once the move is done, the leftover is swept like any other.
     await fs.rm(path.join(project, '.windsurf/skills'), { recursive: true });

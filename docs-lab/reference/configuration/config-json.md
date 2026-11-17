@@ -4,13 +4,13 @@
 
 ## Location
 
-The CLI keeps its machine-level settings at `~/.config/openspec/config.json` on macOS and Linux, and `%APPDATA%\openspec\config.json` on Windows. `$XDG_CONFIG_HOME` wins on every platform when set. The `openspec config` command reads and edits it.
+The CLI keeps its machine-level settings at `~/.config/openspec/config.json` on macOS and Linux, and `%APPDATA%\openspec\config.json` on Windows. `$XDG_CONFIG_HOME` wins on every platform when set. The `specagile config` command reads and edits it.
 
 ## Fields
 
 | Key | Type | Required | Effect |
 | --- | --- | --- | --- |
-| `profile` | string: `core` or `custom` | No | Picks the workflow set `openspec init` installs |
+| `profile` | string: `core` or `custom` | No | Picks the workflow set `specagile init` installs |
 | `delivery` | string: `both`, `skills`, or `commands` | No | Retired in 2.0: read, but no longer changes anything |
 | `workflows` | list of strings | No | The workflow list a `custom` profile installs |
 | `featureFlags` | map: flag → boolean | No | Boolean feature toggles |
@@ -20,7 +20,7 @@ The CLI keeps its machine-level settings at `~/.config/openspec/config.json` on 
 
 ### profile
 
-Which workflow set `openspec init` installs. Defaults to `core`: propose, explore, apply, update, sync, and archive. Setting `custom` installs exactly the `workflows` list instead.
+Which workflow set `specagile init` installs. Defaults to `core`: propose, explore, apply, update, sync, and archive. Setting `custom` installs exactly the `workflows` list instead.
 
 ### delivery
 
@@ -32,7 +32,7 @@ The workflows a `custom` profile installs; ignored when the profile is `core`. V
 
 ### featureFlags
 
-Boolean toggles keyed by flag name, set with `openspec config set featureFlags.<flag> true`. No flag is read by the CLI today.
+Boolean toggles keyed by flag name, set with `specagile config set featureFlags.<flag> true`. No flag is read by the CLI today.
 
 ### defaultStore
 
@@ -40,7 +40,7 @@ The machine-level fallback store id for root resolution, consulted only when no 
 
 ### openers
 
-The tools a workset can open in, keyed by tool id. Edit `openers` in the global `config.json` with `openspec config edit` in your terminal.
+The tools a workset can open in, keyed by tool id. Edit `openers` in the global `config.json` with `specagile config edit` in your terminal.
 
 | Field | Contract |
 | --- | --- |
@@ -78,7 +78,7 @@ The corresponding `code-insiders` or `code` executable must be installed and ava
 
 ### telemetry
 
-The CLI stores your anonymous id and whether the first-run notice was shown. Set `telemetry.enabled` to `false` to disable telemetry. You can also opt out with `OPENSPEC_TELEMETRY=0` or `DO_NOT_TRACK=1` in your environment.
+SpecAgile sends no telemetry and writes nothing here. OpenSpec, which reads the same file, stores its anonymous id and whether its first-run notice was shown; `telemetry.enabled: false` turns OpenSpec's telemetry off. In SpecAgile, `telemetry.enabled: false` (like `OPENSPEC_TELEMETRY=0` or `DO_NOT_TRACK=1`) only turns off the background update check in `specagile update`.
 
 ## Example
 

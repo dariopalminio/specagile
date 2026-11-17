@@ -86,8 +86,8 @@ describe('migration', () => {
   });
 
   it('migrates the workflows of managed skills, without a delivery', async () => {
-    await writeSkill(projectDir, 'openspec-explore');
-    await writeSkill(projectDir, 'openspec-apply-change');
+    await writeSkill(projectDir, 'sa-explore');
+    await writeSkill(projectDir, 'sa-implement');
 
     migrateIfNeeded(projectDir, [ensureClaudeTool()]);
 
@@ -98,8 +98,8 @@ describe('migration', () => {
   });
 
   it('keeps dry-run legacy results aligned with migration timing', async () => {
-    await writeSkill(projectDir, 'openspec-explore', '.codex');
-    await writeSkill(projectDir, 'openspec-explore', '.agents');
+    await writeSkill(projectDir, 'sa-explore', '.codex');
+    await writeSkill(projectDir, 'sa-explore', '.agents');
 
     expect(findLegacyToolMigrations(projectDir)).toEqual([]);
     expect(findLegacyToolMigrations(projectDir, 'after-generation')).toEqual([
@@ -126,7 +126,7 @@ describe('migration', () => {
   });
 
   it('migrates the workflows of skills and commands together, without a delivery', async () => {
-    await writeSkill(projectDir, 'openspec-explore');
+    await writeSkill(projectDir, 'sa-explore');
     await writeManagedCommand(projectDir, 'apply');
 
     migrateIfNeeded(projectDir, [ensureClaudeTool()]);
@@ -143,7 +143,7 @@ describe('migration', () => {
       profile: 'core',
       delivery: 'both',
     });
-    await writeSkill(projectDir, 'openspec-explore');
+    await writeSkill(projectDir, 'sa-explore');
 
     migrateIfNeeded(projectDir, [ensureClaudeTool()]);
 
@@ -159,7 +159,7 @@ describe('migration', () => {
       featureFlags: {},
       delivery: 'both',
     });
-    await writeSkill(projectDir, 'openspec-explore');
+    await writeSkill(projectDir, 'sa-explore');
 
     migrateIfNeeded(projectDir, [ensureClaudeTool()]);
 
@@ -172,7 +172,7 @@ describe('migration', () => {
   it.each(['[]\n', 'null\n', '{ "profile": "custom", }\n'])(
     'leaves a config that is not a readable JSON object (%j) alone instead of failing',
     async (content) => {
-      await writeSkill(projectDir, 'openspec-explore');
+      await writeSkill(projectDir, 'sa-explore');
       const configPath = getGlobalConfigPath();
       await fsp.mkdir(path.dirname(configPath), { recursive: true });
       await fsp.writeFile(configPath, content, 'utf-8');
@@ -191,14 +191,14 @@ describe('migration', () => {
   it('prints the $-prefixed propose reference when migrating a codex-only project', async () => {
     // Codex is skills-invocable with no slash surface: it invokes skills as
     // Migration hints target the selected tool, so keep Codex's $<name> form.
-    await writeSkill(projectDir, 'openspec-propose', '.codex');
+    await writeSkill(projectDir, 'sa-propose', '.codex');
 
     const message = captureMigrationLogs(projectDir, [requireTool('codex')]).find((entry) =>
       entry.includes('New in this version')
     );
     expect(message).toBeTruthy();
-    expect(message).toContain('$openspec-propose');
-    expect(message).not.toContain('/openspec-propose');
+    expect(message).toContain('$sa-propose');
+    expect(message).not.toContain('/sa-propose');
     expect(message).not.toContain('/opsx:propose');
   });
 
@@ -217,28 +217,28 @@ describe('migration', () => {
     const message = captureMigrationLogs(projectDir, toolIds.map(requireTool)).find((entry) =>
       entry.includes('New in this version')
     );
-    expect(message).toContain('/openspec-propose');
+    expect(message).toContain('/sa-propose');
     expect(message).not.toMatch(/[/@]opsx[:-]propose/);
   });
 
   it('prints the documented /skill: propose reference when migrating a kimi-only project', async () => {
-    await writeSkill(projectDir, 'openspec-propose', '.kimi-code');
+    await writeSkill(projectDir, 'sa-propose', '.kimi-code');
 
     const message = captureMigrationLogs(projectDir, [requireTool('kimi')]).find((entry) =>
       entry.includes('New in this version')
     );
-    expect(message).toContain('/skill:openspec-propose');
+    expect(message).toContain('/skill:sa-propose');
     expect(message).not.toContain('/opsx:propose');
   });
 
   it('falls back to a syntax-neutral reference when detected tools disagree (codex+kimi)', async () => {
-    await writeSkill(projectDir, 'openspec-propose', '.codex');
-    await writeSkill(projectDir, 'openspec-propose', '.kimi-code');
+    await writeSkill(projectDir, 'sa-propose', '.codex');
+    await writeSkill(projectDir, 'sa-propose', '.kimi-code');
 
     const message = captureMigrationLogs(projectDir, [requireTool('codex'), requireTool('kimi')]).find((entry) =>
       entry.includes('New in this version')
     );
-    expect(message).toContain('the openspec-propose skill');
+    expect(message).toContain('the sa-propose skill');
     expect(message).not.toContain('/skill:');
     expect(message).not.toContain('/opsx:propose');
   });
@@ -247,12 +247,12 @@ describe('migration', () => {
     // Claude will get /opsx:* commands but Kimi cannot invoke them; the one
     // shared message must not advertise a form that is wrong for either tool
     await writeManagedCommand(projectDir, 'propose');
-    await writeSkill(projectDir, 'openspec-propose', '.kimi-code');
+    await writeSkill(projectDir, 'sa-propose', '.kimi-code');
 
     const message = captureMigrationLogs(projectDir, [ensureClaudeTool(), requireTool('kimi')]).find((entry) =>
       entry.includes('New in this version')
     );
-    expect(message).toContain('the openspec-propose skill');
+    expect(message).toContain('the sa-propose skill');
     expect(message).not.toContain('/opsx:propose');
     expect(message).not.toContain('/skill:');
   });
@@ -264,12 +264,12 @@ describe('migration', () => {
       featureFlags: {},
       delivery: 'skills',
     });
-    await writeSkill(projectDir, 'openspec-propose');
+    await writeSkill(projectDir, 'sa-propose');
 
     const message = captureMigrationLogs(projectDir, [ensureClaudeTool()]).find((entry) =>
       entry.includes('New in this version')
     );
-    expect(message).toContain('/openspec-propose');
+    expect(message).toContain('/sa-propose');
     expect(message).not.toContain('/opsx:propose');
   });
 
@@ -287,7 +287,7 @@ describe('migration', () => {
   });
 
   it('does not count generic shared skills as installed Codex workflows', async () => {
-    await writeSkill(projectDir, 'openspec-explore', '.agents');
+    await writeSkill(projectDir, 'sa-explore', '.agents');
     await fsp.writeFile(
       path.join(projectDir, '.agents', 'skills', '.openspec-target'),
       'agents\n',
@@ -299,7 +299,7 @@ describe('migration', () => {
   });
   describe('Antigravity .agent -> .agents', () => {
     it('moves managed skills and commands once the replacement exists', async () => {
-      await writeSkill(projectDir, 'openspec-explore', '.agent');
+      await writeSkill(projectDir, 'sa-explore', '.agent');
       const legacyCommand = path.join(projectDir, '.agent', 'workflows', 'opsx-explore.md');
       await fsp.mkdir(path.dirname(legacyCommand), { recursive: true });
       await fsp.writeFile(legacyCommand, '# command\n', 'utf-8');
@@ -307,7 +307,7 @@ describe('migration', () => {
       // Nothing moves before the tool has generated its replacement tree.
       expect(findLegacyToolMigrations(projectDir)).toEqual([]);
 
-      await writeSkill(projectDir, 'openspec-explore', '.agents');
+      await writeSkill(projectDir, 'sa-explore', '.agents');
       await writeManagedCommand(projectDir, 'explore', 'antigravity');
 
       expect(
@@ -325,7 +325,7 @@ describe('migration', () => {
 
       expect(fs.existsSync(legacyCommand)).toBe(false);
       expect(
-        fs.existsSync(path.join(projectDir, '.agent', 'skills', 'openspec-explore', 'SKILL.md'))
+        fs.existsSync(path.join(projectDir, '.agent', 'skills', 'sa-explore', 'SKILL.md'))
       ).toBe(false);
       expect(
         fs.existsSync(path.join(projectDir, '.agents', 'workflows', 'opsx-explore.md'))
@@ -337,12 +337,12 @@ describe('migration', () => {
         projectDir,
         '.agent',
         'skills',
-        'openspec-explore',
+        'sa-explore',
         'SKILL.md'
       );
       await fsp.mkdir(path.dirname(legacySkill), { recursive: true });
       await fsp.writeFile(legacySkill, '# hand-edited\n', 'utf-8');
-      await writeSkill(projectDir, 'openspec-explore', '.agents');
+      await writeSkill(projectDir, 'sa-explore', '.agents');
 
       expect(
         migrateLegacyToolDirs(projectDir, ['antigravity'], 'after-generation')
@@ -356,7 +356,7 @@ describe('migration', () => {
       // Skills-only delivery and a deselected workflow both leave the current
       // root without that command. Moving the legacy file there would install
       // a command OpenSpec just decided not to write.
-      await writeSkill(projectDir, 'openspec-explore', '.agents');
+      await writeSkill(projectDir, 'sa-explore', '.agents');
       const legacyCommand = path.join(projectDir, '.agent', 'workflows', 'opsx-explore.md');
       await fsp.mkdir(path.dirname(legacyCommand), { recursive: true });
       await fsp.writeFile(legacyCommand, '# command\n', 'utf-8');
@@ -404,7 +404,7 @@ describe('migration', () => {
 
     it('counts the workflows of command files still under .agent', async () => {
       // The commands are only findable at the legacy root until migration runs.
-      await writeSkill(projectDir, 'openspec-explore', '.agent');
+      await writeSkill(projectDir, 'sa-explore', '.agent');
       const legacyCommand = path.join(projectDir, '.agent', 'workflows', 'opsx-explore.md');
       await fsp.mkdir(path.dirname(legacyCommand), { recursive: true });
       await fsp.writeFile(legacyCommand, '# command\n', 'utf-8');
@@ -419,7 +419,7 @@ describe('migration', () => {
       const userFile = path.join(projectDir, '.agent', 'workflows', 'my-workflow.md');
       await fsp.mkdir(path.dirname(userFile), { recursive: true });
       await fsp.writeFile(userFile, '# mine\n', 'utf-8');
-      await writeSkill(projectDir, 'openspec-explore', '.agents');
+      await writeSkill(projectDir, 'sa-explore', '.agents');
 
       migrateLegacyToolDirs(projectDir, ['antigravity'], 'after-generation');
 

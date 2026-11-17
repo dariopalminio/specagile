@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { parse as parseYaml } from 'yaml';
 
 import { program } from '../../../src/cli/index.js';
+import { applyForkIdentity } from '../../../src/core/fork/identity.js';
 import { ALL_WORKFLOWS } from '../../../src/core/profiles.js';
 import {
   generateSkillContent,
@@ -11,9 +12,11 @@ import {
 
 /**
  * The natural-language phrase a user or agent says for each workflow, as a
- * suffix of `openspec `. Every workflow's skill description must name it so an
- * agent that hears "do an openspec propose" matches the skill instead of
- * hand-building the artifacts with the CLI (issue #1221).
+ * suffix of `specagile ` (SpecAgile's CLI name; the generated description is
+ * checked, after the fork's identity is applied). Every workflow's skill
+ * description must name it so an agent that hears "do a specagile propose"
+ * matches the skill instead of hand-building the artifacts with the CLI
+ * (issue #1221).
  *
  * Keep in sync with getSkillTemplates(): the coverage test below fails when a
  * workflow is added without a trigger phrase.
@@ -22,7 +25,7 @@ const NATURAL_VERB_BY_WORKFLOW: Record<string, string> = {
   explore: 'explore',
   new: 'new change',
   continue: 'continue',
-  apply: 'apply',
+  apply: 'implement',
   update: 'update change',
   ff: 'ff',
   sync: 'sync',
@@ -40,20 +43,20 @@ const NATURAL_VERB_BY_WORKFLOW: Record<string, string> = {
  * claims on purpose, with the reason. Every other collision is a defect: a
  * skill would send an LLM to re-do a deterministic command.
  *
- * `openspec update` is the case this rule exists for. It refreshes generated
+ * `specagile update` is the case this rule exists for. It refreshes generated
  * instruction files and has nothing to do with the update-change workflow, so
- * that skill claims `openspec update change` and redirects to the CLI command
+ * that skill claims `specagile update change` and redirects to the CLI command
  * in its description.
  */
 const DELIBERATE_CLI_PHRASE_CLAIMS: Record<string, string> = {
-  'openspec archive':
+  'specagile archive':
     'both archive and merge delta specs, but the workflow confirms with the user and verifies the merge capability-by-capability before anything moves, where the bare command does it in one shot; an agent asked to archive should take the checked path',
-  'openspec archive all': 'same, for several changes at once (bulk-archive)',
-  'openspec archive these changes': 'same, for several changes at once (bulk-archive)',
-  'openspec new change':
+  'specagile archive all': 'same, for several changes at once (bulk-archive)',
+  'specagile archive these changes': 'same, for several changes at once (bulk-archive)',
+  'specagile new change':
     'the new-change workflow runs this exact CLI command as its first step, then continues with the artifacts',
-  'openspec update change':
-    'distinct from `openspec update`, which the update-change description redirects to the CLI command',
+  'specagile update change':
+    'distinct from `specagile update`, which the update-change description redirects to the CLI command',
 };
 
 /**
@@ -62,9 +65,9 @@ const DELIBERATE_CLI_PHRASE_CLAIMS: Record<string, string> = {
  * the reason it is safe; anything undeclared is an accidental misroute.
  */
 const DELIBERATE_PHRASE_SHADOWING: Record<string, string> = {
-  'openspec archive < openspec archive all':
+  'specagile archive < specagile archive all':
     'plural requests are claimed explicitly by bulk-archive so they outweigh the bare literal',
-  'openspec archive < openspec archive these changes':
+  'specagile archive < specagile archive these changes':
     'plural requests are claimed explicitly by bulk-archive so they outweigh the bare literal',
 };
 
@@ -91,27 +94,35 @@ function collectCommandNames(command: Command, into = new Set<string>()): Set<st
 }
 
 /**
- * Quoted `openspec …` / `opsx …` phrases a description claims. Only quoted
+ * Quoted `specagile …` / `opsx …` phrases a description claims. Only quoted
  * text counts as a claim: descriptions also mention commands in prose (the
- * update-change redirect names the openspec update CLI command unquoted),
+ * update-change redirect names the specagile update CLI command unquoted),
  * and prose is not a routing trigger. Matching is case-insensitive so a
  * capitalized phrase cannot slip past the guards below.
  */
 function claimedPhrases(description: string): string[] {
-  return [...description.matchAll(/(["`])((?:openspec|opsx) [^"`]+)\1/gi)].map(m =>
+  return [...description.matchAll(/(["`])((?:specagile|opsx) [^"`]+)\1/gi)].map(m =>
     m[2].toLowerCase()
   );
+}
+
+/** The description as written into the generated SKILL.md. */
+function generatedDescription(entry: ReturnType<typeof getSkillTemplates>[number]): string {
+  const content = generateSkillContent(entry.template, '1.0.0-test');
+  const frontmatter = content.match(/^---\n([\s\S]*?)\n---\n/);
+  if (!frontmatter) throw new Error(`${entry.dirName} has no frontmatter`);
+  return String((parseYaml(frontmatter[1]) as Record<string, unknown>).description);
 }
 
 function descriptionOf(workflowId: string): string {
   const entry = getSkillTemplates().find(e => e.workflowId === workflowId);
   if (!entry) throw new Error(`no skill template for workflow ${workflowId}`);
-  return entry.template.description;
+  return generatedDescription(entry);
 }
 
 function allClaims(): { dirName: string; phrase: string }[] {
   return getSkillTemplates().flatMap(entry =>
-    claimedPhrases(entry.template.description).map(phrase => ({ dirName: entry.dirName, phrase }))
+    claimedPhrases(generatedDescription(entry)).map(phrase => ({ dirName: entry.dirName, phrase }))
   );
 }
 
@@ -122,11 +133,18 @@ describe('workflow verb triggers', () => {
   });
 
   it.each(Object.entries(NATURAL_VERB_BY_WORKFLOW))(
-    '%s names its natural "openspec" and "opsx" phrasings',
+    '%s names its natural "specagile" and "opsx" phrasings',
     (workflowId, verb) => {
       const description = descriptionOf(workflowId);
-      expect(description).toContain(`"openspec ${verb}"`);
+      expect(description).toContain(`"specagile ${verb}"`);
       expect(description).toContain(`"opsx ${workflowId}"`);
+    }
+  );
+
+  it.each(Object.keys(NATURAL_VERB_BY_WORKFLOW))(
+    '%s names no "openspec <verb>" phrase',
+    workflowId => {
+      expect(descriptionOf(workflowId)).not.toMatch(/\bopenspec [a-z-]+/);
     }
   );
 
@@ -154,7 +172,7 @@ describe('workflow verb triggers', () => {
   });
 
   it('ignores hidden workflow-verb hints but still guards every other command', () => {
-    const cli = new Command('openspec');
+    const cli = new Command('specagile');
     cli.command('explore', { hidden: true });
     cli.command('propose');
     cli.command('legacy-thing', { hidden: true });
@@ -170,22 +188,22 @@ describe('workflow verb triggers', () => {
     for (const { dirName, phrase } of allClaims()) {
       const [namespace, firstWord] = phrase.split(' ');
       // `opsx` is not a binary, so those phrases collide with nothing.
-      if (namespace !== 'openspec' || !cliCommands.has(firstWord)) continue;
+      if (namespace !== 'specagile' || !cliCommands.has(firstWord)) continue;
 
       expect(
         DELIBERATE_CLI_PHRASE_CLAIMS[phrase],
-        `${dirName} claims "${phrase}", but "openspec ${firstWord}" is a real CLI command. ` +
+        `${dirName} claims "${phrase}", but "specagile ${firstWord}" is a real CLI command. ` +
           `Either pick a phrase that does not shadow it, or add an entry to DELIBERATE_CLI_PHRASE_CLAIMS saying why this is right.`
       ).toBeTruthy();
     }
   });
 
-  it('never claims the bare `openspec update` CLI command', () => {
+  it('never claims the bare `specagile update` CLI command', () => {
     // A hard floor the allowlist cannot lift: refreshing generated files has
     // nothing to do with revising a change.
     for (const { dirName, phrase } of allClaims()) {
-      expect(phrase, `${dirName} would shadow the openspec update CLI command`).not.toBe(
-        'openspec update'
+      expect(phrase, `${dirName} would shadow the specagile update CLI command`).not.toBe(
+        'specagile update'
       );
     }
   });
@@ -242,8 +260,8 @@ describe('workflow verb triggers', () => {
       expect(frontmatter, `${entry.dirName} has no frontmatter`).not.toBeNull();
 
       const parsed = parseYaml(frontmatter![1]) as Record<string, unknown>;
-      expect(parsed.name).toBe(entry.template.name);
-      expect(parsed.description).toBe(entry.template.description);
+      expect(parsed.name).toBe(entry.dirName);
+      expect(parsed.description).toBe(applyForkIdentity(entry.template.description));
     }
   });
 });

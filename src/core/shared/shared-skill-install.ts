@@ -163,6 +163,17 @@ export async function installSharedSkills(input: SharedSkillInstallInput): Promi
       keepAsUsers(skillName);
     }
   }
+  // SpecAgile: a skill kept under its former `openspec-*` name stays recorded
+  // while it is there; src/core/fork/former-skills.ts never touches it.
+  for (const skillName of previouslyKept) {
+    const spot = path.join(sharedDir, skillName);
+    if (
+      !OPENSPEC_SKILL_NAMES.includes(skillName) &&
+      (view.exists(spot) || view.linkTarget?.(spot) !== undefined)
+    ) {
+      keptShared.add(skillName);
+    }
+  }
   const sharedSpotIsUsers = (skillName: string): boolean => keptShared.has(skillName);
   const readOr = (filePath: string): string | undefined => {
     try {
@@ -378,7 +389,7 @@ export function formatKeptSkills(
   for (const folder of linkedOutside) {
     lines.push(
       `Left ${folder} alone: it links outside the project and still holds old OpenSpec skills, ` +
-        'which your tool may load twice. Delete the openspec-* folders in it by hand if nothing else uses them.'
+        'which your tool may load twice. Delete the sa-* folders in it by hand if nothing else uses them.'
     );
   }
   return lines;

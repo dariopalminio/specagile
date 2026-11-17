@@ -54,7 +54,7 @@ describe('generateApplyInstructions blocked prerequisites', () => {
 
     expect(instructions.instruction).toContain('the schema says which are conditional');
     // Naming the first of several would point at design as often as at specs.
-    expect(instructions.instruction).toContain('openspec instructions <artifact>');
+    expect(instructions.instruction).toContain('specagile instructions <artifact>');
   });
 
   it('drops the chain line once only the required artifact is left', async () => {
@@ -66,7 +66,7 @@ describe('generateApplyInstructions blocked prerequisites', () => {
     expect(instructions.missingPrerequisites).toEqual(['tasks']);
     expect(instructions.instruction).not.toContain('Not created yet');
     expect(instructions.instruction).toContain(
-      'openspec instructions tasks --change my-change'
+      'specagile instructions tasks --change my-change'
     );
   });
 
@@ -87,7 +87,7 @@ describe('generateApplyInstructions blocked prerequisites', () => {
     // `continue` is not in CORE_WORKFLOWS, so the default install never had the
     // skill the old message named.
     expect(instructions.instruction).not.toContain('openspec-continue-change');
-    expect(instructions.instruction).toContain('openspec status --change my-change');
+    expect(instructions.instruction).toContain('specagile status --change my-change');
   });
 
   it('reports no prerequisites once the change is ready to apply', async () => {

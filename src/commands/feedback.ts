@@ -1,12 +1,13 @@
 import { execFileSync } from 'child_process';
 import { createRequire } from 'module';
 import os from 'os';
+import { REPOSITORY_URL } from '../core/fork/identity.js';
 
 const require = createRequire(import.meta.url);
 const MAX_TITLE_LENGTH = 72;
 const TITLE_PREFIX = 'Feedback: ';
 const REPRO_PROMPT =
-  '_Not provided — filed with `openspec feedback`. If this is a bug, please add the shortest steps that reproduce it from a fresh project._';
+  '_Not provided — filed with `specagile feedback`. If this is a bug, please add the shortest steps that reproduce it from a fresh project._';
 
 /**
  * Check if gh CLI is installed and available in PATH
@@ -147,7 +148,8 @@ function generateManualSubmissionUrl(title: string, message: string, bodyText?: 
     environment: `${getPlatform()}, Node ${process.version}`,
   });
 
-  return `https://github.com/Fission-AI/OpenSpec/issues/new?${params.toString()}`;
+  // SpecAgile: feedback goes to the fork's repository.
+  return `${REPOSITORY_URL}/issues/new?${params.toString()}`;
 }
 
 /**
@@ -207,7 +209,7 @@ function createIssue(title: string, body: string, labels: string[]): string {
     'issue',
     'create',
     '--repo',
-    'Fission-AI/OpenSpec',
+    new URL(REPOSITORY_URL).pathname.replace(/^\/+/, ''),
     '--title',
     title,
     '--body',

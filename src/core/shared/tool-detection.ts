@@ -24,6 +24,7 @@ import {
 import { DISK_VIEW, type FileView } from '../file-view.js';
 import { classifySkillLinkSpot, isCheckedOutLink } from './skill-links.js';
 import { FileSystemUtils } from '../../utils/file-system.js';
+import { FORMER_SKILL_NAMES, KNOWN_SKILL_NAMES } from '../fork/identity.js';
 
 /**
  * Names of skill directories created by openspec init.
@@ -111,7 +112,7 @@ export function isListedToolPresent(projectRoot: string, toolId: string, view: F
   if (toolHasAnyConfiguredCommand(projectRoot, toolId, view)) return true;
   const linkDir = resolveSkillLinkDir(projectRoot, tool);
   return (
-    (linkDir !== undefined && OPENSPEC_SKILL_NAMES.some((name) => view.exists(path.join(linkDir, name, 'SKILL.md')))) ||
+    (linkDir !== undefined && KNOWN_SKILL_NAMES.some((name) => view.exists(path.join(linkDir, name, 'SKILL.md')))) ||
     hasSkillLinks(projectRoot, tool, view)
   );
 }
@@ -127,7 +128,7 @@ export function hasSkillLinks(projectRoot: string, tool: AIToolOption, view: Fil
   const linkDir = resolveSkillLinkDir(projectRoot, tool);
   if (!linkDir) return false;
   const sharedDir = resolveSharedSkillsDir(projectRoot);
-  return OPENSPEC_SKILL_NAMES.some((name) => {
+  return KNOWN_SKILL_NAMES.some((name) => {
     const spot = path.join(linkDir, name);
     const target = path.join(sharedDir, name);
     const linked = view.linkTarget?.(spot);
@@ -176,8 +177,16 @@ export function getToolSkillStatus(
     }
   }
 
+  // SpecAgile: skills under their former `openspec-*` names also mean the
+  // tool is set up; update installs the `sa-*` ones and migrates the rest.
+  const hasFormerSkill =
+    skillCount === 0 &&
+    FORMER_SKILL_NAMES.some((skillName) =>
+      skillsDirs.some((skillsDir) => view.exists(path.join(skillsDir, skillName, 'SKILL.md')))
+    );
+
   return {
-    configured: skillCount > 0,
+    configured: skillCount > 0 || hasFormerSkill,
     fullyConfigured: skillCount === SKILL_NAMES.length,
     skillCount,
   };

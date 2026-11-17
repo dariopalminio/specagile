@@ -123,7 +123,7 @@ describe('an unparseable global config', () => {
       }
 
       expect(message).toContain(configPath);
-      expect(message).toContain('openspec config edit');
+      expect(message).toContain('specagile config edit');
       expect(read()).toBe(TYPO);
     });
 
@@ -246,8 +246,8 @@ describe('an unparseable global config', () => {
 
         // Not a TypeError: the same actionable one-liner every writer reports.
         expect(message).toContain(configPath);
-        expect(message).toContain('openspec config edit');
-        expect(message).toContain('openspec config reset --all');
+        expect(message).toContain('specagile config edit');
+        expect(message).toContain('specagile config reset --all');
         expect(read()).toBe(content);
         expect(fetchSpy).not.toHaveBeenCalled();
       },
@@ -291,7 +291,7 @@ describe('an unparseable global config', () => {
     });
   });
 
-  describe('openspec config', () => {
+  describe('specagile config', () => {
     let registerConfigCommand: typeof import('../../src/cli/commands/config.js').registerConfigCommand;
 
     // Imported once: the command module pulls in most of the CLI.
@@ -320,7 +320,7 @@ describe('an unparseable global config', () => {
       expect(read()).toBe(TYPO);
       expect(process.exitCode).toBe(1);
       expect(errorOutput()).toContain(configPath);
-      expect(errorOutput()).toContain('openspec config edit');
+      expect(errorOutput()).toContain('specagile config edit');
     });
 
     // `config list` reads the raw file to mark values explicit vs default. A
@@ -381,6 +381,7 @@ describe('an unparseable global config', () => {
 
     expect(read()).toBe(TYPO);
     // Telemetry and the command each read the config; the warning prints once.
-    expect(result.stderr.match(/Invalid JSON/g)).toHaveLength(1);
+    // SpecAgile: no telemetry reads it, and `list` itself does not, so at most once.
+    expect((result.stderr.match(/Invalid JSON/g) ?? []).length).toBeLessThanOrEqual(1);
   }, 120_000);
 });

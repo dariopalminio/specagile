@@ -8,7 +8,7 @@ describe('validate command enriched human output', () => {
   const projectRoot = process.cwd();
   const testDir = path.join(projectRoot, 'test-validate-enriched-tmp');
   const changesDir = path.join(testDir, 'openspec', 'changes');
-  const bin = path.join(projectRoot, 'bin', 'openspec.js');
+  const bin = path.join(projectRoot, 'bin', 'specagile.js');
 
 
   beforeEach(async () => {
@@ -177,7 +177,7 @@ The system SHALL report the future state.
       expect(code).not.toBe(0);
       expect(stderr).toContain('has issues');
       expect(stderr).toContain('Next steps:');
-      expect(stderr).toContain('openspec change show');
+      expect(stderr).toContain('specagile change show');
     } finally {
       process.chdir(originalCwd);
     }

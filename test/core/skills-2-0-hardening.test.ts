@@ -20,12 +20,12 @@ vi.mock('../../src/utils/interactive.js', async (importOriginal) => {
 const FIXTURES = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../fixtures/released-output');
 const linkType = process.platform === 'win32' ? 'junction' : 'dir';
 const SKILLS = [
-  'openspec-propose',
-  'openspec-explore',
-  'openspec-apply-change',
-  'openspec-update-change',
-  'openspec-sync-specs',
-  'openspec-archive-change',
+  'sa-propose',
+  'sa-explore',
+  'sa-implement',
+  'sa-update-change',
+  'sa-sync-specs',
+  'sa-archive',
 ];
 
 /**
@@ -95,15 +95,15 @@ describe('OpenSpec 2.0 skills: hardening', () => {
   });
 
   it("keeps the user's own openspec-* skill even when it mentions another skill", async () => {
-    const mine = '---\nname: openspec-propose\ndescription: our flow\n---\nOurs. Then run /openspec-apply-change.\n';
-    await fs.mkdir(p('.agents', 'skills', 'openspec-propose'), { recursive: true });
-    await fs.writeFile(p('.agents', 'skills', 'openspec-propose', 'SKILL.md'), mine);
+    const mine = '---\nname: sa-propose\ndescription: our flow\n---\nOurs. Then run /sa-implement.\n';
+    await fs.mkdir(p('.agents', 'skills', 'sa-propose'), { recursive: true });
+    await fs.writeFile(p('.agents', 'skills', 'sa-propose', 'SKILL.md'), mine);
 
     await new InitCommand({ tools: 'claude', force: true }).execute(project);
 
-    expect(await read('.agents/skills/openspec-propose/SKILL.md')).toBe(mine);
+    expect(await read('.agents/skills/sa-propose/SKILL.md')).toBe(mine);
     const list = await read('.agents/skills/.openspec-target');
-    expect(list).toContain('keep openspec-propose');
+    expect(list).toContain('keep sa-propose');
     expect(list.split('\n')).not.toContain('agents');
     await settles();
   });
@@ -131,8 +131,8 @@ describe('OpenSpec 2.0 skills: hardening', () => {
     const team = path.join(root, 'team-skills', 'explore');
     await fs.mkdir(team, { recursive: true });
     await fs.writeFile(path.join(team, 'SKILL.md'), 'our team explore\n');
-    await fs.rm(p('.agents', 'skills', 'openspec-explore'), { recursive: true });
-    await fs.symlink(team, p('.agents', 'skills', 'openspec-explore'), linkType);
+    await fs.rm(p('.agents', 'skills', 'sa-explore'), { recursive: true });
+    await fs.symlink(team, p('.agents', 'skills', 'sa-explore'), linkType);
 
     await new UpdateCommand().execute(project);
 
@@ -163,10 +163,10 @@ describe('OpenSpec 2.0 skills: hardening', () => {
   });
 
   it('treats OS junk beside a plain copy as nothing of the user’s', async () => {
-    const shared = p('.agents', 'skills', 'openspec-explore');
+    const shared = p('.agents', 'skills', 'sa-explore');
     await fs.mkdir(shared, { recursive: true });
     await fs.writeFile(path.join(shared, 'SKILL.md'), 'skill text\n');
-    const copy = p('.claude', 'skills', 'openspec-explore');
+    const copy = p('.claude', 'skills', 'sa-explore');
     await fs.mkdir(copy, { recursive: true });
     await fs.writeFile(path.join(copy, 'SKILL.md'), 'skill text\n');
     for (const junk of ['.DS_Store', '._SKILL.md', 'Thumbs.db', 'desktop.ini']) await fs.writeFile(path.join(copy, junk), 'x');
@@ -175,23 +175,23 @@ describe('OpenSpec 2.0 skills: hardening', () => {
   });
 
   it('copies only SKILL.md where a link cannot be made', async () => {
-    const shared = p('.agents', 'skills', 'openspec-explore');
+    const shared = p('.agents', 'skills', 'sa-explore');
     await fs.mkdir(shared, { recursive: true });
     await fs.writeFile(path.join(shared, 'SKILL.md'), 'skill text\n');
     await fs.writeFile(path.join(shared, '.DS_Store'), 'x');
-    const spot = p('.claude', 'skills', 'openspec-explore');
+    const spot = p('.claude', 'skills', 'sa-explore');
 
     expect(createSkillLink(spot, shared, () => { throw new Error('no links here'); })).toBe('copy');
     expect((await fs.readdir(spot)).sort()).toEqual(['SKILL.md']);
   });
 
   it('writes links through .agents as named, so a linked .agents can move', async () => {
-    await fs.mkdir(p('shared-agents', 'skills', 'openspec-explore'), { recursive: true });
+    await fs.mkdir(p('shared-agents', 'skills', 'sa-explore'), { recursive: true });
     await fs.symlink('shared-agents', p('.agents'), linkType);
     await fs.mkdir(p('.claude', 'skills'), { recursive: true });
 
-    expect(skillLinkText(p('.claude', 'skills', 'openspec-explore'), p('.agents', 'skills', 'openspec-explore'))).toBe(
-      path.join('..', '..', '.agents', 'skills', 'openspec-explore')
+    expect(skillLinkText(p('.claude', 'skills', 'sa-explore'), p('.agents', 'skills', 'sa-explore'))).toBe(
+      path.join('..', '..', '.agents', 'skills', 'sa-explore')
     );
   });
 
@@ -213,15 +213,15 @@ describe('OpenSpec 2.0 skills: hardening', () => {
       JSON.stringify({ profile: 'custom', workflows: ['propose', 'explore', 'apply', 'archive', 'onboard'] })
     );
     await new InitCommand({ tools: 'cursor', force: true }).execute(project);
-    await fs.appendFile(p('.agents', 'skills', 'openspec-onboard', 'SKILL.md'), '\nOur onboarding notes.\n');
-    const edited = await read('.agents/skills/openspec-onboard/SKILL.md');
+    await fs.appendFile(p('.agents', 'skills', 'sa-onboard', 'SKILL.md'), '\nOur onboarding notes.\n');
+    const edited = await read('.agents/skills/sa-onboard/SKILL.md');
     await fs.writeFile(path.join(root, 'home', '.config', 'openspec', 'config.json'), JSON.stringify({ profile: 'core' }));
 
     logs = [];
     await new UpdateCommand().execute(project);
 
-    expect(await read('.agents/skills/openspec-onboard/SKILL.md')).toBe(edited);
-    expect(await read('.agents/skills/.openspec-target')).toContain('keep openspec-onboard');
+    expect(await read('.agents/skills/sa-onboard/SKILL.md')).toBe(edited);
+    expect(await read('.agents/skills/.openspec-target')).toContain('keep sa-onboard');
     await settles();
   });
 
@@ -234,7 +234,7 @@ describe('OpenSpec 2.0 skills: hardening', () => {
 
     await new UpdateCommand().execute(project);
 
-    expect((await fs.readdir(p('.agents', 'skills'))).sort()).toEqual(['.openspec-target', 'openspec-explore']);
+    expect((await fs.readdir(p('.agents', 'skills'))).sort()).toEqual(['.openspec-target', 'sa-explore']);
     expect(await read('.agents/skills/.openspec-target')).not.toContain('keep');
     await settles();
   });
@@ -244,23 +244,23 @@ describe('OpenSpec 2.0 skills: hardening', () => {
 
   it('keeps a file at a dropped skill’s name (a link git checked out as text)', async () => {
     await new InitCommand({ tools: 'claude', force: true }).execute(project);
-    await fs.writeFile(p('.agents', 'skills', 'openspec-onboard'), '../../team/openspec-onboard');
+    await fs.writeFile(p('.agents', 'skills', 'sa-onboard'), '../../team/sa-onboard');
 
     await new UpdateCommand({ force: true }).execute(project);
 
-    expect(await read('.agents/skills/openspec-onboard')).toBe('../../team/openspec-onboard');
+    expect(await read('.agents/skills/sa-onboard')).toBe('../../team/sa-onboard');
     await settles();
   });
 
   it('keeps a file at a wanted skill’s name and sets up everything else', async () => {
     await fs.mkdir(p('.agents', 'skills'), { recursive: true });
-    await fs.writeFile(p('.agents', 'skills', 'openspec-explore'), '../../team/openspec-explore');
+    await fs.writeFile(p('.agents', 'skills', 'sa-explore'), '../../team/sa-explore');
 
     await new InitCommand({ tools: 'claude', force: true }).execute(project);
 
-    expect(await read('.agents/skills/openspec-explore')).toBe('../../team/openspec-explore');
-    expect(await exists('.agents/skills/openspec-propose/SKILL.md')).toBe(true);
-    expect(await read('.agents/skills/.openspec-target')).toContain('keep openspec-explore');
+    expect(await read('.agents/skills/sa-explore')).toBe('../../team/sa-explore');
+    expect(await exists('.agents/skills/sa-propose/SKILL.md')).toBe(true);
+    expect(await read('.agents/skills/.openspec-target')).toContain('keep sa-explore');
     await settles();
   });
 
@@ -282,7 +282,7 @@ describe('OpenSpec 2.0 skills: hardening', () => {
   it('stops reporting profile drift once a dropped, edited skill is kept', async () => {
     await setProfile({ profile: 'custom', workflows: ['propose', 'explore', 'apply', 'archive', 'onboard'] });
     await new InitCommand({ tools: 'cursor', force: true }).execute(project);
-    await fs.appendFile(p('.agents', 'skills', 'openspec-onboard', 'SKILL.md'), '\nOur notes.\n');
+    await fs.appendFile(p('.agents', 'skills', 'sa-onboard', 'SKILL.md'), '\nOur notes.\n');
     await setProfile({ profile: 'core' });
 
     await new UpdateCommand().execute(project);
@@ -298,28 +298,28 @@ describe('OpenSpec 2.0 skills: hardening', () => {
     await new InitCommand({ tools: 'cursor', force: true }).execute(project);
     // The user removes a skill by hand, so onboard's text matches no set
     // installed now.
-    await fs.rm(p('.agents', 'skills', 'openspec-explore'), { recursive: true });
+    await fs.rm(p('.agents', 'skills', 'sa-explore'), { recursive: true });
     await setProfile({ profile: 'custom', workflows: ['apply', 'archive'] });
 
     await new UpdateCommand().execute(project);
 
-    expect(await exists('.agents/skills/openspec-onboard')).toBe(false);
+    expect(await exists('.agents/skills/sa-onboard')).toBe(false);
     expect(await read('.agents/skills/.openspec-target')).not.toContain('keep');
     await settles();
   });
 
   it('keeps a tool’s links to skills kept as the user’s when the profile drops them', async () => {
-    for (const skill of ['openspec-propose', 'openspec-explore']) {
+    for (const skill of ['sa-propose', 'sa-explore']) {
       await fs.mkdir(p('.agents', 'skills', skill), { recursive: true });
       await fs.writeFile(p('.agents', 'skills', skill, 'SKILL.md'), `---\nname: ${skill}\n---\nfrom npx skills\n`);
     }
     await new InitCommand({ tools: 'claude', force: true }).execute(project);
-    expect(lstatSync(p('.claude', 'skills', 'openspec-propose')).isSymbolicLink()).toBe(true);
+    expect(lstatSync(p('.claude', 'skills', 'sa-propose')).isSymbolicLink()).toBe(true);
     await setProfile({ profile: 'custom', workflows: ['apply', 'archive'] });
 
     await new UpdateCommand().execute(project);
 
-    for (const skill of ['openspec-propose', 'openspec-explore']) {
+    for (const skill of ['sa-propose', 'sa-explore']) {
       expect(lstatSync(p('.claude', 'skills', skill)).isSymbolicLink(), skill).toBe(true);
       expect(await read(`.claude/skills/${skill}/SKILL.md`)).toContain('from npx skills');
     }
@@ -329,23 +329,23 @@ describe('OpenSpec 2.0 skills: hardening', () => {
   it('keeps edited MiniMax skills in the home folder when the profile drops them', async () => {
     await new InitCommand({ tools: 'minimax-code', force: true }).execute(project);
     const minimax = path.join(root, 'home', '.minimax', 'skills');
-    await fs.appendFile(path.join(minimax, 'openspec-propose', 'SKILL.md'), '\nMY EDIT\n');
-    await fs.writeFile(path.join(minimax, 'openspec-explore', 'notes.md'), 'mine\n');
+    await fs.appendFile(path.join(minimax, 'sa-propose', 'SKILL.md'), '\nMY EDIT\n');
+    await fs.writeFile(path.join(minimax, 'sa-explore', 'notes.md'), 'mine\n');
     await setProfile({ profile: 'custom', workflows: ['apply', 'archive'] });
 
     await new UpdateCommand().execute(project);
 
-    expect(readFileSync(path.join(minimax, 'openspec-propose', 'SKILL.md'), 'utf8')).toContain('MY EDIT');
-    expect(readFileSync(path.join(minimax, 'openspec-explore', 'notes.md'), 'utf8')).toBe('mine\n');
+    expect(readFileSync(path.join(minimax, 'sa-propose', 'SKILL.md'), 'utf8')).toContain('MY EDIT');
+    expect(readFileSync(path.join(minimax, 'sa-explore', 'notes.md'), 'utf8')).toBe('mine\n');
     // OpenSpec's own, untouched SKILL.md of a dropped workflow still goes.
-    expect(await fs.access(path.join(minimax, 'openspec-explore', 'SKILL.md')).then(() => true, () => false)).toBe(false);
-    expect(await fs.access(path.join(minimax, 'openspec-update-change')).then(() => true, () => false)).toBe(false);
+    expect(await fs.access(path.join(minimax, 'sa-explore', 'SKILL.md')).then(() => true, () => false)).toBe(false);
+    expect(await fs.access(path.join(minimax, 'sa-update-change')).then(() => true, () => false)).toBe(false);
     await settles();
   });
 
   it('saves an edited MiniMax skill before refreshing it when its workflow comes back', async () => {
     await new InitCommand({ tools: 'minimax-code', force: true }).execute(project);
-    const skill = path.join(root, 'home', '.minimax', 'skills', 'openspec-explore', 'SKILL.md');
+    const skill = path.join(root, 'home', '.minimax', 'skills', 'sa-explore', 'SKILL.md');
     await fs.appendFile(skill, '\nMY EDIT\n');
     const edited = readFileSync(skill, 'utf8');
     await setProfile({ profile: 'custom', workflows: ['propose', 'apply', 'archive'] });
@@ -363,7 +363,7 @@ describe('OpenSpec 2.0 skills: hardening', () => {
   it('never writes through, or fails on, the user’s link in MiniMax’s skills folder', async () => {
     await new InitCommand({ tools: 'minimax-code', force: true }).execute(project);
     const minimax = path.join(root, 'home', '.minimax', 'skills');
-    for (const [skill, team] of [['openspec-explore', 'explore'], ['openspec-propose', 'propose']]) {
+    for (const [skill, team] of [['sa-explore', 'explore'], ['sa-propose', 'propose']]) {
       const target = path.join(root, 'team', team);
       await fs.mkdir(target, { recursive: true });
       await fs.writeFile(path.join(target, 'SKILL.md'), `team ${team}\n`);
@@ -377,23 +377,23 @@ describe('OpenSpec 2.0 skills: hardening', () => {
 
     expect(readFileSync(path.join(root, 'team', 'explore', 'SKILL.md'), 'utf8')).toBe('team explore\n');
     expect(readFileSync(path.join(root, 'team', 'propose', 'SKILL.md'), 'utf8')).toBe('team propose\n');
-    expect(lstatSync(path.join(minimax, 'openspec-explore')).isSymbolicLink()).toBe(true);
+    expect(lstatSync(path.join(minimax, 'sa-explore')).isSymbolicLink()).toBe(true);
   });
 
   it('init saves an edited MiniMax skill before refreshing it, and never writes through a link', async () => {
     await new InitCommand({ tools: 'minimax-code', force: true }).execute(project);
     const minimax = path.join(root, 'home', '.minimax', 'skills');
-    await fs.appendFile(path.join(minimax, 'openspec-explore', 'SKILL.md'), '\nMY EDIT\n');
-    const edited = readFileSync(path.join(minimax, 'openspec-explore', 'SKILL.md'), 'utf8');
+    await fs.appendFile(path.join(minimax, 'sa-explore', 'SKILL.md'), '\nMY EDIT\n');
+    const edited = readFileSync(path.join(minimax, 'sa-explore', 'SKILL.md'), 'utf8');
     const team = path.join(root, 'team', 'propose');
     await fs.mkdir(team, { recursive: true });
     await fs.writeFile(path.join(team, 'SKILL.md'), 'team propose\n');
-    await fs.rm(path.join(minimax, 'openspec-propose'), { recursive: true });
-    await fs.symlink(team, path.join(minimax, 'openspec-propose'), linkType);
+    await fs.rm(path.join(minimax, 'sa-propose'), { recursive: true });
+    await fs.symlink(team, path.join(minimax, 'sa-propose'), linkType);
 
     await new InitCommand({ tools: 'minimax-code', force: true }).execute(project);
 
-    expect(readFileSync(path.join(minimax, 'openspec-explore', 'SKILL.md.bak'), 'utf8')).toBe(edited);
+    expect(readFileSync(path.join(minimax, 'sa-explore', 'SKILL.md.bak'), 'utf8')).toBe(edited);
     expect(readFileSync(path.join(team, 'SKILL.md'), 'utf8')).toBe('team propose\n');
   });
 
@@ -403,8 +403,8 @@ describe('OpenSpec 2.0 skills: hardening', () => {
     const team = path.join(root, 'team', 'explore');
     await fs.mkdir(team, { recursive: true });
     await fs.writeFile(path.join(team, 'SKILL.md'), 'mine\n');
-    await fs.rm(path.join(minimax, 'openspec-explore'), { recursive: true });
-    await fs.symlink(team, path.join(minimax, 'openspec-explore'), linkType);
+    await fs.rm(path.join(minimax, 'sa-explore'), { recursive: true });
+    await fs.symlink(team, path.join(minimax, 'sa-explore'), linkType);
 
     await new UpdateCommand().execute(project);
 
@@ -414,7 +414,7 @@ describe('OpenSpec 2.0 skills: hardening', () => {
 
   it.skipIf(process.platform === 'win32')('never writes a MiniMax backup through a dangling link', async () => {
     await new InitCommand({ tools: 'minimax-code', force: true }).execute(project);
-    const skillDir = path.join(root, 'home', '.minimax', 'skills', 'openspec-explore');
+    const skillDir = path.join(root, 'home', '.minimax', 'skills', 'sa-explore');
     await fs.appendFile(path.join(skillDir, 'SKILL.md'), '\nEDIT\n');
     const outside = path.join(root, 'outside', 'stolen.txt');
     await fs.mkdir(path.dirname(outside), { recursive: true });
@@ -431,25 +431,25 @@ describe('OpenSpec 2.0 skills: hardening', () => {
 
   it('installs OpenSpec’s skill again once the user deletes the one kept as theirs', async () => {
     await new InitCommand({ tools: 'claude,codex', force: true }).execute(project);
-    await fs.appendFile(p('.agents', 'skills', 'openspec-explore', 'SKILL.md'), '\nmy edit\n');
+    await fs.appendFile(p('.agents', 'skills', 'sa-explore', 'SKILL.md'), '\nmy edit\n');
     await setProfile({ profile: 'custom', workflows: ['propose', 'apply', 'update', 'archive'] });
     await new UpdateCommand().execute(project);
-    expect(await read('.agents/skills/.openspec-target')).toContain('keep openspec-explore');
+    expect(await read('.agents/skills/.openspec-target')).toContain('keep sa-explore');
     await setProfile({ profile: 'core' });
     await new UpdateCommand().execute(project);
-    await fs.rm(p('.agents', 'skills', 'openspec-explore'), { recursive: true });
+    await fs.rm(p('.agents', 'skills', 'sa-explore'), { recursive: true });
 
     await new UpdateCommand().execute(project);
 
-    expect(await read('.agents/skills/openspec-explore/SKILL.md')).not.toContain('my edit');
-    expect(await read('.claude/skills/openspec-explore/SKILL.md')).toContain('name: openspec-explore');
+    expect(await read('.agents/skills/sa-explore/SKILL.md')).not.toContain('my edit');
+    expect(await read('.claude/skills/sa-explore/SKILL.md')).toContain('name: sa-explore');
     expect(await read('.agents/skills/.openspec-target')).not.toContain('keep');
     await settles();
   });
 
   it('keeps a dangling link in MiniMax’s skills folder, and settles', async () => {
     await new InitCommand({ tools: 'minimax-code', force: true }).execute(project);
-    const spot = path.join(root, 'home', '.minimax', 'skills', 'openspec-explore');
+    const spot = path.join(root, 'home', '.minimax', 'skills', 'sa-explore');
     await fs.rm(spot, { recursive: true });
     await fs.symlink(path.join(root, 'not-here'), spot, linkType);
 
@@ -461,16 +461,16 @@ describe('OpenSpec 2.0 skills: hardening', () => {
 
   it('plans exactly what it does for a skill folder holding an empty subfolder', async () => {
     await new InitCommand({ tools: 'claude', force: true }).execute(project);
-    const spot = p('.claude', 'skills', 'openspec-explore');
+    const spot = p('.claude', 'skills', 'sa-explore');
     await fs.rm(spot);
     await fs.mkdir(path.join(spot, 'scripts'), { recursive: true });
-    await fs.copyFile(p('.agents', 'skills', 'openspec-explore', 'SKILL.md'), path.join(spot, 'SKILL.md'));
+    await fs.copyFile(p('.agents', 'skills', 'sa-explore', 'SKILL.md'), path.join(spot, 'SKILL.md'));
 
     const plan = await new UpdateCommand({ force: true, dryRun: true }).plan(project);
     await new UpdateCommand({ force: true }).execute(project);
 
     // The user's subfolder makes the folder theirs: kept, in the plan and on disk.
-    expect(plan.changes.filter((change) => change.path.includes('openspec-explore'))).toEqual([]);
+    expect(plan.changes.filter((change) => change.path.includes('sa-explore'))).toEqual([]);
     expect(lstatSync(spot).isDirectory()).toBe(true);
     expect(lstatSync(path.join(spot, 'scripts')).isDirectory()).toBe(true);
   });
@@ -484,7 +484,7 @@ describe('OpenSpec 2.0 skills: hardening', () => {
 
     await new InitCommand({ tools: 'cursor', force: true }).execute(project);
 
-    expect(await exists('.agents/skills/openspec-propose/SKILL.md')).toBe(true);
+    expect(await exists('.agents/skills/sa-propose/SKILL.md')).toBe(true);
     expect(await fs.readdir(path.dirname(dotfiles))).toEqual(['my-skill']);
     await settles();
   });
@@ -510,19 +510,19 @@ describe('OpenSpec 2.0 skills: hardening', () => {
 
   it('links Claude to a shared skill the user replaced, even over an equal copy', async () => {
     await new InitCommand({ tools: 'claude', force: true }).execute(project);
-    const spot = p('.claude', 'skills', 'openspec-explore');
+    const spot = p('.claude', 'skills', 'sa-explore');
     await fs.rm(spot);
     await fs.mkdir(spot);
-    await fs.copyFile(p('.agents', 'skills', 'openspec-explore', 'SKILL.md'), path.join(spot, 'SKILL.md'));
+    await fs.copyFile(p('.agents', 'skills', 'sa-explore', 'SKILL.md'), path.join(spot, 'SKILL.md'));
     const team = path.join(project, 'team', 'explore');
     await fs.mkdir(team, { recursive: true });
     await fs.writeFile(path.join(team, 'SKILL.md'), 'TEAM VERSION\n');
-    await fs.rm(p('.agents', 'skills', 'openspec-explore'), { recursive: true });
-    await fs.symlink(path.join('..', '..', 'team', 'explore'), p('.agents', 'skills', 'openspec-explore'), linkType);
+    await fs.rm(p('.agents', 'skills', 'sa-explore'), { recursive: true });
+    await fs.symlink(path.join('..', '..', 'team', 'explore'), p('.agents', 'skills', 'sa-explore'), linkType);
 
     await new UpdateCommand().execute(project);
 
-    expect(await read('.claude/skills/openspec-explore/SKILL.md')).toBe('TEAM VERSION\n');
+    expect(await read('.claude/skills/sa-explore/SKILL.md')).toBe('TEAM VERSION\n');
     await settles();
   });
 
@@ -543,14 +543,14 @@ describe('OpenSpec 2.0 skills: hardening', () => {
       workflows: ['propose', 'explore', 'new', 'continue', 'apply', 'update', 'ff', 'sync', 'archive', 'bulk-archive', 'verify', 'onboard'],
     });
     await new InitCommand({ tools: 'claude', force: true }).execute(project);
-    const older = await read('.agents/skills/openspec-apply-change/SKILL.md');
+    const older = await read('.agents/skills/sa-implement/SKILL.md');
     await setProfile({ profile: 'core' });
     await new UpdateCommand().execute(project);
-    const spot = p('.claude', 'skills', 'openspec-apply-change');
+    const spot = p('.claude', 'skills', 'sa-implement');
     await fs.rm(spot);
     await fs.mkdir(spot);
     await fs.writeFile(path.join(spot, 'SKILL.md'), older);
-    expect(older).not.toBe(await read('.agents/skills/openspec-apply-change/SKILL.md'));
+    expect(older).not.toBe(await read('.agents/skills/sa-implement/SKILL.md'));
 
     await new UpdateCommand().execute(project);
 
@@ -559,37 +559,37 @@ describe('OpenSpec 2.0 skills: hardening', () => {
   });
 
   it('settles when an old tool folder holds an exact copy of a skill kept as the user’s', async () => {
-    const mine = '---\nname: openspec-explore\ndescription: mine\n---\nmy own explore\n';
+    const mine = '---\nname: sa-explore\ndescription: mine\n---\nmy own explore\n';
     for (const dir of ['.agents', '.cursor']) {
-      await fs.mkdir(p(dir, 'skills', 'openspec-explore'), { recursive: true });
-      await fs.writeFile(p(dir, 'skills', 'openspec-explore', 'SKILL.md'), mine);
+      await fs.mkdir(p(dir, 'skills', 'sa-explore'), { recursive: true });
+      await fs.writeFile(p(dir, 'skills', 'sa-explore', 'SKILL.md'), mine);
     }
 
     await new InitCommand({ tools: 'cursor', force: true }).execute(project);
     await new UpdateCommand().execute(project);
 
-    expect(await read('.cursor/skills/openspec-explore/SKILL.md')).toBe(mine);
+    expect(await read('.cursor/skills/sa-explore/SKILL.md')).toBe(mine);
     await settles();
   });
 
   it('keeps a fallback copy equal to the shared copy (where links can’t be made)', async () => {
     await new InitCommand({ tools: 'claude', force: true }).execute(project);
-    const spot = p('.claude', 'skills', 'openspec-explore');
+    const spot = p('.claude', 'skills', 'sa-explore');
     await fs.rm(spot);
     await fs.mkdir(spot);
-    await fs.copyFile(p('.agents', 'skills', 'openspec-explore', 'SKILL.md'), path.join(spot, 'SKILL.md'));
+    await fs.copyFile(p('.agents', 'skills', 'sa-explore', 'SKILL.md'), path.join(spot, 'SKILL.md'));
 
     const plan = await new UpdateCommand({ force: true, dryRun: true }).plan(project);
     await new UpdateCommand({ force: true }).execute(project);
 
-    expect(plan.changes.filter((change) => change.path.includes('openspec-explore'))).toEqual([]);
+    expect(plan.changes.filter((change) => change.path.includes('sa-explore'))).toEqual([]);
     expect(lstatSync(spot).isDirectory()).toBe(true);
     await settles();
   });
 
   it('links a skill whose folder was left empty', async () => {
     await new InitCommand({ tools: 'claude', force: true }).execute(project);
-    const spot = p('.claude', 'skills', 'openspec-explore');
+    const spot = p('.claude', 'skills', 'sa-explore');
     await fs.rm(spot);
     await fs.mkdir(spot);
     await fs.writeFile(path.join(spot, '.DS_Store'), 'x');
@@ -617,7 +617,7 @@ describe('OpenSpec 2.0 skills: hardening', () => {
   it.skipIf(process.platform === 'win32')('init for one tool reports a failure in another set-up tool’s skills folder', async () => {
     await new InitCommand({ tools: 'claude', force: true }).execute(project);
     // Claude needs a link it can't write: its skills folder is read-only.
-    await fs.rm(p('.claude', 'skills', 'openspec-explore'));
+    await fs.rm(p('.claude', 'skills', 'sa-explore'));
     await fs.chmod(p('.claude', 'skills'), 0o555);
     // Its generated command files must survive the failure, as in update.
     await fs.mkdir(p('.claude', 'commands', 'opsx'), { recursive: true });
@@ -629,7 +629,7 @@ describe('OpenSpec 2.0 skills: hardening', () => {
       await expect(new InitCommand({ tools: 'cursor', force: true }).execute(project)).rejects.toThrow(
         'Claude Code (already set up here)'
       );
-      expect(await exists('.agents/skills/openspec-propose/SKILL.md')).toBe(true);
+      expect(await exists('.agents/skills/sa-propose/SKILL.md')).toBe(true);
       expect(await exists('.claude/commands/opsx/explore.md')).toBe(true);
     } finally {
       await fs.chmod(p('.claude', 'skills'), 0o755);
@@ -643,12 +643,12 @@ describe('OpenSpec 2.0 skills: hardening', () => {
       path.join(FIXTURES, 'v1.0.0-claude-command-opsx-explore.md'),
       p('.claude', 'commands', 'opsx', 'explore.md')
     );
-    const before = readlinkSync(p('.claude', 'skills', 'openspec-explore'));
+    const before = readlinkSync(p('.claude', 'skills', 'sa-explore'));
 
     await new InitCommand({ tools: 'none', force: true }).execute(project);
 
     expect(await exists('.claude/commands/opsx/explore.md')).toBe(true);
-    expect(readlinkSync(p('.claude', 'skills', 'openspec-explore'))).toBe(before);
+    expect(readlinkSync(p('.claude', 'skills', 'sa-explore'))).toBe(before);
   });
 
   it('lists an edited Codex prompt it keeps while removing the untouched ones', async () => {
@@ -677,22 +677,22 @@ describe('OpenSpec 2.0 skills: hardening', () => {
 
   it('says which edited skills it replaced when refreshing the skills it installs', async () => {
     await new InitCommand({ tools: 'codex,claude', force: true }).execute(project);
-    await fs.appendFile(p('.agents', 'skills', 'openspec-propose', 'SKILL.md'), '\nMY EDIT\n');
+    await fs.appendFile(p('.agents', 'skills', 'sa-propose', 'SKILL.md'), '\nMY EDIT\n');
 
     // A dry run warns before anything is replaced.
     const plan = await new UpdateCommand({ force: true, dryRun: true }).plan(project);
     expect(plan.notes.find((note) => note.code === 'edited-skills')?.message).toContain(
-      '.agents/skills/openspec-propose/SKILL.md'
+      '.agents/skills/sa-propose/SKILL.md'
     );
-    expect(await read('.agents/skills/openspec-propose/SKILL.md')).toContain('MY EDIT');
+    expect(await read('.agents/skills/sa-propose/SKILL.md')).toContain('MY EDIT');
 
     logs = [];
     await new UpdateCommand({ force: true }).execute(project);
 
     // Refreshed in place, as in 1.x: the edit is gone, and update says so.
-    expect(await read('.agents/skills/openspec-propose/SKILL.md')).not.toContain('MY EDIT');
+    expect(await read('.agents/skills/sa-propose/SKILL.md')).not.toContain('MY EDIT');
     const out = logs.join('\n');
-    expect(out).toContain('Replaced your edits in 1 skill OpenSpec installs: .agents/skills/openspec-propose/SKILL.md');
+    expect(out).toContain('Replaced your edits in 1 skill OpenSpec installs: .agents/skills/sa-propose/SKILL.md');
 
     // Untouched skills are never reported.
     logs = [];
@@ -702,12 +702,12 @@ describe('OpenSpec 2.0 skills: hardening', () => {
 
   it('init says so too when it replaces an edited skill', async () => {
     await new InitCommand({ tools: 'cursor', force: true }).execute(project);
-    await fs.appendFile(p('.agents', 'skills', 'openspec-explore', 'SKILL.md'), '\nMY EDIT\n');
+    await fs.appendFile(p('.agents', 'skills', 'sa-explore', 'SKILL.md'), '\nMY EDIT\n');
 
     logs = [];
     await new InitCommand({ tools: 'cursor', force: true }).execute(project);
 
-    expect(logs.join('\n')).toContain('Replaced your edits in 1 skill OpenSpec installs: .agents/skills/openspec-explore/SKILL.md');
+    expect(logs.join('\n')).toContain('Replaced your edits in 1 skill OpenSpec installs: .agents/skills/sa-explore/SKILL.md');
   });
 
   it('lists an edited Codex prompt under --force even when no untouched prompt is left', async () => {
@@ -746,7 +746,7 @@ describe('OpenSpec 2.0 skills: hardening', () => {
 
   it('keeps links relative', async () => {
     await new InitCommand({ tools: 'claude', force: true }).execute(project);
-    const spot = p('.claude', 'skills', 'openspec-explore');
+    const spot = p('.claude', 'skills', 'sa-explore');
     expect(lstatSync(spot).isSymbolicLink()).toBe(true);
     expect(path.isAbsolute(readlinkSync(spot))).toBe(false);
   });

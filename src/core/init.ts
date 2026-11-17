@@ -21,6 +21,8 @@ import { findRepoPlanningRootSync } from './planning-home.js';
 import { resolveOpenSpecRoot } from './root-selection.js';
 import { ANCHORED_OPENSPEC_DIRS, ensureDirectoryAnchor } from './openspec-root.js';
 import { getSkillReferenceTransformer, getTransformerForTool, transformToSkillReferences, usesNaturalLanguageSkillReferences } from '../utils/command-references.js';
+import { REPOSITORY_URL, applyForkIdentity } from './fork/identity.js';
+import { formerSkillsKeptMessage, migrateFormerSkills } from './fork/former-skills.js';
 import {
   AI_TOOLS,
   SKILL_LINKED_TOOL_IDS,
@@ -199,14 +201,14 @@ export class InitCommand {
           throw new Error(
             `The store declaration in ${pointer.filePath} is invalid (` +
               storePointerProblem(pointer.malformed) +
-              `). Fix or remove the store: line before running openspec init.`
+              `). Fix or remove the store: line before running specagile init.`
           );
         }
         if (pointer.value !== undefined) {
           if (path.resolve(guardRoot) !== projectPath) {
             throw new Error(
               `This repo's planning is externalized to store '${pointer.value}' (${pointer.filePath}). ` +
-                'Run openspec init from the pointer repo root to install integrations.'
+                'Run specagile init from the pointer repo root to install integrations.'
             );
           }
 
@@ -1083,6 +1085,20 @@ export class InitCommand {
         failedTools.push({ name: other.name, error: error as Error });
       }
     }
+    // SpecAgile: skills under their former `openspec-*` names, now that the
+    // `sa-*` ones are in place. Not after a failure: those may be missing.
+    if (failedTools.length === 0 && sharedToolIds.length > 0) {
+      const formerSkills = await migrateFormerSkills({
+        projectPath,
+        tools: AI_TOOLS.filter((tool) => sharedToolIds.includes(tool.value)),
+        version: OPENSPEC_VERSION,
+        ops: realFileOps,
+        view: DISK_VIEW,
+        writesToDisk: true,
+      });
+      removedSkillCount += formerSkills.removed.length;
+      if (formerSkills.kept.length > 0) console.log(chalk.yellow(formerSkillsKeptMessage(formerSkills.kept)));
+    }
     if (keptOwnSkills.length > 0) {
       console.log(
         chalk.yellow(
@@ -1325,7 +1341,7 @@ export class InitCommand {
       );
     } else if (copilotSucceeded && copilot.skippedUndecided) {
       console.log(
-        chalk.dim("Skipped GitHub Copilot cloud files (opt-in). Enable with 'openspec init --copilot-cloud'.")
+        chalk.dim("Skipped GitHub Copilot cloud files (opt-in). Enable with 'specagile init --copilot-cloud'.")
       );
     }
 
@@ -1364,7 +1380,7 @@ export class InitCommand {
       const hintToTools = new Map<string, string[]>();
       for (const tool of successfulTools) {
         let hint: string;
-        const skillReference = getSkillReferenceTransformer(tool.value)(command);
+        const skillReference = applyForkIdentity(getSkillReferenceTransformer(tool.value)(command));
         // Tools with no slash surface (e.g. Rovo Dev) reference skills as
         // prose ("the openspec-propose skill"); phrase the hint so it reads
         // as an instruction rather than a dead command with an argument.
@@ -1379,7 +1395,7 @@ export class InitCommand {
       }
       if (hintToTools.size === 0) {
         // No successful tools: name the skill in its default spelling.
-        return [`Start your first change: ${transformToSkillReferences(command)} "your idea"`];
+        return [`Start your first change: ${applyForkIdentity(transformToSkillReferences(command))} "your idea"`];
       }
       if (hintToTools.size === 1) {
         return [[...hintToTools.keys()][0]];
@@ -1399,7 +1415,7 @@ export class InitCommand {
     } else if (activeWorkflows.includes('new')) {
       printStartHints('/opsx:new');
     } else {
-      console.log("Done. Run 'openspec config profile' to configure your workflows.");
+      console.log("Done. Run 'specagile config profile' to configure your workflows.");
       advertisedAnInvocation = false;
     }
 
@@ -1422,8 +1438,8 @@ export class InitCommand {
 
     // Links
     console.log();
-    console.log(`Learn more: ${chalk.cyan('https://github.com/Fission-AI/OpenSpec')}`);
-    console.log(`Feedback:   ${chalk.cyan('https://github.com/Fission-AI/OpenSpec/issues')}`);
+    console.log(`Learn more: ${chalk.cyan(REPOSITORY_URL)}`);
+    console.log(`Feedback:   ${chalk.cyan(`${REPOSITORY_URL}/issues`)}`);
 
     // Restart instruction for successfully configured IDE/editor-resident tools
     // with a supported surface under the active delivery. The rule and wording live in

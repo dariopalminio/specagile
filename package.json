@@ -1,21 +1,25 @@
 {
-  "name": "@fission-ai/openspec",
+  "name": "specagile",
   "version": "2.0.0",
   "description": "AI-native system for spec-driven development",
   "keywords": [
+    "specagile",
     "openspec",
     "specs",
     "cli",
     "ai",
     "development"
   ],
-  "homepage": "https://github.com/Fission-AI/OpenSpec",
+  "homepage": "https://github.com/dariopalminio/specagile",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Fission-AI/OpenSpec"
+    "url": "https://github.com/dariopalminio/specagile"
+  },
+  "bugs": {
+    "url": "https://github.com/dariopalminio/specagile/issues"
   },
   "license": "MIT",
-  "author": "FISSION AI INC",
+  "author": "Dario Palminio",
   "type": "module",
   "packageManager": "pnpm@10.34.5",
   "publishConfig": {
@@ -28,7 +32,7 @@
     }
   },
   "bin": {
-    "openspec": "./bin/openspec.js"
+    "specagile": "./bin/specagile.js"
   },
   "files": [
     "dist",
@@ -44,7 +48,7 @@
     "generate:skills": "node scripts/generate-skillssh.mjs",
     "regen:parity-hashes": "node scripts/regen-parity-hashes.mjs",
     "dev": "tsc --watch",
-    "dev:cli": "pnpm build && node bin/openspec.js",
+    "dev:cli": "pnpm build && node bin/specagile.js",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",

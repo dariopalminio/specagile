@@ -11,7 +11,7 @@ import { cliProjectRoot, ensureCliBuilt } from '../helpers/run-cli.js';
 // only the command definitions (names, options, help text) and its own
 // implementation; everything else loads on demand.
 
-const binPath = path.join(cliProjectRoot, 'bin', 'openspec.js');
+const binPath = path.join(cliProjectRoot, 'bin', 'specagile.js');
 const hookUrl = pathToFileURL(
   path.join(cliProjectRoot, 'test', 'helpers', 'record-loaded-modules.mjs')
 ).href;
@@ -160,13 +160,15 @@ describe('CLI startup loads only what the command needs', () => {
   // prefix-matches `completion:*`. Widening one into the other would silently
   // stop tracking every user-facing command in that group, and every assertion
   // above would still pass.
+  // SpecAgile sends no telemetry: the hooks still run (the completion tip),
+  // and the telemetry module is never loaded.
   it.each([['list --json'], ['completion generate zsh']])(
-    '`openspec %s` still reaches the telemetry hooks',
+    '`specagile %s` still reaches the hooks, without telemetry',
     async (invocation) => {
       await ensureCliBuilt();
       const { own } = loadedModules(invocation.split(' '));
 
-      expect(own).toContain('telemetry/index.js');
+      expect(own).not.toContain('telemetry/index.js');
       expect(own).toContain('core/completion-tip.js');
     }
   );

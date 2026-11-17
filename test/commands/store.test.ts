@@ -1132,7 +1132,7 @@ describe('store command', () => {
     expect(conflictStatus.code).toBe('store_id_conflict');
     expect(conflictStatus.message).toContain('One checkout per store id');
     expect(conflictStatus.message).toContain(expectedExistingPath(original));
-    expect(conflictStatus.fix).toContain('openspec store unregister team-context');
+    expect(conflictStatus.fix).toContain('specagile store unregister team-context');
     expect(conflictStatus.fix).not.toContain('different store id');
 
     // Mismatched --id when the metadata id is already registered elsewhere:
@@ -1239,11 +1239,11 @@ describe('store command', () => {
       });
 
       expect(result.exitCode).toBe(1);
-      expect(result.stderr).toContain("unknown command 'new' for 'openspec store'");
+      expect(result.stderr).toContain("unknown command 'new' for 'specagile store'");
       expect(result.stderr).toContain(
         'setup, register, unregister, remove, list (ls), doctor'
       );
-      expect(result.stderr).toContain('openspec new change billing-rework --store <id>');
+      expect(result.stderr).toContain('specagile new change billing-rework --store <id>');
     });
 
     it('never suggests an invalid command for partial new invocations', async () => {
@@ -1251,8 +1251,8 @@ describe('store command', () => {
 
       expect(result.exitCode).toBe(1);
       // 'new my-change' would be invalid; the hint falls back to the full form.
-      expect(result.stderr).toContain('openspec new change <change-id> --store <id>');
-      expect(result.stderr).not.toContain('openspec new my-change');
+      expect(result.stderr).toContain('specagile new change <change-id> --store <id>');
+      expect(result.stderr).not.toContain('specagile new my-change');
     });
 
     it('falls back to the generic example when flags interleave operands', async () => {
@@ -1262,7 +1262,7 @@ describe('store command', () => {
       );
 
       expect(result.exitCode).toBe(1);
-      expect(result.stderr).toContain('openspec new change <change-id> --store <id>');
+      expect(result.stderr).toContain('specagile new change <change-id> --store <id>');
       expect(result.stderr).not.toContain('core');
     });
 

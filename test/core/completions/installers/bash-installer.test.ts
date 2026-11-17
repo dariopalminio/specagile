@@ -23,7 +23,7 @@ describe('BashInstaller', () => {
     it('should return standard bash-completion path', async () => {
       const result = await installer.getInstallationPath();
 
-      expect(result).toBe(path.join(testHomeDir, '.local', 'share', 'bash-completion', 'completions', 'openspec'));
+      expect(result).toBe(path.join(testHomeDir, '.local', 'share', 'bash-completion', 'completions', 'specagile'));
     });
   });
 
@@ -66,7 +66,7 @@ describe('BashInstaller', () => {
       const result = await installer.install(testScript);
 
       expect(result.success).toBe(true);
-      expect(result.installedPath).toBe(path.join(testHomeDir, '.local', 'share', 'bash-completion', 'completions', 'openspec'));
+      expect(result.installedPath).toBe(path.join(testHomeDir, '.local', 'share', 'bash-completion', 'completions', 'specagile'));
 
       // Verify file was created with correct content
       const content = await fs.readFile(result.installedPath!, 'utf-8');
@@ -85,7 +85,7 @@ describe('BashInstaller', () => {
     });
 
     it('should backup existing file before overwriting', async () => {
-      const targetPath = path.join(testHomeDir, '.local', 'share', 'bash-completion', 'completions', 'openspec');
+      const targetPath = path.join(testHomeDir, '.local', 'share', 'bash-completion', 'completions', 'specagile');
       await fs.mkdir(path.dirname(targetPath), { recursive: true });
       await fs.writeFile(targetPath, 'old script');
 
@@ -113,8 +113,8 @@ describe('BashInstaller', () => {
       const bashrcPath = path.join(testHomeDir, '.bashrc');
       const content = await fs.readFile(bashrcPath, 'utf-8');
 
-      expect(content).toContain('# OPENSPEC:START');
-      expect(content).toContain('# OPENSPEC:END');
+      expect(content).toContain('# SPECAGILE:START');
+      expect(content).toContain('# SPECAGILE:END');
       expect(content).toContain('OpenSpec shell completions configuration');
     });
 
@@ -269,8 +269,8 @@ describe('BashInstaller', () => {
 
       if (exists) {
         const content = await fs.readFile(bashrcPath, 'utf-8');
-        expect(content).not.toContain('# OPENSPEC:START');
-        expect(content).not.toContain('# OPENSPEC:END');
+        expect(content).not.toContain('# SPECAGILE:START');
+        expect(content).not.toContain('# SPECAGILE:END');
       }
     });
   });
@@ -286,8 +286,8 @@ describe('BashInstaller', () => {
       const bashrcPath = path.join(testHomeDir, '.bashrc');
       const content = await fs.readFile(bashrcPath, 'utf-8');
 
-      expect(content).toContain('# OPENSPEC:START');
-      expect(content).toContain('# OPENSPEC:END');
+      expect(content).toContain('# SPECAGILE:START');
+      expect(content).toContain('# SPECAGILE:END');
       expect(content).toContain('# OpenSpec shell completions configuration');
       expect(content).toContain(completionsDir);
     });
@@ -322,7 +322,7 @@ describe('BashInstaller', () => {
         const hostileHome = path.join(testHomeDir, "x$(touch pwned)`id`'q");
         const hostileInstaller = new BashInstaller(hostileHome);
 
-        const result = await hostileInstaller.install('#compdef openspec\n');
+        const result = await hostileInstaller.install('#compdef specagile\n');
         const printed = result.instructions!.join('\n');
 
         expect(printed).not.toContain('"$(touch');
@@ -356,13 +356,13 @@ describe('BashInstaller', () => {
 
       const content = await fs.readFile(bashrcPath, 'utf-8');
 
-      expect(content).toContain('# OPENSPEC:START');
-      expect(content).toContain('# OPENSPEC:END');
+      expect(content).toContain('# SPECAGILE:START');
+      expect(content).toContain('# SPECAGILE:END');
       expect(content).toContain('# My custom bash config');
       expect(content).toContain('alias ll="ls -la"');
 
       // Config should be before existing content
-      const configIndex = content.indexOf('# OPENSPEC:START');
+      const configIndex = content.indexOf('# SPECAGILE:START');
       const aliasIndex = content.indexOf('alias ll');
       expect(configIndex).toBeLessThan(aliasIndex);
     });
@@ -370,12 +370,12 @@ describe('BashInstaller', () => {
     it('should update config between markers when .bashrc has existing markers', async () => {
       const bashrcPath = path.join(testHomeDir, '.bashrc');
       const initialContent = [
-        '# OPENSPEC:START',
+        '# SPECAGILE:START',
         '# Old config',
         'if [ -d "/old/path" ]; then',
         '  . "/old/path"',
         'fi',
-        '# OPENSPEC:END',
+        '# SPECAGILE:END',
         '',
         '# My custom config',
       ].join('\n');
@@ -388,8 +388,8 @@ describe('BashInstaller', () => {
 
       const content = await fs.readFile(bashrcPath, 'utf-8');
 
-      expect(content).toContain('# OPENSPEC:START');
-      expect(content).toContain('# OPENSPEC:END');
+      expect(content).toContain('# SPECAGILE:START');
+      expect(content).toContain('# SPECAGILE:END');
       expect(content).toContain(completionsDir);
       expect(content).not.toContain('# Old config');
       expect(content).not.toContain('/old/path');
@@ -402,9 +402,9 @@ describe('BashInstaller', () => {
         '# My bash config',
         'export PATH="/custom/path:$PATH"',
         '',
-        '# OPENSPEC:START',
+        '# SPECAGILE:START',
         '# Old OpenSpec config',
-        '# OPENSPEC:END',
+        '# SPECAGILE:END',
         '',
         'alias ls="ls -G"',
       ].join('\n');
@@ -481,12 +481,12 @@ describe('BashInstaller', () => {
       const content = [
         '# My config',
         '',
-        '# OPENSPEC:START',
+        '# SPECAGILE:START',
         '# OpenSpec shell completions configuration',
         'if [ -d ~/.local/share/bash-completion/completions ]; then',
-        '  . ~/.local/share/bash-completion/completions/openspec',
+        '  . ~/.local/share/bash-completion/completions/specagile',
         'fi',
-        '# OPENSPEC:END',
+        '# SPECAGILE:END',
         '',
         'alias ll="ls -la"',
       ].join('\n');
@@ -499,8 +499,8 @@ describe('BashInstaller', () => {
 
       const newContent = await fs.readFile(bashrcPath, 'utf-8');
 
-      expect(newContent).not.toContain('# OPENSPEC:START');
-      expect(newContent).not.toContain('# OPENSPEC:END');
+      expect(newContent).not.toContain('# SPECAGILE:START');
+      expect(newContent).not.toContain('# SPECAGILE:END');
       expect(newContent).not.toContain('OpenSpec shell completions configuration');
       expect(newContent).toContain('# My config');
       expect(newContent).toContain('alias ll="ls -la"');
@@ -511,9 +511,9 @@ describe('BashInstaller', () => {
       const content = [
         'export PATH="/custom:$PATH"',
         '',
-        '# OPENSPEC:START',
+        '# SPECAGILE:START',
         '# Config',
-        '# OPENSPEC:END',
+        '# SPECAGILE:END',
         '',
         'alias g="git"',
       ].join('\n');
@@ -528,7 +528,7 @@ describe('BashInstaller', () => {
 
       expect(newContent).toContain('export PATH="/custom:$PATH"');
       expect(newContent).toContain('alias g="git"');
-      expect(newContent).not.toContain('# OPENSPEC:START');
+      expect(newContent).not.toContain('# SPECAGILE:START');
     });
 
     it('should handle permission errors gracefully', async () => {

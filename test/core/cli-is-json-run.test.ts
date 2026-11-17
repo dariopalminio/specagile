@@ -15,7 +15,7 @@ import {
  */
 function buildProgram(capture: (command: Command) => void): Command {
   const program = new Command();
-  program.name('openspec').exitOverride();
+  program.name('specagile').exitOverride();
   program.configureOutput({ writeOut: () => {}, writeErr: () => {} });
   program.option('--no-color', 'Disable color output');
   program.hook('preAction', (_thisCommand, actionCommand) => {

@@ -5,7 +5,7 @@ import path from 'path';
 import { execFileSync, spawnSync } from 'child_process';
 
 describe('openspec show --diff', () => {
-  const openspecBin = path.join(process.cwd(), 'bin', 'openspec.js');
+  const openspecBin = path.join(process.cwd(), 'bin', 'specagile.js');
   // A fresh temp directory per test keeps concurrent test files from sharing a
   // project, and lets every run pass `cwd` instead of chdir-ing the process.
   let testDir: string;

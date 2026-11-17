@@ -35,10 +35,11 @@ import {
   getVerifyChangeSkillTemplate,
 } from '../../../src/core/templates/skill-templates.js';
 import {
-  generateSkillContent,
+  generateSkillContent as generateDeployedSkillContent,
   getCommandContents,
   getSkillTemplates,
 } from '../../../src/core/shared/skill-generation.js';
+import { withUpstreamIdentity } from '../../helpers/fork-identity.js';
 import { STORE_SELECTION_GUIDANCE } from '../../../src/core/templates/workflows/store-selection.js';
 import { resolveOptionalWorkflows } from '../../../src/core/templates/optional-workflow.js';
 import { ALL_WORKFLOWS } from '../../../src/core/profiles.js';
@@ -50,6 +51,15 @@ import { parseSchema } from '../../../src/core/artifact-graph/schema.js';
  * the unresolved authoring form: with every workflow installed this is byte
  * for byte what `getSkillTemplates()` returns.
  */
+/**
+ * SpecAgile: generated skills carry the fork's CLI and skill names. The golden
+ * hashes pin the file as deployed; the wording checks below read it in
+ * upstream's names, so they stay as upstream wrote them (test/fork/ pins the
+ * fork's identity).
+ */
+const generateSkillContent = (...args: Parameters<typeof generateDeployedSkillContent>): string =>
+  withUpstreamIdentity(generateDeployedSkillContent(...args));
+
 const asDeployed = (template: SkillTemplate): SkillTemplate => ({
   ...template,
   instructions: resolveOptionalWorkflows(
@@ -108,39 +118,39 @@ const EXPECTED_FUNCTION_HASHES: Record<string, string> = {
 };
 
 const EXPECTED_GENERATED_SKILL_CONTENT_HASHES: Record<string, string> = {
-  'openspec-explore': '29fbb89bcc8c174db9bd78e3c2bee54a9f9497647947833709741446b6a14bd3',
-  'openspec-new-change': '865a0326f5b5257869ae9615e8b86f4b58f896b18a614f272bdbf49ca2a88371',
-  'openspec-continue-change': 'c2ab331eacd0d2cbef6aa125f02063ce3e178f935b28809632ae4b644961049b',
-  'openspec-apply-change': '684ccbc41136f0e52b452640b32ba3a3f2620f3213b64244364440cc92aa1af0',
-  'openspec-ff-change': '8e9124adc5180b9257b9515b26c5bf9049ef49bf2e5b54c3cd034a5f1bf0c8d7',
-  'openspec-sync-specs': '02bb0d11a10c7626e5e641f0505336527050ab4d9d8bb45e1351c6ed05c0dc7a',
-  'openspec-archive-change': 'e5ba66cfd15422b17f04ec4a4c2a7ba51efab9be7f55d080ff3f8756ba4e9f65',
-  'openspec-bulk-archive-change': '0542c46c4aa0601028ffcdc185b024d27ed94af03d0972dbdcec25d770e839d9',
-  'openspec-verify-change': '8e547cddf53b89c95fc17d6c30decdc9a8b507bed242fae02b42a6f48c025177',
-  'openspec-onboard': '3280b0cffed0fb0b9048658db067ae495987941ef8f100c19b4cb79d42c8287f',
-  'openspec-propose': '4acd79bd024ea56c703af813b358b620a2b3a748eb5ed210f176cf79ece73bb8',
-  'openspec-update-change': 'c63eda4c2ae40d42c4f25401bc9c3b3e63ce6309ee7dbc142014beb549784135',
-  'openspec-specify': '5818319a58949fba37df5a896bc737cdd92df831ea6cf14d7d8c44aad7dba59c',
-  'openspec-plan': '113eb02bae70f5d56c71829d717d17f765b0b7534f3454fe714e44384ee56cf6',
+  'sa-explore': '1265809ee6af3976212f66c92cbaa68604e01fbf6ad4184de28796ac62c0df10',
+  'sa-new-change': 'b65a932895e1977df4fe5004c06e7acd4a4f5ace2756202c4268b73f27f5f47b',
+  'sa-continue-change': 'ef2b8e440a8c1368d2546ef0ef17849cc30fb0e60dcdfffbd00212549065ff76',
+  'sa-implement': 'd564997876ad4f373853ff5e875abee9d90a534e24ad777a03b782c9f92eec4b',
+  'sa-ff-change': '703cfa788979b46b114ef80c3a9a57db296bbff9fbc1d4624013beac3d098c7b',
+  'sa-sync-specs': 'ae0b40658b35fdb7a56a831bc30453c8a5184acdc345c61f18d300532fcf20e4',
+  'sa-archive': 'c0d03b0d8674b6a8a21121ffbf70da7b61b1cda38430509093a552f0df76887e',
+  'sa-bulk-archive-change': '3582f40ddd1b673b14cff314ad356db3292e8485a5acd90bfeed2793a013a5a3',
+  'sa-verify': 'f6c07a4ba09da167d66c51fda2d8527385ba38a9b98fdaf2f9eba129ebc857fc',
+  'sa-onboard': 'cd035b3a4540c5a3d7b7b3c82d319d2ec263e16109c58faa111a5006284061e0',
+  'sa-propose': 'ff43d58132496765ef0eb4b2760990616a47b391b6967ece1e8d6f95d11dd660',
+  'sa-update-change': 'a6a0adfb3a45285e433e705ad00e8261134017ef7dbcd833eea77665380c7ea0',
+  'sa-specify': '535f2af59f7cd2e64107cc7aba4c1dd4b8440d13406ca6871f66d228b65fe92a',
+  'sa-plan': '5423fbaf53586047b94d190b61946d1a9e401ee1f3357e61ff3fd69b655a6578',
 };
 
 // Intentionally excludes getFeedbackSkillTemplate: this list only models templates
 // deployed via generateSkillContent, while feedback is covered in function payload parity.
 const GENERATED_SKILL_FACTORIES: Array<[string, () => SkillTemplate]> = [
-  ['openspec-explore', getExploreSkillTemplate],
-  ['openspec-new-change', getNewChangeSkillTemplate],
-  ['openspec-continue-change', getContinueChangeSkillTemplate],
-  ['openspec-apply-change', getApplyChangeSkillTemplate],
-  ['openspec-ff-change', getFfChangeSkillTemplate],
-  ['openspec-sync-specs', getSyncSpecsSkillTemplate],
-  ['openspec-archive-change', getArchiveChangeSkillTemplate],
-  ['openspec-bulk-archive-change', getBulkArchiveChangeSkillTemplate],
-  ['openspec-verify-change', getVerifyChangeSkillTemplate],
-  ['openspec-onboard', getOnboardSkillTemplate],
-  ['openspec-propose', getOpsxProposeSkillTemplate],
-  ['openspec-update-change', getUpdateChangeSkillTemplate],
-  ['openspec-specify', getSpecifySkillTemplate],
-  ['openspec-plan', getPlanSkillTemplate],
+  ['sa-explore', getExploreSkillTemplate],
+  ['sa-new-change', getNewChangeSkillTemplate],
+  ['sa-continue-change', getContinueChangeSkillTemplate],
+  ['sa-implement', getApplyChangeSkillTemplate],
+  ['sa-ff-change', getFfChangeSkillTemplate],
+  ['sa-sync-specs', getSyncSpecsSkillTemplate],
+  ['sa-archive', getArchiveChangeSkillTemplate],
+  ['sa-bulk-archive-change', getBulkArchiveChangeSkillTemplate],
+  ['sa-verify', getVerifyChangeSkillTemplate],
+  ['sa-onboard', getOnboardSkillTemplate],
+  ['sa-propose', getOpsxProposeSkillTemplate],
+  ['sa-update-change', getUpdateChangeSkillTemplate],
+  ['sa-specify', getSpecifySkillTemplate],
+  ['sa-plan', getPlanSkillTemplate],
 ];
 
 function stableStringify(value: unknown): string {
@@ -251,7 +261,7 @@ describe('skill templates split parity', () => {
     const actualHashes = Object.fromEntries(
       GENERATED_SKILL_FACTORIES.map(([dirName, createTemplate]) => [
         dirName,
-        hash(generateSkillContent(asDeployed(createTemplate()), 'PARITY-BASELINE')),
+        hash(generateDeployedSkillContent(asDeployed(createTemplate()), 'PARITY-BASELINE')),
       ])
     );
 
@@ -1246,9 +1256,9 @@ describe('skill templates split parity', () => {
   // hash, so losing the guidance fails here instead of shipping.
   it('tells the sync skill that retirement needs the retire_capabilities marker', () => {
     const sync = getSkillTemplates().find(
-      ({ dirName }) => dirName === 'openspec-sync-specs'
+      ({ dirName }) => dirName === 'sa-sync-specs'
     );
-    expect(sync, 'openspec-sync-specs template').toBeTruthy();
+    expect(sync, 'sa-sync-specs template').toBeTruthy();
     const variants = [
       ['sync skill', sync!.template.instructions],
       ['sync command', getOpsxSyncCommandTemplate().content],

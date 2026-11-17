@@ -12,6 +12,7 @@ import { ownSkillFolderNeedsWork } from './shared/shared-skill-install.js';
 import { classifyOwnSkill } from './shared/own-skill-texts.js';
 import { FileSystemUtils } from '../utils/file-system.js';
 import { DISK_VIEW, type FileView } from './file-view.js';
+import { SKILL_NAME_BY_WORKFLOW } from './fork/identity.js';
 import { isRedundantLegacyCopy } from './shared/skill-content-equivalence.js';
 import {
   resolveToolSkillsDir,
@@ -23,23 +24,9 @@ type WorkflowId = (typeof ALL_WORKFLOWS)[number];
 
 /**
  * Maps workflow IDs to their skill directory names.
+ * SpecAgile: the `sa-*` names live in src/core/fork/identity.ts.
  */
-export const WORKFLOW_TO_SKILL_DIR: Record<WorkflowId, string> = {
-  'explore': 'openspec-explore',
-  'new': 'openspec-new-change',
-  'continue': 'openspec-continue-change',
-  'apply': 'openspec-apply-change',
-  'update': 'openspec-update-change',
-  'ff': 'openspec-ff-change',
-  'sync': 'openspec-sync-specs',
-  'archive': 'openspec-archive-change',
-  'bulk-archive': 'openspec-bulk-archive-change',
-  'verify': 'openspec-verify-change',
-  'onboard': 'openspec-onboard',
-  'propose': 'openspec-propose',
-  'specify': 'openspec-specify',
-  'plan': 'openspec-plan',
-};
+export const WORKFLOW_TO_SKILL_DIR: Readonly<Record<WorkflowId, string>> = SKILL_NAME_BY_WORKFLOW;
 
 function toKnownWorkflows(workflows: readonly string[]): WorkflowId[] {
   return workflows.filter(

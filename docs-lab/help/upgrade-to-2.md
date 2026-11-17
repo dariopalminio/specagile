@@ -2,7 +2,7 @@
 
 > What changes in OpenSpec 2.0, and how to move a project over.
 
-To upgrade, update the CLI, then run `openspec update` in each project. Your skills move into one shared folder and the old command files go. Old command files and old skill copies you edited are kept.
+To upgrade, update the CLI, then run `specagile update` in each project. Your skills move into one shared folder and the old command files go. Old command files and old skill copies you edited are kept.
 
 > [!WARNING]
 > `update` replaces an edit you made inside a skill OpenSpec installs in `.agents/skills/`, and keeps no copy. Save those edits first: [Skills you customized](#skills-you-customized).
@@ -27,7 +27,7 @@ Commit your work first, so you can go back to it. That commit is also the only c
 **2. Run update in each project.** In your terminal:
 
 ```bash
-openspec update
+specagile update
 ```
 
 **3. Commit the result.** The links are committed like any other file.
@@ -50,20 +50,20 @@ Each 1.x command has a skill with the same instructions:
 
 | 1.x command | 2.0 skill |
 |---|---|
-| `/opsx:propose` | `openspec-propose` |
-| `/opsx:explore` | `openspec-explore` |
-| `/opsx:apply` | `openspec-apply-change` |
-| `/opsx:update` | `openspec-update-change` |
-| `/opsx:sync` | `openspec-sync-specs` |
-| `/opsx:archive` | `openspec-archive-change` |
-| `/opsx:new` | `openspec-new-change` |
-| `/opsx:continue` | `openspec-continue-change` |
-| `/opsx:ff` | `openspec-ff-change` |
-| `/opsx:verify` | `openspec-verify-change` |
-| `/opsx:bulk-archive` | `openspec-bulk-archive-change` |
-| `/opsx:onboard` | `openspec-onboard` |
+| `/opsx:propose` | `sa-propose` |
+| `/opsx:explore` | `sa-explore` |
+| `/opsx:apply` | `sa-implement` |
+| `/opsx:update` | `sa-update-change` |
+| `/opsx:sync` | `sa-sync-specs` |
+| `/opsx:archive` | `sa-archive` |
+| `/opsx:new` | `sa-new-change` |
+| `/opsx:continue` | `sa-continue-change` |
+| `/opsx:ff` | `sa-ff-change` |
+| `/opsx:verify` | `sa-verify` |
+| `/opsx:bulk-archive` | `sa-bulk-archive-change` |
+| `/opsx:onboard` | `sa-onboard` |
 
-You can also ask for the work ("propose a change to add dark mode"). To invoke a skill by name, type `/openspec-propose` in Claude Code and most other tools, or `$openspec-propose` in Codex. [Supported tools](../reference/supported-tools.md#support-matrix) lists the spelling for each tool.
+You can also ask for the work ("propose a change to add dark mode"). To invoke a skill by name, type `/sa-propose` in Claude Code and most other tools, or `$sa-propose` in Codex. [Supported tools](../reference/supported-tools.md#support-matrix) lists the spelling for each tool.
 
 ## Command files you edited
 
@@ -87,13 +87,13 @@ MiniMax Code keeps its skills in `~/.minimax/skills/`. When `update` refreshes a
 
 ## Skills you customized
 
-`update` rewrites every skill OpenSpec installs in `.agents/skills/`, such as `.agents/skills/openspec-propose/SKILL.md`. It did the same in 1.x. If you edited one, your edit is replaced and no backup is made. `update` tells you which skills this happened to:
+`update` rewrites every skill OpenSpec installs in `.agents/skills/`, such as `.agents/skills/sa-propose/SKILL.md`. It did the same in 1.x. If you edited one, your edit is replaced and no backup is made. `update` tells you which skills this happened to:
 
 ```
-Replaced your edits in 1 skill OpenSpec installs: .agents/skills/openspec-propose/SKILL.md. OpenSpec refreshes this skill on every update and keeps no copy. Recover your text from git, and keep lasting changes in a skill of your own under another name.
+Replaced your edits in 1 skill OpenSpec installs: .agents/skills/sa-propose/SKILL.md. OpenSpec refreshes this skill on every update and keeps no copy. Recover your text from git, and keep lasting changes in a skill of your own under another name.
 ```
 
-To see which skills are affected before anything changes, run `openspec update --dry-run`. It prints a note naming them.
+To see which skills are affected before anything changes, run `specagile update --dry-run`. It prints a note naming them.
 
 To keep a customization across updates, put it somewhere `update` doesn't write:
 
@@ -114,7 +114,7 @@ Or clone with `git clone -c core.symlinks=true <url>`.
 
 **2. Turn on Developer Mode** in Windows settings, so links can be created.
 
-Without these, each link checks out as a small text file. `openspec update` replaces it with a plain copy of the skill.
+Without these, each link checks out as a small text file. `specagile update` replaces it with a plain copy of the skill.
 
 ## Link a tool that OpenSpec doesn't
 
@@ -122,7 +122,7 @@ Most tools read `.agents/skills/` directly. If yours reads only its own folder, 
 
 ## Stay on 1.x
 
-You don't have to upgrade yet. 1.x keeps working as it is. Pin it the way you installed it.
+You don't have to upgrade yet. 1.x keeps working as it is. That is OpenSpec 1.x: SpecAgile starts at 2.0, so staying on 1.x means keeping OpenSpec and its `openspec` command. Pin it the way you installed it.
 
 On npm, in your terminal:
 
@@ -130,7 +130,7 @@ On npm, in your terminal:
 npm install -g @fission-ai/openspec@1
 ```
 
-With the standalone install, name the release ([Install options](../start/installation.md#install-options)):
+With OpenSpec's standalone install, name the release:
 
 ```bash
 curl -fsSL https://openspec.dev/cli/install.sh | OPENSPEC_VERSION=v1.17.0 sh

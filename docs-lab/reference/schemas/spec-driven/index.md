@@ -51,7 +51,7 @@ Establishes why the change is needed.
 
 ### Structure
 
-The template the agent receives as the output format ([templates/proposal.md](https://github.com/Fission-AI/OpenSpec/blob/main/schemas/spec-driven/templates/proposal.md)):
+The template the agent receives as the output format ([templates/proposal.md](https://github.com/dariopalminio/specagile/blob/main/schemas/spec-driven/templates/proposal.md)):
 
 ```md
 # Proposal
@@ -80,7 +80,7 @@ The template the agent receives as the output format ([templates/proposal.md](ht
      Only list here if spec-level behavior changes. Each needs a delta spec file.
      Use the exact existing path under openspec/specs/. Leave empty if no requirement
      changes. A change with no capabilities at all (pure refactor, tooling, docs)
-     must set `skip_specs: true` in its .openspec.yaml - openspec validate rejects
+     must set `skip_specs: true` in its .openspec.yaml - specagile validate rejects
      a zero-delta change without that marker. Do not invent a requirement just to
      satisfy validation. -->
 - `<existing-capability-path>`: <what requirement is changing>
@@ -92,7 +92,7 @@ The template the agent receives as the output format ([templates/proposal.md](ht
 
 ### Instructions
 
-The instruction sent to the agent when it drafts this artifact (from [schema.yaml](https://github.com/Fission-AI/OpenSpec/blob/main/schemas/spec-driven/schema.yaml)):
+The instruction sent to the agent when it drafts this artifact (from [schema.yaml](https://github.com/dariopalminio/specagile/blob/main/schemas/spec-driven/schema.yaml)):
 
 ```md
 Create the proposal document that establishes WHY this change is needed.
@@ -107,22 +107,22 @@ Sections:
 
 IMPORTANT: The Capabilities section is critical. It creates the contract between
 proposal and specs phases. Research existing specs before filling this in:
-run `openspec list --specs` for the project's capability inventory, then
-`openspec show "<spec-id>" --type spec --json --no-scenarios` for any that
+run `specagile list --specs` for the project's capability inventory, then
+`specagile show "<spec-id>" --type spec --json --no-scenarios` for any that
 look related - that returns a capability's purpose and requirement texts
 without pulling whole spec files into context. Append `--store "<id>"` to
 both commands only for a registered standalone store, and keep `--type
 spec`: a change and a spec sharing a name is otherwise an ambiguous-item
-error. `openspec list` without `--specs` lists in-flight changes, not
+error. `specagile list` without `--specs` lists in-flight changes, not
 specs - it never shows what the project already covers. Reuse an existing
 capability's exact path instead of introducing a near-duplicate name.
 The filtered read is only an overview. Before deciding what is already
 covered or what should change, read each relevant spec in full, including
-scenarios, with `openspec show "<spec-id>" --type spec` (same `--store` rule).
+scenarios, with `specagile show "<spec-id>" --type spec` (same `--store` rule).
 Each capability listed here will need a corresponding spec file.
 
 Every change must either declare at least one capability (new or
-modified) or explicitly opt out of specs: `openspec validate` rejects a
+modified) or explicitly opt out of specs: `specagile validate` rejects a
 change with zero deltas unless the change's `.openspec.yaml` sets
 `skip_specs: true`. Use `skip_specs: true` only when no spec-level
 behavior changes (pure refactor, tooling, docs) - specs describe
@@ -139,11 +139,11 @@ This is the foundation - specs, design, and tasks all build on this.
 
 Defines what behavior changes, with one delta spec per capability the proposal lists.
 
-Each delta spec is the `spec.md` inside its capability folder. `openspec validate` and `openspec archive` reject delta sections written in any other file under `specs/`, such as `specs/user-auth.md`, because archive never merges them.
+Each delta spec is the `spec.md` inside its capability folder. `specagile validate` and `specagile archive` reject delta sections written in any other file under `specs/`, such as `specs/user-auth.md`, because archive never merges them.
 
 ### Structure
 
-The template the agent receives as the output format ([templates/spec.md](https://github.com/Fission-AI/OpenSpec/blob/main/schemas/spec-driven/templates/spec.md)):
+The template the agent receives as the output format ([templates/spec.md](https://github.com/dariopalminio/specagile/blob/main/schemas/spec-driven/templates/spec.md)):
 
 ```md
 # Spec Delta
@@ -163,7 +163,7 @@ The template the agent receives as the output format ([templates/spec.md](https:
 
 ### Instructions
 
-The instruction sent to the agent when it drafts this artifact (from [schema.yaml](https://github.com/Fission-AI/OpenSpec/blob/main/schemas/spec-driven/schema.yaml)):
+The instruction sent to the agent when it drafts this artifact (from [schema.yaml](https://github.com/dariopalminio/specagile/blob/main/schemas/spec-driven/schema.yaml)):
 
 ````md
 Create specification files that define WHAT the system should do.
@@ -189,7 +189,7 @@ Create one spec file per capability listed in the proposal's Capabilities sectio
 `<capability-path>` is the spec directory relative to `specs/` (for example,
 `user-auth` or `identity/user-auth`). Preserve the full path:
 - New capabilities: use the exact path from the proposal at `specs/<capability-path>/spec.md`. Any path segment newly introduced in the proposal must be kebab-case. Follow the project's existing organization; do not add a new domain level when the project uses a flat layout.
-- Modified capabilities: use the exact existing path from `openspec/specs/<capability-path>/` when creating the delta at `specs/<capability-path>/spec.md`. Run `openspec list --specs` to confirm that path before writing the delta, appending `--store "<id>"` only for a registered standalone store - a mistyped or invented path targets a capability that does not exist rather than the one you meant. Do not move or rename the capability.
+- Modified capabilities: use the exact existing path from `openspec/specs/<capability-path>/` when creating the delta at `specs/<capability-path>/spec.md`. Run `specagile list --specs` to confirm that path before writing the delta, appending `--store "<id>"` only for a registered standalone store - a mistyped or invented path targets a capability that does not exist rather than the one you meant. Do not move or rename the capability.
 
 Write the spec files one at a time, so the user sees progress and an
 interrupted run keeps the files it already wrote:
@@ -203,7 +203,7 @@ interrupted run keeps the files it already wrote:
 - Stop when every capability the proposal lists has its file.
 
 There must be at least one spec file unless the change's `.openspec.yaml`
-sets `skip_specs: true` (no spec-level behavior change) - `openspec validate`
+sets `skip_specs: true` (no spec-level behavior change) - `specagile validate`
 rejects a zero-delta change without that marker. If the proposal lists no
 capabilities and `skip_specs` is not set, revisit the proposal first.
 
@@ -219,11 +219,11 @@ Format requirements:
 - Each scenario: `#### Scenario: <name>` with WHEN/THEN format
 - **CRITICAL**: Scenarios MUST use exactly 4 hashtags (`####`). Using 3 hashtags or bullets will fail silently.
 - Every requirement MUST have at least one scenario.
-- Every scenario MUST have a WHEN/GIVEN step (its trigger) and a THEN step (its outcome). A scenario with only AND lines or plain prose still counts as a scenario, but `openspec validate` flags it as a warning: normal validation still passes, but `openspec validate --strict` fails on it.
-- Keep each requirement's description (the text between `### Requirement:` and its first scenario) to 500 characters or fewer. `openspec validate` flags longer descriptions in ADDED requirements and in the main spec. This is a warning: normal validation still passes, but `openspec validate --strict` fails on it. When writing a new requirement, state one behavior per requirement: move examples and edge cases into scenarios, and split a requirement that covers several behaviors into separate `### Requirement:` blocks, each with its own scenarios. Under MODIFIED, keep the existing requirement block whole; never split, trim or rewrite existing text just to meet the length. Split an existing long requirement only when the user asks for it, in a change made for that purpose: under MODIFIED, keep its header and every scenario and cut its description down to one behavior without changing its meaning, then add each behavior you removed as its own ADDED requirement with its own scenarios.
+- Every scenario MUST have a WHEN/GIVEN step (its trigger) and a THEN step (its outcome). A scenario with only AND lines or plain prose still counts as a scenario, but `specagile validate` flags it as a warning: normal validation still passes, but `specagile validate --strict` fails on it.
+- Keep each requirement's description (the text between `### Requirement:` and its first scenario) to 500 characters or fewer. `specagile validate` flags longer descriptions in ADDED requirements and in the main spec. This is a warning: normal validation still passes, but `specagile validate --strict` fails on it. When writing a new requirement, state one behavior per requirement: move examples and edge cases into scenarios, and split a requirement that covers several behaviors into separate `### Requirement:` blocks, each with its own scenarios. Under MODIFIED, keep the existing requirement block whole; never split, trim or rewrite existing text just to meet the length. Split an existing long requirement only when the user asks for it, in a change made for that purpose: under MODIFIED, keep its header and every scenario and cut its description down to one behavior without changing its meaning, then add each behavior you removed as its own ADDED requirement with its own scenarios.
 
 New capabilities only: the delta spec's first section is `## Purpose` -
-one or two sentences (50+ characters, or `openspec validate --strict`
+one or two sentences (50+ characters, or `specagile validate --strict`
 reports it as too brief) describing what the capability is for. Archive
 copies it into the main spec it creates; without it the new main spec is
 left with a `TBD ... Update Purpose after archive` placeholder to fill in
@@ -231,7 +231,7 @@ by hand. Do NOT add `## Purpose` to a delta for an existing capability -
 that spec already has one and the delta's is ignored. To change an
 existing capability's Purpose - including a leftover `TBD` placeholder -
 edit `<planningHome.root>/openspec/specs/<capability-path>/spec.md`
-directly. `planningHome.root` comes from the `openspec instructions ...
+directly. `planningHome.root` comes from the `specagile instructions ...
 --json` response. Always use it rather than a repo-relative path: it
 resolves to the store whenever the change lives in one - whether that
 came from `--store`, a project `store:` pointer, or a global default
@@ -280,7 +280,7 @@ Explains how to implement the change. Drafted only when the change needs one.
 
 ### Structure
 
-The template the agent receives as the output format ([templates/design.md](https://github.com/Fission-AI/OpenSpec/blob/main/schemas/spec-driven/templates/design.md)):
+The template the agent receives as the output format ([templates/design.md](https://github.com/dariopalminio/specagile/blob/main/schemas/spec-driven/templates/design.md)):
 
 ```md
 # Design
@@ -308,7 +308,7 @@ The template the agent receives as the output format ([templates/design.md](http
 
 ### Instructions
 
-The instruction sent to the agent when it drafts this artifact (from [schema.yaml](https://github.com/Fission-AI/OpenSpec/blob/main/schemas/spec-driven/schema.yaml)):
+The instruction sent to the agent when it drafts this artifact (from [schema.yaml](https://github.com/dariopalminio/specagile/blob/main/schemas/spec-driven/schema.yaml)):
 
 ```md
 Create the design document that explains HOW to implement the change.
@@ -346,7 +346,7 @@ Breaks the implementation into checkable tasks. [apply](#apply) tracks progress 
 
 ### Structure
 
-The template the agent receives as the output format ([templates/tasks.md](https://github.com/Fission-AI/OpenSpec/blob/main/schemas/spec-driven/templates/tasks.md)):
+The template the agent receives as the output format ([templates/tasks.md](https://github.com/dariopalminio/specagile/blob/main/schemas/spec-driven/templates/tasks.md)):
 
 ```md
 # Tasks
@@ -364,7 +364,7 @@ The template the agent receives as the output format ([templates/tasks.md](https
 
 ### Instructions
 
-The instruction sent to the agent when it drafts this artifact (from [schema.yaml](https://github.com/Fission-AI/OpenSpec/blob/main/schemas/spec-driven/schema.yaml)):
+The instruction sent to the agent when it drafts this artifact (from [schema.yaml](https://github.com/dariopalminio/specagile/blob/main/schemas/spec-driven/schema.yaml)):
 
 ````md
 Create the task list that breaks down the implementation work.
@@ -439,7 +439,7 @@ The handoff from planning to implementation. Apply is the phase that works throu
 
 ### Settings
 
-The apply settings (from [schema.yaml](https://github.com/Fission-AI/OpenSpec/blob/main/schemas/spec-driven/schema.yaml)):
+The apply settings (from [schema.yaml](https://github.com/dariopalminio/specagile/blob/main/schemas/spec-driven/schema.yaml)):
 
 ```yaml
 apply:
@@ -450,7 +450,7 @@ apply:
 
 ### Instructions
 
-The instruction sent to the agent when implementation starts (from [schema.yaml](https://github.com/Fission-AI/OpenSpec/blob/main/schemas/spec-driven/schema.yaml)):
+The instruction sent to the agent when implementation starts (from [schema.yaml](https://github.com/dariopalminio/specagile/blob/main/schemas/spec-driven/schema.yaml)):
 
 ```md
 Read context files, work through pending tasks, mark complete as you go.
@@ -459,7 +459,7 @@ Pause if you hit blockers or need clarification.
 
 ## schema.yaml
 
-The complete [schema.yaml](https://github.com/Fission-AI/OpenSpec/blob/main/schemas/spec-driven/schema.yaml), with instruction bodies elided. Each is shown in full in its section above.
+The complete [schema.yaml](https://github.com/dariopalminio/specagile/blob/main/schemas/spec-driven/schema.yaml), with instruction bodies elided. Each is shown in full in its section above.
 
 ```yaml
 name: spec-driven

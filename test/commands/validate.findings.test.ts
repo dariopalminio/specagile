@@ -159,7 +159,7 @@ describe('validate findings reports', () => {
     const human = await run({ all: true, report: 'findings' });
     expect(human.stdout[0]).toMatch(/^Scope:/);
     expect(human.stdout[1]).toMatch(/^Totals:/);
-    expect(human.stdout[2]).toMatch(/^Details: openspec validate d-error --type change/);
+    expect(human.stdout[2]).toMatch(/^Details: specagile validate d-error --type change/);
     expect(human.stdout).toHaveLength(3);
     const errorText = human.stderr.join('\n');
     expect(errorText).not.toContain('change/a-clean');

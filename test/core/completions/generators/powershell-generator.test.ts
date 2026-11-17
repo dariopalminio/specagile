@@ -48,7 +48,7 @@ describe('PowerShellGenerator', () => {
 
 			const script = generator.generate(commands);
 
-			expect(script).toContain('Register-ArgumentCompleter -CommandName openspec');
+			expect(script).toContain('Register-ArgumentCompleter -CommandName specagile');
 			expect(script).toContain('-ScriptBlock $openspecCompleter');
 		});
 
@@ -368,7 +368,7 @@ describe('PowerShellGenerator', () => {
 			const script = generator.generate(commands);
 
 			expect(script).toContain('Get-OpenSpecSchemas');
-			expect(script).toContain('openspec __complete schemas 2>$null');
+			expect(script).toContain('specagile __complete schemas 2>$null');
 		});
 
 		it('should generate dynamic completion helper for changes', () => {
@@ -385,7 +385,7 @@ describe('PowerShellGenerator', () => {
 			const script = generator.generate(commands);
 
 			expect(script).toContain('function Get-OpenSpecChanges');
-			expect(script).toContain('openspec __complete changes 2>$null');
+			expect(script).toContain('specagile __complete changes 2>$null');
 			expect(script).toContain('-split');
 		});
 
@@ -403,7 +403,7 @@ describe('PowerShellGenerator', () => {
 			const script = generator.generate(commands);
 
 			expect(script).toContain('function Get-OpenSpecSpecs');
-			expect(script).toContain('openspec __complete specs 2>$null');
+			expect(script).toContain('specagile __complete specs 2>$null');
 		});
 
 		it('should escape double quotes in descriptions', () => {
