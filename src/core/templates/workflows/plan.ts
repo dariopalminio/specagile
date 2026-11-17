@@ -12,47 +12,32 @@
  * do not conflict. Review this file whenever a sync changes any of them.
  */
 import type { SkillTemplate } from '../types.js';
-import { optionalWorkflow } from '../optional-workflow.js';
 import { STORE_SELECTION_GUIDANCE } from './store-selection.js';
 import { PROJECT_ROOT_GUARD } from './project-root.js';
 
+// A skill says the same thing whatever workflows are installed (upstream 2.1,
+// test/core/templates/one-text-per-skill.test.ts), so these never assume
+// another workflow is there: they hand off as propose.ts does ("ask me to"),
+// or name a skill only "if that skill is installed", as archive-change.ts does.
+
 /** A named change that does not exist: point at the specification stage. */
-const CHANGE_NOT_FOUND = optionalWorkflow(
-  'specify',
-  'suggest `/opsx:specify` to create and specify a new change',
-  'suggest creating it with `openspec new change "<name>"` and writing its specification before planning it'
-);
+const CHANGE_NOT_FOUND =
+  'suggest specifying a new change first: with `/opsx:specify` if that skill is installed, or otherwise by creating it with `openspec new change "<name>"` and writing its specification before planning it';
 
 /** An incomplete or inconsistent specification is fixed in the specification stage. */
-const SPECIFY_TO_COMPLETE = optionalWorkflow(
-  'specify',
-  'suggest `/opsx:specify <name>` to complete or fix the specification',
-  'explain that the specification stage must be finished first: a proposal, one delta spec for each capability it lists, and none for capabilities it does not list'
-);
+const SPECIFY_TO_COMPLETE =
+  'explain that the specification stage must be finished first: a proposal, one delta spec for each capability it lists, and none for capabilities it does not list. Suggest `/opsx:specify <name>` to complete or fix it if that skill is installed';
 
 /** A problem found in the specification while planning. */
-const SPECIFY_TO_RESOLVE = optionalWorkflow(
-  'specify',
-  'suggest resolving it in the specification with `/opsx:specify <name>` before continuing',
-  'suggest resolving it in the specification before continuing'
-);
+const SPECIFY_TO_RESOLVE =
+  'suggest resolving it in the specification before continuing (with `/opsx:specify <name>` if that skill is installed)';
 
 /** A schema with no `specs` artifact cannot be split into stages. */
-const NO_SPECS_SCHEMA_SUGGESTION = optionalWorkflow(
-  'propose',
-  'suggest `/opsx:propose`, which generates all of its artifacts in one step',
-  'suggest generating its artifacts one at a time with `openspec instructions <artifact-id> --change "<name>"`'
-);
+const NO_SPECS_SCHEMA_SUGGESTION =
+  'suggest generating all of its artifacts in one step with `/opsx:propose` if that skill is installed, or otherwise one at a time with `openspec instructions <artifact-id> --change "<name>"`';
 
-/**
- * The implementation handoff. `apply` is not guaranteed to be installed, so
- * the fallback names the CLI command that returns the tasks.
- */
-const APPLY_HANDOFF = optionalWorkflow(
-  'apply',
-  'When you are ready, use `/opsx:apply` to start implementing it.',
-  'When you are ready, run `openspec instructions apply --change "<name>" --json` to get the tasks.'
-);
+/** The implementation handoff. */
+const APPLY_HANDOFF = 'The plan is ready for review. When you’re ready, ask me to implement it.';
 
 export function getPlanSkillTemplate(): SkillTemplate {
   return {

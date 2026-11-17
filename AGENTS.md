@@ -6,7 +6,7 @@ comandos (`specify` → `plan` → `implement`) y specs vivas en `.feature`.
 
 ## Entorno
 
-- Node >=22.12.0, `pnpm@10.34.5` (fijado en `packageManager`; usar Corepack).
+- Node >=22.20.0, `pnpm@10.34.5` (fijado en `packageManager`; usar Corepack).
 - Windows 11: la suite upstream tiene fallos conocidos (rutas, shell Unix,
   permisos). Para línea base verde, usar WSL2 o filtrar por área:
   `pnpm test -- --run test/core/schemas test/core/skills test/commands`.
@@ -47,7 +47,7 @@ Si se añade una ruta, actualizar también la tabla de `FORK.md`:
 
 ## Alcance del fork
 
-Upstream 2.0.0 no trae `specify` ni `plan`. Estado del fork:
+Upstream (2.1.0) no trae `specify` ni `plan`. Estado del fork:
 
 - Implementado: skills `sa-specify` y `sa-plan` (solo skills, perfil `core`; ver
   "Workflows added by this fork" en `FORK.md`). Separan la especificación del
@@ -62,10 +62,15 @@ Upstream 2.0.0 no trae `specify` ni `plan`. Estado del fork:
   `COMMAND_IDS`.
 - Ya los trae upstream, no son cambios del fork: `archive --skip-specs` y
   `skip_specs: true` en `.openspec.yaml`.
-- Paquete npm propio: `specagile` (`npm install -g specagile`), versión 2.0.0.
+- Paquete npm propio: `specagile` (`npm install -g specagile`), versión 2.1.0.
   Sin instalación standalone (`specagile install` solo indica npm) y sin
   telemetría; los enlaces y `feedback` van a `github.com/dariopalminio/specagile`.
   Publicar (`npm publish`) lo hace el mantenedor; no publicar desde un agente.
+- Desde 2.1, `init`/`update` descargan los skills de `skills/` en
+  `github.com/dariopalminio/specagile` en el tag `v<versión>` (o
+  `specagile@<versión>`), vía el paquete `skills` (`src/core/skill-installer.ts`).
+  Cada release necesita ese tag en un commit cuyo `skills/` coincida con el
+  paquete; crear tags y publicar lo hace el mantenedor.
 - Identidad SpecAgile (CLI `specagile`, skills `sa-*`): la fuente única es
   `src/core/fork/identity.ts`; ver "SpecAgile identity" en `FORK.md`. No editar
   las plantillas de upstream (`src/core/templates/workflows/`): la identidad se

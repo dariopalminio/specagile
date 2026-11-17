@@ -7,10 +7,10 @@
  * never an `openspec-*` glob. A SKILL.md goes only when it is text OpenSpec
  * wrote: a release's (`isReleasedGeneratedContent`) or what this version
  * generates for the skill once the fork's identity is applied, which covers
- * OpenSpec 2.0.0 and the fork before the rename. Anything else is the user's:
- * kept and reported. A skill recorded with a `keep` line, and a link of the
- * user's, are left alone without a word. Every change goes through the run's
- * `ops` and is read through its `view`, so `update --dry-run` plans it.
+ * OpenSpec 2.0.0 and the fork before the rename (see FORMER_RELEASE_FINGERPRINTS).
+ * Anything else is the user's: kept and reported. A link of the user's is left
+ * alone without a word. Every change goes through the run's `ops` and is read
+ * through its `view`, so `update --dry-run` plans it.
  */
 import path from 'path';
 import * as fs from 'fs';
@@ -20,11 +20,17 @@ import type { FileView } from '../file-view.js';
 import type { WorkflowId } from '../profiles.js';
 import type { UpdateFileOps } from '../update-plan.js';
 import { pruneEmptyParents } from '../released-output-sweep.js';
-import { readKeptSharedSkills } from '../shared-skill-target.js';
-import { isReleasedGeneratedContent, normalizeGeneratedContent } from '../shared/generated-fingerprint.js';
-import { ownSkillTexts, sharedSkillTexts } from '../shared/own-skill-texts.js';
-import { isSameFolderTree } from '../shared/shared-skill-install.js';
+import { projectSkillText } from '../skill-installer.js';
+import { resolveCommandInvocation, resolveCommandSurfaceCapability } from '../command-surface.js';
+import {
+  fingerprintGeneratedContent,
+  isReleasedGeneratedContent,
+  normalizeGeneratedContent,
+} from '../shared/generated-fingerprint.js';
+import { generateSkillContent, getSkillTemplates, stripVolatileFrontmatter } from '../shared/skill-generation.js';
 import { classifySkillLinkSpot, isCheckedOutLink } from '../shared/skill-links.js';
+import { getTransformerForTool, transformToSharedSkillReferences } from '../../utils/command-references.js';
+import { FORMER_RELEASE_FINGERPRINTS } from './former-release-fingerprints.js';
 import {
   resolveFormerOwnSkillsDir,
   resolveSharedSkillsDir,
@@ -58,8 +64,38 @@ export interface FormerSkillMigrationResult {
 
 const WORKFLOWS = Object.keys(FORMER_SKILL_NAME_BY_WORKFLOW) as WorkflowId[];
 const toPosix = (p: string) => p.split(path.sep).join('/');
+const FORMER_RELEASES = new Set<string>(FORMER_RELEASE_FINGERPRINTS);
 
-/** Whether a SKILL.md is OpenSpec's, judged against `texts` with the fork's identity. */
+/**
+ * A skill's text as it compares across releases and install paths: line
+ * endings, BOM and the `generatedBy` line (which the published copies in
+ * `skills/` leave out) don't count.
+ */
+const comparable = (text: string) => stripVolatileFrontmatter(normalizeGeneratedContent(text));
+
+/**
+ * What this version writes for skill `dirName` in `.agents/skills`, and, given
+ * a tool, the forms of it that tool's own folder can hold.
+ */
+function currentSkillTexts(dirName: string, version: string, toolId?: string): string[] {
+  const entry = getSkillTemplates().find((candidate) => candidate.dirName === dirName);
+  if (!entry) return [];
+  const shared = generateSkillContent(entry.template, version, transformToSharedSkillReferences);
+  if (!toolId) return [shared];
+  const transformer = getTransformerForTool(
+    toolId,
+    'skills',
+    resolveCommandSurfaceCapability(toolId),
+    resolveCommandInvocation(toolId)
+  );
+  return [shared, projectSkillText(toolId, shared), generateSkillContent(entry.template, version, transformer)];
+}
+
+/**
+ * Whether a SKILL.md is OpenSpec's: a release's text (upstream's fingerprints,
+ * and this fork's for OpenSpec 2.0.0 and the fork before the rename), or one
+ * of `texts` once the fork's identity is applied.
+ */
 function classifyFormerSkill(
   skillDir: string,
   texts: readonly string[],
@@ -75,9 +111,9 @@ function classifyFormerSkill(
   } catch {
     return 'user';
   }
-  if (isReleasedGeneratedContent(content)) return 'ours';
-  const translated = normalizeGeneratedContent(applyForkIdentity(content));
-  return texts.some((text) => normalizeGeneratedContent(text) === translated) ? 'ours' : 'user';
+  if (isReleasedGeneratedContent(content) || FORMER_RELEASES.has(fingerprintGeneratedContent(content))) return 'ours';
+  const translated = comparable(applyForkIdentity(content));
+  return texts.some((text) => comparable(text) === translated) ? 'ours' : 'user';
 }
 
 function isWithin(root: string, target: string): boolean {
@@ -87,6 +123,26 @@ function isWithin(root: string, target: string): boolean {
   } catch {
     return false;
   }
+}
+
+/**
+ * Whether two folders are, through links, the same folder or one inside the
+ * other: then a tool's own skills folder is the shared one.
+ */
+function isSameFolderTree(a: string, b: string): boolean {
+  const real = (p: string): string | undefined => {
+    try {
+      const resolved = fs.realpathSync.native(p);
+      return process.platform === 'linux' ? resolved : resolved.toLowerCase();
+    } catch {
+      return undefined;
+    }
+  };
+  const [ra, rb] = [real(a), real(b)];
+  if (ra === undefined || rb === undefined) return false;
+  const within = (inner: string, outer: string) =>
+    inner === outer || inner.startsWith(outer.endsWith(path.sep) ? outer : outer + path.sep);
+  return within(ra, rb) || within(rb, ra);
 }
 
 /**
@@ -115,14 +171,13 @@ export async function migrateFormerSkills(input: FormerSkillMigrationInput): Pro
   // 1. The shared copies, decided first: OpenSpec's link to one goes with it.
   const sharedDir = resolveSharedSkillsDir(projectPath);
   const anyShared = tools.some(usesSharedSkills);
-  const keptByList = anyShared ? readKeptSharedSkills(projectPath, view) : new Set<string>();
   const sharedFate = new Map<string, 'remove' | 'stay' | 'absent'>();
   if (anyShared) {
     for (const workflow of WORKFLOWS) {
       const former = FORMER_SKILL_NAME_BY_WORKFLOW[workflow];
       const skillDir = path.join(sharedDir, former);
-      // Recorded as the user's, or a link of theirs: not OpenSpec's to touch.
-      if (keptByList.has(former) || view.linkTarget?.(skillDir) !== undefined) {
+      // A link of the user's: not OpenSpec's to touch.
+      if (view.linkTarget?.(skillDir) !== undefined) {
         sharedFate.set(former, 'stay');
         continue;
       }
@@ -135,7 +190,7 @@ export async function migrateFormerSkills(input: FormerSkillMigrationInput): Pro
         kept.add(display(skillDir));
         continue;
       }
-      const verdict = classifyFormerSkill(skillDir, sharedSkillTexts(SKILL_NAME_BY_WORKFLOW[workflow], version), view);
+      const verdict = classifyFormerSkill(skillDir, currentSkillTexts(SKILL_NAME_BY_WORKFLOW[workflow], version), view);
       if (verdict === 'ours') {
         sharedFate.set(former, 'remove');
       } else {
@@ -187,7 +242,7 @@ export async function migrateFormerSkills(input: FormerSkillMigrationInput): Pro
       }
       // A copy: of the shared copy (made where a link couldn't be), or one an
       // earlier version wrote in the tool's own folder.
-      const texts = [...sharedSkillTexts(current, version), ...ownSkillTexts(tool.value, current, version)];
+      const texts = currentSkillTexts(current, version, tool.value);
       const verdict = classifyFormerSkill(spot, texts, view);
       if (verdict === 'ours') await removeSkillFile(spot, tool.value);
       else if (verdict === 'user') kept.add(display(spot));

@@ -46,7 +46,7 @@ In both branches, never create the root as a side effect: do not run `specagile 
    Do not create a change or write any file until they answer.
 
    Then pick the mode:
-   - **Edit mode**: the request names a change that is active (listed under `changes` in `specagile list --json`). Use it and announce "Using change: <name>" and how to override (e.g., `/sa-specify <other>`). Never create a change in this mode.
+   - **Edit mode**: the request names a change that is active (listed under `changes` in `specagile list --json`). Use it and announce "Using change: <name>" and how to override (e.g., `sa-specify <other>`). Never create a change in this mode.
    - **Create mode**: the request describes what to build. Derive a kebab-case name from it (e.g., "add user authentication" → `add-user-auth`).
 
    **IMPORTANT**: Do NOT proceed without understanding what the user wants to specify.
@@ -108,7 +108,7 @@ In both branches, never create the root as a side effect: do not run `specagile 
    - **Planning set**: `applyRequires` plus every artifact reachable from those by following the `requires` edges, minus the specification set (spec-driven: `design`, `tasks`). This workflow never creates, edits, or deletes them, even when they read `ready`.
    - Any other artifact belongs to neither set. Leave it alone.
 
-   **Schema without a specs artifact**: if no artifact has id `specs`, write nothing. Tell the user this schema does not separate the specification from the plan, and suggest `/sa-propose`, which generates all of its artifacts in one step.
+   **Schema without a specs artifact**: if no artifact has id `specs`, write nothing. Tell the user this schema does not separate the specification from the plan, and suggest generating all of its artifacts in one step with `sa-propose` if that skill is installed, or otherwise one at a time with `specagile instructions <artifact-id> --change "<name>"` (a change that does not exist yet is created first with `specagile new change "<name>"`).
 
    **Change that declares skip_specs**: when the `specs` artifact reads `status: "skipped"`, the change declares `skip_specs: true` in its `.openspec.yaml`. The specs are satisfied and their files must NOT exist: write only the rest of the specification set (spec-driven: `proposal.md` alone), create nothing under `specs/`, and tell the user the specs are omitted because of that declaration.
 
@@ -118,11 +118,11 @@ In both branches, never create the root as a side effect: do not run `specagile 
 
    The specification is **complete** when every artifact of the specification set exists, every capability the proposal lists has its spec (or `specs` is `skipped`), and no spec exists for a capability the proposal does not list.
 
-   - **Complete, no change requested**: write nothing. Tell the user the specification is complete, summarize the capabilities it covers, and ask what they want to revise. If the change has no planning artifacts yet, suggest `/sa-plan` as the next step. Then stop. Do not run a coherence review of your own.
+   - **Complete, no change requested**: write nothing. Tell the user the specification is complete, summarize the capabilities it covers, and ask what they want to revise. If the change has no planning artifacts yet, suggest planning it as the next step. Then stop. Do not run a coherence review of your own.
    - **Requested revision**: draft each revision in the conversation, not in files. Show what will change in `proposal.md` or in the affected spec, and why. Write it only after the user confirms it. If the user rejects it, leave that file unchanged.
    - **Capability removed or renamed**: when a revision of the proposal removes or renames a capability that already has a delta spec, the same revision proposes deleting that spec (removed) or moving it to the new `<capability-path>` (renamed). Apply it only with the user's confirmation, so no delta spec is left without a capability in the proposal. A capability the revision adds gets its spec in step 8, once the proposal revision is confirmed.
    - **Spec without a capability**: a delta spec whose capability the proposal does not list is an inconsistency. Point it out and propose deleting it, moving it, or adding its capability to the proposal; apply the choice only after the user confirms.
-   - **Change already planned**: if any artifact of the planning set already has files (spec-driven: `design.md` or `tasks.md`), do not modify them. Warn the user that the technical plan may now be out of date, and suggest `/sa-plan` to review it.
+   - **Change already planned**: if any artifact of the planning set already has files (spec-driven: `design.md` or `tasks.md`), do not modify them. Warn the user that the technical plan may now be out of date and should be reviewed against the revised specification.
 
 8. **Create the missing artifacts of the specification set**
 
@@ -164,7 +164,7 @@ After writing the specification, summarize:
 - Change name and location (`changeRoot`)
 - Artifacts created or revised, with brief descriptions, and any revision the user rejected
 - That the planning set was not touched, and whether existing planning artifacts may now be out of date
-- Prompt: "The specification is ready for review. When you are ready, use `/sa-plan` to create the technical plan."
+- Prompt: "The specification is ready for review. When you’re ready, ask me to plan it."
 
 Then stop.
 

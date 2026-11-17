@@ -21,11 +21,11 @@ import { getTransformerForTool, transformToSharedSkillReferences } from '../../s
 type Target = {
   label: string;
   transformer: ((text: string) => string) | undefined;
-  /** How this target refers to the implement skill. */
-  implementReference: string;
+  /** How this target refers to the specify skill (plan names it). */
+  specifyReference: string;
 };
 
-function toolTarget(toolId: string, implementReference: string): Target {
+function toolTarget(toolId: string, specifyReference: string): Target {
   return {
     label: toolId,
     transformer: getTransformerForTool(
@@ -34,16 +34,16 @@ function toolTarget(toolId: string, implementReference: string): Target {
       resolveCommandSurfaceCapability(toolId),
       resolveCommandInvocation(toolId)
     ),
-    implementReference,
+    specifyReference,
   };
 }
 
 const TARGETS: Target[] = [
-  toolTarget('claude', '/sa-implement'),
-  toolTarget('codex', '$sa-implement'),
-  toolTarget('kimi', '/skill:sa-implement'),
-  toolTarget('rovodev', 'the sa-implement skill'),
-  { label: 'shared copy', transformer: transformToSharedSkillReferences, implementReference: 'sa-implement' },
+  toolTarget('claude', '/sa-specify'),
+  toolTarget('codex', '$sa-specify'),
+  toolTarget('kimi', '/skill:sa-specify'),
+  toolTarget('rovodev', 'the sa-specify skill'),
+  { label: 'shared copy', transformer: transformToSharedSkillReferences, specifyReference: 'sa-specify' },
 ];
 
 const FORMER_NAMES = Object.values(FORMER_SKILL_NAME_BY_WORKFLOW);
@@ -61,7 +61,7 @@ function frontmatterOf(content: string): Record<string, unknown> {
   return parseYaml(match![1]) as Record<string, unknown>;
 }
 
-describe.each(TARGETS)('skills generated for $label', ({ transformer, implementReference }) => {
+describe.each(TARGETS)('skills generated for $label', ({ transformer, specifyReference }) => {
   const entries = getSkillTemplates();
 
   it.each(entries.map((entry) => [entry.workflowId, entry] as const))(
@@ -80,11 +80,13 @@ describe.each(TARGETS)('skills generated for $label', ({ transformer, implementR
     }
   );
 
-  it('refers to the implement skill in the tool form', () => {
-    const propose = entries.find((entry) => entry.workflowId === 'propose')!;
-    const content = generateSkillContent(propose.template, '9.9.9-test', transformer);
-    expect(content).toContain(implementReference);
-    expect(content).not.toContain('openspec-apply-change');
+  // Since upstream 2.1 propose no longer names the apply skill; plan still
+  // names specify ("if that skill is installed").
+  it('refers to another skill in the tool form', () => {
+    const plan = entries.find((entry) => entry.workflowId === 'plan')!;
+    const content = generateSkillContent(plan.template, '9.9.9-test', transformer);
+    expect(content).toContain(specifyReference);
+    expect(content).not.toContain('openspec-specify');
   });
 });
 

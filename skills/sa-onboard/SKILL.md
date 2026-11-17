@@ -38,7 +38,7 @@ specagile --version 2>&1 || echo "CLI_NOT_INSTALLED"
 ```
 
 **If CLI not installed:**
-> OpenSpec CLI is not installed. Install it first, then come back to `/sa-onboard`.
+> OpenSpec CLI is not installed. Install it first, then come back to `sa-onboard`.
 
 Stop here if not installed.
 
@@ -165,7 +165,7 @@ Spend 1-2 minutes investigating the relevant code:
 │   [Optional: ASCII diagram if helpful]  │
 └─────────────────────────────────────────┘
 
-Explore mode (`/sa-explore`) is for this kind of thinking—investigating before implementing. You can use it anytime you need to think through a problem.
+Use exploration to work through questions before implementing a change.
 
 Now let's create a change to hold our work.
 ```
@@ -496,24 +496,13 @@ This same rhythm works for any size change—a small fix or a major feature.
 
 ## Skill Reference
 
-**The skills you have installed:**
-
- | Skill            | What it does                               |
- |------------------|--------------------------------------------|
- | `/sa-propose` | Create a change and generate all artifacts |
- | `/sa-explore` | Think through problems before/during work  |
- | `/sa-implement`   | Implement tasks from a change              |
- | `/sa-archive` | Archive a completed change                 |
- | `/sa-new-change`     | Start a new change, one artifact at a time |
- | `/sa-continue-change` | Continue working on an existing change    |
- | `/sa-ff-change`      | Fast-forward: create all artifacts at once |
- | `/sa-verify`  | Verify implementation matches artifacts    |
+List the OpenSpec workflows available to you in this session, with one line explaining each. Omit workflows you cannot invoke.
 
 ---
 
 ## What's Next?
 
-Try `/sa-propose` on something you actually want to build. You've got the rhythm now!
+Ask me to start a change for something you want to build.
 ```
 
 ---
@@ -528,8 +517,7 @@ If the user says they need to stop, want to pause, or seem disengaged:
 No problem! Your change is saved at the `changeRoot` reported by `specagile status --change "<name>" --json`.
 
 To pick up where we left off later, `specagile status --change "<name>" --json` shows exactly where the change stands.
-- `/sa-continue-change <name>` - Resume artifact creation
-- `/sa-implement <name>` - Jump to implementation (if tasks exist)
+Offer one next step from the workflows available to you.
 
 The work won't be lost. Come back whenever you're ready.
 ```
@@ -543,20 +531,9 @@ If the user says they just want to see the skills or skip the tutorial:
 ```
 ## OpenSpec Quick Reference
 
-**The skills you have installed:**
+List the OpenSpec workflows available to you in this session, with one line explaining each. Omit workflows you cannot invoke.
 
- | Skill                    | What it does                               |
- |--------------------------|--------------------------------------------|
- | `/sa-propose <idea>`  | Create a change and generate all artifacts |
- | `/sa-explore`         | Think through problems (no code changes)   |
- | `/sa-implement <name>`    | Implement tasks                            |
- | `/sa-archive <name>`  | Archive when done                          |
- | `/sa-new-change <name>`      | Start a new change, step by step           |
- | `/sa-continue-change <name>` | Continue an existing change                |
- | `/sa-ff-change <name>`       | Fast-forward: all artifacts at once        |
- | `/sa-verify <name>`   | Verify implementation                      |
-
-Try `/sa-propose` to start your first change.
+Ask me to start your first change.
 ```
 
 Exit gracefully.

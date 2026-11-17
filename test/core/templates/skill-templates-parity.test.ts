@@ -41,16 +41,8 @@ import {
 } from '../../../src/core/shared/skill-generation.js';
 import { withUpstreamIdentity } from '../../helpers/fork-identity.js';
 import { STORE_SELECTION_GUIDANCE } from '../../../src/core/templates/workflows/store-selection.js';
-import { resolveOptionalWorkflows } from '../../../src/core/templates/optional-workflow.js';
-import { ALL_WORKFLOWS } from '../../../src/core/profiles.js';
 import { parseSchema } from '../../../src/core/artifact-graph/schema.js';
 
-/**
- * Templates carry optional-workflow conditionals that the production registry
- * resolves against the installed workflow set. Pin what generation emits, not
- * the unresolved authoring form: with every workflow installed this is byte
- * for byte what `getSkillTemplates()` returns.
- */
 /**
  * SpecAgile: generated skills carry the fork's CLI and skill names. The golden
  * hashes pin the file as deployed; the wording checks below read it in
@@ -59,14 +51,6 @@ import { parseSchema } from '../../../src/core/artifact-graph/schema.js';
  */
 const generateSkillContent = (...args: Parameters<typeof generateDeployedSkillContent>): string =>
   withUpstreamIdentity(generateDeployedSkillContent(...args));
-
-const asDeployed = (template: SkillTemplate): SkillTemplate => ({
-  ...template,
-  instructions: resolveOptionalWorkflows(
-    template.instructions,
-    new Set<string>(ALL_WORKFLOWS)
-  ),
-});
 
 /**
  * The title `spec-driven` gives each artifact, read from the packaged templates
@@ -88,50 +72,50 @@ function specDrivenTitles(): Record<string, string> {
 }
 
 const EXPECTED_FUNCTION_HASHES: Record<string, string> = {
-  getExploreSkillTemplate: '14ce4c9b9c7222ba72b8a5878b04a62cb460659aa225009531e2e4c8f76adc7f',
+  getExploreSkillTemplate: 'edf038cdf0f7179089ac6c4febd09e8c66a961459b66f0a460735a5e9de6f13d',
   getNewChangeSkillTemplate: 'aa1b169e0941ad8f9275f6f622019eebddeaab607815516bf872bf9ca7368b81',
-  getContinueChangeSkillTemplate: '45c4be5783f07e72e44a33ed44ad7a4db3492fd8d37499bc6b76278e9ddcdc53',
-  getApplyChangeSkillTemplate: '499e7d5d92a2e7cc3701a6a5f27154de9753f8fcd26287934afe7bb104b0e6a1',
-  getFfChangeSkillTemplate: '1ff36d6f96e0f0af4d45f31c322e9466bcfaa0b0f96b331e0bb3eb3addb4bf0b',
+  getContinueChangeSkillTemplate: '26a9a95665ad89930494109f874b327b5b3d50e8edb44f5e673483f2162cfee4',
+  getApplyChangeSkillTemplate: '244136f2de5518cd92b0d58e1cec8ffbef2bd2443b5e49f748cf64e7d7c6fce8',
+  getFfChangeSkillTemplate: '293a3bd2c6372dba854792c416dad0efc9ba83515496dc576f9ef2a067701d82',
   getSyncSpecsSkillTemplate: '7aaf33f2a3ddb86d8bd7131bf36588a580fb8279127b881f19c6d8af60cfe059',
-  getOnboardSkillTemplate: 'b9bf655c140d3875e2a4c8a3373aafd72b5f5d7d4b99d3043812fb099d645f80',
-  getOpsxExploreCommandTemplate: '6d65a57bf8eaa83579e57374d284e09a345400d24f848bb4a3c133da1b271f58',
-  getOpsxNewCommandTemplate: 'bb59d8b356dbb662498e3c7f3b3f1df615ad23af811b1bd21f60253f2d5dcc0a',
-  getOpsxContinueCommandTemplate: '5c71e7bea60ad70bb72b4d760f247cb8d35772d8f9e2e4725ea5af0ee2f0fe35',
-  getOpsxApplyCommandTemplate: '8bc060c821b2b7e0fe22526ed27c136288625e23b3dd350ea4c2102b50a14722',
-  getOpsxFfCommandTemplate: '14e4130314bf237fdd2d7e53e4ff8cfb0df42dd02cd31ab3f8ca8dd8a85ef12c',
-  getArchiveChangeSkillTemplate: 'd631e6202764659583c3934e8549c28c22add9d6ae4e7d229edb1391c4b712a5',
-  getBulkArchiveChangeSkillTemplate: '02c268ecbb092b63779816c570d2286ca3921e968e47ac1e0818561dcd2e6856',
+  getOnboardSkillTemplate: '06f68fb14002e182b88def80b0798a0d571b3d36f7ea7304fd44487b1b8f27a3',
+  getOpsxExploreCommandTemplate: '94d998600803a5d75a9ff9627fb35a45a6cf8a0ac19874a66bf8bc45e7a4e396',
+  getOpsxNewCommandTemplate: '63fad016276d99c5325637bb2e9a2a375508e3e0b2f08de244f462a3287e8efc',
+  getOpsxContinueCommandTemplate: '82928867ed095b1a39a375958b4e91d959a9347e37843dddc66f70bf85ca0ea1',
+  getOpsxApplyCommandTemplate: '610de2766882217300eb362194055e1ebf1889a8c077bbcff4eb9fae8b8a11b1',
+  getOpsxFfCommandTemplate: '95bc67362028d4f66073843e823f58192b32c717917d0cd69c98ef32f6366c48',
+  getArchiveChangeSkillTemplate: '05b3971d0406c4709188ca0919fb089fcf72f24675d541b6bdffc43d5c89e913',
+  getBulkArchiveChangeSkillTemplate: 'ad7b25a3dfd56bcfa237dd817849f9d6794b870f2fa1833d2480f574e01c6bd5',
   getOpsxSyncCommandTemplate: '9198dbb037358ba542987ccb7b31ace676de41b5476bfc09827cfa535bc65bf5',
   getVerifyChangeSkillTemplate: 'fc41a1c6d94db1fd3c373e9a7e29f06e6f0e4704595ffc7e004931eefbf0db0d',
-  getOpsxArchiveCommandTemplate: '931b14357eee515591aecec21754ae1b015ba1e7a1b4a70e99cae93721b6af70',
-  getOpsxOnboardCommandTemplate: '8eea0762a095a7b6c870e2467e3f8951596d12a9fb26d278df04e2bf61fa0a40',
-  getOpsxBulkArchiveCommandTemplate: 'f3f9f39baf0321e92f90def90e00b7fefb94ab0f0a1b2a485c3191e68dce5b24',
+  getOpsxArchiveCommandTemplate: '0bf3010dd3a6564c5efa455e7ef23a75ea976f2050533a7ad68e6356aa3bbe1d',
+  getOpsxOnboardCommandTemplate: '1cd975ef1c65402ef464047667a912e13e730c99541198d12868aa3ebbf98306',
+  getOpsxBulkArchiveCommandTemplate: '397083bf2877df645f298a8d4c09c60b070f17efe70ef79610fc98b1a5111c9a',
   getOpsxVerifyCommandTemplate: '0eb6e5c1224a267a1876faff7c805dd5e0e2cd7f3e36b8f5b20aa7315114e1d2',
-  getOpsxProposeSkillTemplate: '172759f05533be20e706d86ba19d0ab8e55c8e59d8d054219dec85e93db0b798',
-  getOpsxProposeCommandTemplate: '11bcbb6d9959d5f27144f41043c073485ff0800f4e7d4667d75957e0e786be07',
+  getOpsxProposeSkillTemplate: 'fae28cc3a0fea447f523e73f978e1f0cccabefa509b0d534cfc88b0da1c9f486',
+  getOpsxProposeCommandTemplate: '542b86e971fbeb04c76b0fe1199e439e78b38774abb7b77581df82e258b9cad6',
   getFeedbackSkillTemplate: 'dabeb5e825b9349abc8156c3e7b8608f27987912a6d9bf47ef29addde6138133',
-  getUpdateChangeSkillTemplate: '0910f0a722ea37c3513817677e9f7176e8c6ddda503fb19e6ebe283ebae3e7ad',
-  getOpsxUpdateCommandTemplate: '5910ed9467e29d05f78005790d3f3eabe60912c4adb5377dcc1e5b7785c7ea31',
-  getSpecifySkillTemplate: '0125b479fb4ae76a409af1b82e3277ad774626a8f41746f921023f64aa37c6b1',
-  getPlanSkillTemplate: 'c1083b73c3282e13c391289ce2f329bb57c840cfb6a9f12df42399421b3acb72',
+  getUpdateChangeSkillTemplate: '3f7706b74a21ae5fba964a6589da1cd5ba18991b9ebb06ac3343295226d00ca9',
+  getOpsxUpdateCommandTemplate: '2fd741565374d8f26ca26c7428b6ed48e0ed9d0b4b32722b0a2629c7ef2b38b7',
+  getSpecifySkillTemplate: 'f6d691e3966d0189d0b37af69962d7f0e84b5a3d801a79f351a742db61d2573a',
+  getPlanSkillTemplate: '50afed41985d35a22ff731f121a8352568c80bc125bd00c98fd49f3bc08c4ba2',
 };
 
 const EXPECTED_GENERATED_SKILL_CONTENT_HASHES: Record<string, string> = {
-  'sa-explore': '1265809ee6af3976212f66c92cbaa68604e01fbf6ad4184de28796ac62c0df10',
+  'sa-explore': '59e7f9a5a9d92f9e5ab10d04f08fc8078ecd758aefd8ed48126c154149d6c832',
   'sa-new-change': 'b65a932895e1977df4fe5004c06e7acd4a4f5ace2756202c4268b73f27f5f47b',
-  'sa-continue-change': 'ef2b8e440a8c1368d2546ef0ef17849cc30fb0e60dcdfffbd00212549065ff76',
-  'sa-implement': 'd564997876ad4f373853ff5e875abee9d90a534e24ad777a03b782c9f92eec4b',
-  'sa-ff-change': '703cfa788979b46b114ef80c3a9a57db296bbff9fbc1d4624013beac3d098c7b',
+  'sa-continue-change': 'beef081f173e813cc8dbe5f34d7eb64ec500b33f6428c1ac8ea48bbbebc61d66',
+  'sa-implement': 'dd0adf6872dd230a81c75402a5f208514c00a185ce7fcf7a8979cf2d1cf78f01',
+  'sa-ff-change': '14a1284e449d218a1e586ff75e58f15c1647399ed789703d6a0367762739a0ea',
   'sa-sync-specs': 'ae0b40658b35fdb7a56a831bc30453c8a5184acdc345c61f18d300532fcf20e4',
-  'sa-archive': 'c0d03b0d8674b6a8a21121ffbf70da7b61b1cda38430509093a552f0df76887e',
-  'sa-bulk-archive-change': '3582f40ddd1b673b14cff314ad356db3292e8485a5acd90bfeed2793a013a5a3',
+  'sa-archive': 'cf0c0cd27f92858ca764a4cea0a012db80a7ee61707a203da9e8b78abac596b9',
+  'sa-bulk-archive-change': 'd9f3ca9412452cbd184389c913ad1df580ebde9bdc617bd3759705e3b035fa9d',
   'sa-verify': 'f6c07a4ba09da167d66c51fda2d8527385ba38a9b98fdaf2f9eba129ebc857fc',
-  'sa-onboard': 'cd035b3a4540c5a3d7b7b3c82d319d2ec263e16109c58faa111a5006284061e0',
-  'sa-propose': 'ff43d58132496765ef0eb4b2760990616a47b391b6967ece1e8d6f95d11dd660',
-  'sa-update-change': 'a6a0adfb3a45285e433e705ad00e8261134017ef7dbcd833eea77665380c7ea0',
-  'sa-specify': '535f2af59f7cd2e64107cc7aba4c1dd4b8440d13406ca6871f66d228b65fe92a',
-  'sa-plan': '5423fbaf53586047b94d190b61946d1a9e401ee1f3357e61ff3fd69b655a6578',
+  'sa-onboard': 'e9f03490b06399b5b2204d157fc06f2d19302372007d316ce7d237b738cc2241',
+  'sa-propose': '92f1c5689174f2a72c738a6dfbfa96d859d42e16020c1fa1586a16a34969cdbb',
+  'sa-update-change': '88196ee571b6dcda65bc7afa37b49e4a705151dc64b380931ab5aab5effc8704',
+  'sa-specify': 'e616172162d7eb218b3c0ee56417d2746e68b59bfcb6eb8dd091bb5eda9a6b6b',
+  'sa-plan': '95f419ad3a55952c740e99fd0dc518d100c63472059cd1d2afbd6eefd8734afd',
 };
 
 // Intentionally excludes getFeedbackSkillTemplate: this list only models templates
@@ -261,7 +245,7 @@ describe('skill templates split parity', () => {
     const actualHashes = Object.fromEntries(
       GENERATED_SKILL_FACTORIES.map(([dirName, createTemplate]) => [
         dirName,
-        hash(generateDeployedSkillContent(asDeployed(createTemplate()), 'PARITY-BASELINE')),
+        hash(generateDeployedSkillContent(createTemplate(), 'PARITY-BASELINE')),
       ])
     );
 
@@ -350,7 +334,7 @@ describe('skill templates split parity', () => {
     const pathAwareTemplates: Array<[string, string, string, string]> = [
       [
         'propose skill',
-        generateSkillContent(asDeployed(getOpsxProposeSkillTemplate()), 'PARITY-BASELINE'),
+        generateSkillContent(getOpsxProposeSkillTemplate(), 'PARITY-BASELINE'),
         'specs/<capability-path>/spec.md',
         "Preserve an existing capability's full path",
       ],
@@ -362,7 +346,7 @@ describe('skill templates split parity', () => {
       ],
       [
         'explore skill',
-        generateSkillContent(asDeployed(getExploreSkillTemplate()), 'PARITY-BASELINE'),
+        generateSkillContent(getExploreSkillTemplate(), 'PARITY-BASELINE'),
         'specs/<capability-path>/spec.md',
         "Preserve an existing capability's full path",
       ],
@@ -374,7 +358,7 @@ describe('skill templates split parity', () => {
       ],
       [
         'onboard skill',
-        generateSkillContent(asDeployed(getOnboardSkillTemplate()), 'PARITY-BASELINE'),
+        generateSkillContent(getOnboardSkillTemplate(), 'PARITY-BASELINE'),
         '<existing-capability-path>',
         'Use the exact existing path for modified',
       ],
@@ -386,7 +370,7 @@ describe('skill templates split parity', () => {
       ],
       [
         'sync skill',
-        generateSkillContent(asDeployed(getSyncSpecsSkillTemplate()), 'PARITY-BASELINE'),
+        generateSkillContent(getSyncSpecsSkillTemplate(), 'PARITY-BASELINE'),
         '<planningHome.root>/openspec/specs/<capability-path>/spec.md',
         'Preserve the full path from each delta spec',
       ],
@@ -398,7 +382,7 @@ describe('skill templates split parity', () => {
       ],
       [
         'archive skill',
-        generateSkillContent(asDeployed(getArchiveChangeSkillTemplate()), 'PARITY-BASELINE'),
+        generateSkillContent(getArchiveChangeSkillTemplate(), 'PARITY-BASELINE'),
         '<planningHome.root>/openspec/specs/<capability-path>/spec.md',
         'Preserve the full path from each delta spec',
       ],
@@ -410,7 +394,7 @@ describe('skill templates split parity', () => {
       ],
       [
         'bulk archive skill',
-        generateSkillContent(asDeployed(getBulkArchiveChangeSkillTemplate()), 'PARITY-BASELINE'),
+        generateSkillContent(getBulkArchiveChangeSkillTemplate(), 'PARITY-BASELINE'),
         '<planningHome.root>/openspec/specs/<capability-path>/spec.md',
         'Preserve the full path from each delta spec',
       ],
@@ -432,7 +416,7 @@ describe('skill templates split parity', () => {
     const onboardVariants: Array<[string, string]> = [
       [
         'onboard skill',
-        generateSkillContent(asDeployed(getOnboardSkillTemplate()), 'PARITY-BASELINE'),
+        generateSkillContent(getOnboardSkillTemplate(), 'PARITY-BASELINE'),
       ],
       ['onboard command', getOpsxOnboardCommandTemplate().content],
     ];
@@ -447,7 +431,7 @@ describe('skill templates split parity', () => {
     const bulkArchiveVariants: Array<[string, string]> = [
       [
         'bulk archive skill',
-        generateSkillContent(asDeployed(getBulkArchiveChangeSkillTemplate()), 'PARITY-BASELINE'),
+        generateSkillContent(getBulkArchiveChangeSkillTemplate(), 'PARITY-BASELINE'),
       ],
       ['bulk archive command', getOpsxBulkArchiveCommandTemplate().content],
     ];
@@ -487,7 +471,7 @@ describe('skill templates split parity', () => {
 
   it('keeps onboarding task examples aligned with concrete verification guidance (#345)', () => {
     const variants: Array<[string, string]> = [
-      ['onboard skill', generateSkillContent(asDeployed(getOnboardSkillTemplate()), 'PARITY-BASELINE')],
+      ['onboard skill', generateSkillContent(getOnboardSkillTemplate(), 'PARITY-BASELINE')],
       ['onboard command', getOpsxOnboardCommandTemplate().content],
     ];
 
@@ -524,7 +508,7 @@ describe('skill templates split parity', () => {
   // belong to the group that did the work, not to a trailing catch-up group.
   it('teaches per-group tests and docs in the onboarding walkthrough (#1952)', () => {
     const variants: Array<[string, string]> = [
-      ['onboard skill', generateSkillContent(asDeployed(getOnboardSkillTemplate()), 'PARITY-BASELINE')],
+      ['onboard skill', generateSkillContent(getOnboardSkillTemplate(), 'PARITY-BASELINE')],
       ['onboard command', getOpsxOnboardCommandTemplate().content],
     ];
 
@@ -548,7 +532,7 @@ describe('skill templates split parity', () => {
     ];
 
     for (const [dirName, createTemplate] of allSkills) {
-      const content = generateSkillContent(asDeployed(createTemplate()), 'PARITY-BASELINE');
+      const content = generateSkillContent(createTemplate(), 'PARITY-BASELINE');
       expect(content, dirName).not.toContain('workspace-planning');
       expect(content, dirName).not.toContain('Workspace guard');
     }
@@ -558,23 +542,21 @@ describe('skill templates split parity', () => {
     const variants: Array<[string, string]> = [
       [
         'skill',
-        generateSkillContent(asDeployed(getContinueChangeSkillTemplate()), 'PARITY-BASELINE'),
+        generateSkillContent(getContinueChangeSkillTemplate(), 'PARITY-BASELINE'),
       ],
       ['opsx command', getOpsxContinueCommandTemplate().content],
     ];
 
     for (const [variant, content] of variants) {
       expect(content, variant).toContain('Planning is complete!');
-      expect(content, variant).toContain(
-        'Once implementation and any tracked work are complete, archive it'
-      );
+      expect(content, variant).not.toContain('archive it');
       expect(content, variant).not.toContain('All artifacts created!');
       expect(content, variant).not.toContain('or archive it');
     }
   });
 
   it('gates the archive on a completed spec sync (#1393)', () => {
-    const generatedSkill = generateSkillContent(asDeployed(getArchiveChangeSkillTemplate()), 'PARITY-BASELINE');
+    const generatedSkill = generateSkillContent(getArchiveChangeSkillTemplate(), 'PARITY-BASELINE');
     const commandContent = getOpsxArchiveCommandTemplate().content;
 
     // The single archive skill references openspec-sync-specs; opsx command references /opsx:sync.
@@ -639,7 +621,7 @@ describe('skill templates split parity', () => {
     // never written. Assertions are scoped to the sync-assessment step so they
     // cannot pass on unrelated text elsewhere in the body.
     const archiveVariants: Array<[string, string]> = [
-      ['archive skill', generateSkillContent(asDeployed(getArchiveChangeSkillTemplate()), 'PARITY-BASELINE')],
+      ['archive skill', generateSkillContent(getArchiveChangeSkillTemplate(), 'PARITY-BASELINE')],
       ['archive opsx command', getOpsxArchiveCommandTemplate().content],
     ];
 
@@ -767,7 +749,7 @@ describe('skill templates split parity', () => {
   });
 
   it('gates bulk archive on inline synchronous spec sync and verification before moving change root', () => {
-    const generatedSkill = generateSkillContent(asDeployed(getBulkArchiveChangeSkillTemplate()), 'PARITY-BASELINE');
+    const generatedSkill = generateSkillContent(getBulkArchiveChangeSkillTemplate(), 'PARITY-BASELINE');
     const commandContent = getOpsxBulkArchiveCommandTemplate().content;
 
     // The bulk archive skill references openspec-sync-specs; opsx command references /opsx:sync.
@@ -802,7 +784,7 @@ describe('skill templates split parity', () => {
     const variants: Array<[string, string]> = [
       [
         'bulk skill',
-        generateSkillContent(asDeployed(getBulkArchiveChangeSkillTemplate()), 'PARITY-BASELINE'),
+        generateSkillContent(getBulkArchiveChangeSkillTemplate(), 'PARITY-BASELINE'),
       ],
       ['bulk opsx command', getOpsxBulkArchiveCommandTemplate().content],
     ];
@@ -1176,9 +1158,9 @@ describe('skill templates split parity', () => {
   // bug #1381 actually reported.
   it('honors Cancel at every archive confirmation (#1381)', () => {
     const variants: Array<[string, string]> = [
-      ['bulk skill', generateSkillContent(asDeployed(getBulkArchiveChangeSkillTemplate()), 'PARITY-BASELINE')],
+      ['bulk skill', generateSkillContent(getBulkArchiveChangeSkillTemplate(), 'PARITY-BASELINE')],
       ['bulk opsx command', getOpsxBulkArchiveCommandTemplate().content],
-      ['single skill', generateSkillContent(asDeployed(getArchiveChangeSkillTemplate()), 'PARITY-BASELINE')],
+      ['single skill', generateSkillContent(getArchiveChangeSkillTemplate(), 'PARITY-BASELINE')],
       ['single opsx command', getOpsxArchiveCommandTemplate().content],
     ];
 
@@ -1197,7 +1179,7 @@ describe('skill templates split parity', () => {
   // would send every legitimate answer down the "ask again" path forever.
   it('routes the bulk archive confirmation by intent, not by literal label (#1381)', () => {
     const variants: Array<[string, string]> = [
-      ['bulk skill', generateSkillContent(asDeployed(getBulkArchiveChangeSkillTemplate()), 'PARITY-BASELINE')],
+      ['bulk skill', generateSkillContent(getBulkArchiveChangeSkillTemplate(), 'PARITY-BASELINE')],
       ['bulk opsx command', getOpsxBulkArchiveCommandTemplate().content],
     ];
 
@@ -1217,11 +1199,11 @@ describe('skill templates split parity', () => {
 
   it('makes the schema instruction field authoritative for artifact creation (#777)', () => {
     const variants: Array<[string, string]> = [
-      ['propose skill', generateSkillContent(asDeployed(getOpsxProposeSkillTemplate()), 'PARITY-BASELINE')],
+      ['propose skill', generateSkillContent(getOpsxProposeSkillTemplate(), 'PARITY-BASELINE')],
       ['propose command', getOpsxProposeCommandTemplate().content],
-      ['continue skill', generateSkillContent(asDeployed(getContinueChangeSkillTemplate()), 'PARITY-BASELINE')],
+      ['continue skill', generateSkillContent(getContinueChangeSkillTemplate(), 'PARITY-BASELINE')],
       ['continue command', getOpsxContinueCommandTemplate().content],
-      ['ff skill', generateSkillContent(asDeployed(getFfChangeSkillTemplate()), 'PARITY-BASELINE')],
+      ['ff skill', generateSkillContent(getFfChangeSkillTemplate(), 'PARITY-BASELINE')],
       ['ff command', getOpsxFfCommandTemplate().content],
     ];
 

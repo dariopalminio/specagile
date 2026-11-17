@@ -41,7 +41,7 @@ In both branches, never create the root as a side effect: do not run `specagile 
 
    When prompting, show changes that have delta specs (under `specs/` directory).
 
-   Always announce: "Using change: <name>" and how to override (e.g., `/sa-sync-specs <other>`).
+   Always announce: "Using change: <name>" and how to override (e.g., `sa-sync-specs <other>`).
 
 2. **Resolve change context**
 

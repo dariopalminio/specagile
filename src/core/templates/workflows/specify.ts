@@ -11,40 +11,27 @@
  * conflict. Review this file whenever a sync changes propose.ts.
  */
 import type { SkillTemplate } from '../types.js';
-import { optionalWorkflow } from '../optional-workflow.js';
 import { STORE_SELECTION_GUIDANCE } from './store-selection.js';
 import { PROJECT_ROOT_GUARD } from './project-root.js';
 
-/**
- * The handoff to the planning stage. `plan` is not guaranteed to be installed,
- * so the fallback names the CLI command that generates the next artifact.
- */
-const PLAN_HANDOFF = optionalWorkflow(
-  'plan',
-  'When you are ready, use `/opsx:plan` to create the technical plan.',
-  'When you are ready, generate the next artifact with `openspec instructions <artifact-id> --change "<name>"`, taking `<artifact-id>` from the first `ready` artifact in `openspec status --change "<name>" --json`.'
-);
+// A skill says the same thing whatever workflows are installed (upstream 2.1,
+// test/core/templates/one-text-per-skill.test.ts), so these never assume
+// another workflow is there: they hand off as propose.ts does ("ask me to"),
+// or name a skill only "if that skill is installed", as archive-change.ts does.
+
+/** The handoff to the planning stage. */
+const PLAN_HANDOFF = 'When you’re ready, ask me to plan it.';
 
 /** Shown when a re-specified change already has a technical plan. */
-const STALE_PLAN_NOTE = optionalWorkflow(
-  'plan',
-  'Warn the user that the technical plan may now be out of date, and suggest `/opsx:plan` to review it',
-  'Warn the user that the technical plan may now be out of date and should be reviewed against the revised specification'
-);
+const STALE_PLAN_NOTE =
+  'Warn the user that the technical plan may now be out of date and should be reviewed against the revised specification';
 
 /** A complete specification with no plan yet: point at the next stage. */
-const COMPLETE_PLAN_HINT = optionalWorkflow(
-  'plan',
-  ' If the change has no planning artifacts yet, suggest `/opsx:plan` as the next step.',
-  ''
-);
+const COMPLETE_PLAN_HINT = ' If the change has no planning artifacts yet, suggest planning it as the next step.';
 
 /** A schema with no `specs` artifact cannot be split into stages. */
-const NO_SPECS_SCHEMA_SUGGESTION = optionalWorkflow(
-  'propose',
-  'suggest `/opsx:propose`, which generates all of its artifacts in one step',
-  'suggest generating its artifacts one at a time with `openspec instructions <artifact-id> --change "<name>"` (a change that does not exist yet is created first with `openspec new change "<name>"`)'
-);
+const NO_SPECS_SCHEMA_SUGGESTION =
+  'suggest generating all of its artifacts in one step with `/opsx:propose` if that skill is installed, or otherwise one at a time with `openspec instructions <artifact-id> --change "<name>"` (a change that does not exist yet is created first with `openspec new change "<name>"`)';
 
 export function getSpecifySkillTemplate(): SkillTemplate {
   return {

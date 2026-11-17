@@ -203,18 +203,6 @@ describe('migration of skills under their former openspec-* names', () => {
     expect(output).toContain('.agents/skills/openspec-propose');
   });
 
-  it('leaves a former skill recorded with a keep line alone, without reporting it again', async () => {
-    await openspecProject('shared-only');
-    await write(shared('.openspec-target'), 'agents\nkeep openspec-propose\n');
-
-    const output = await update();
-
-    expect(existsSync(shared('openspec-propose', 'SKILL.md'))).toBe(true);
-    expect(output).not.toContain('openspec-propose');
-    // The record survives this run, so the next one leaves it alone too.
-    expect(readFileSync(shared('.openspec-target'), 'utf-8')).toContain('keep openspec-propose');
-  });
-
   it("leaves the user's link to another place alone, without reporting it", async () => {
     await openspecProject('copies');
     // The user replaced Claude's copy with a link to their team's skill.
@@ -269,7 +257,27 @@ describe('migration of skills under their former openspec-* names', () => {
     expect(existsSync(shared('sa-propose'))).toBe(false);
   });
 
-  it('recognizes as untouched the 2.0.0 text of every workflow', async () => {
+  it('recognizes as untouched what OpenSpec 2.0.0 wrote, from its fingerprints', async () => {
+    // The 2.0.0 text differs from this version's (2.1 dropped the
+    // profile-dependent wording), so only FORMER_RELEASE_FINGERPRINTS knows it.
+    const published = readFileSync(
+      path.join(__dirname, '..', 'fixtures', 'released-output', 'published-skills', 'v2.0.0-openspec-explore.md'),
+      'utf-8'
+    ).replace(/\r\n/g, '\n');
+    // What `openspec init` 2.0.0 wrote: the published copy plus its generatedBy line.
+    const written = published.replace('  version: "1.0"\n', '  version: "1.0"\n  generatedBy: "2.0.0"\n');
+    expect(written).not.toBe(published);
+    expect(written).not.toBe(upstreamSharedText('explore'));
+    await openspecProject('shared-only');
+    await write(shared('openspec-explore', 'SKILL.md'), written);
+
+    await update();
+
+    expect(existsSync(shared('openspec-explore'))).toBe(false);
+    expect(existsSync(shared('sa-explore', 'SKILL.md'))).toBe(true);
+  });
+
+  it('recognizes as untouched this version\'s text of every workflow, with upstream\'s names', async () => {
     const every = Object.keys(FORMER_SKILL_NAME_BY_WORKFLOW) as WorkflowId[];
     mockState.config = { featureFlags: {}, profile: 'custom', delivery: 'both', workflows: every };
     await fs.mkdir(path.join(testDir, 'openspec'), { recursive: true });

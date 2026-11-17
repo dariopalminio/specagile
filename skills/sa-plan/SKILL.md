@@ -52,9 +52,9 @@ In both branches, never create the root as a side effect: do not run `specagile 
 
    Mark the most recently modified change as "(Recommended)" since it's likely what the user wants to plan.
 
-   If the named change is not active (not listed under `changes` in `specagile list --json`), write nothing: tell the user it was not found, list the active changes, and suggest `/sa-specify` to create and specify a new change. Do not create a change or any file.
+   If the named change is not active (not listed under `changes` in `specagile list --json`), write nothing: tell the user it was not found, list the active changes, and suggest specifying a new change first: with `sa-specify` if that skill is installed, or otherwise by creating it with `specagile new change "<name>"` and writing its specification before planning it. Do not create a change or any file.
 
-   Always announce: "Using change: <name>" and how to override (e.g., `/sa-plan <other>`).
+   Always announce: "Using change: <name>" and how to override (e.g., `sa-plan <other>`).
 
 2. **Get the artifact graph and split it**
    ```bash
@@ -70,7 +70,7 @@ In both branches, never create the root as a side effect: do not run `specagile 
    - **Planning set**: `applyRequires` plus every artifact reachable from those by following the `requires` edges, minus the specification set (spec-driven: `design`, `tasks`). These are the only artifacts this workflow writes, whatever their names.
    - Any other artifact belongs to neither set. Leave it alone, even when it reads `ready`.
 
-   **Schema without a specs artifact**: if no artifact has id `specs`, write nothing. Tell the user this schema does not separate the specification from the plan, and suggest `/sa-propose`, which generates all of its artifacts in one step.
+   **Schema without a specs artifact**: if no artifact has id `specs`, write nothing. Tell the user this schema does not separate the specification from the plan, and suggest generating all of its artifacts in one step with `sa-propose` if that skill is installed, or otherwise one at a time with `specagile instructions <artifact-id> --change "<name>"`.
 
 3. **Check that the specification is complete**
 
@@ -81,14 +81,14 @@ In both branches, never create the root as a side effect: do not run `specagile 
 
    **Compare path identity, not text.** The proposal writes capability paths with `/`, while `status --json` reports absolute paths with the platform's separator (`\` on Windows). Resolve both sides against `changeRoot` and compare the resulting paths with the platform file system's rules: on Windows, `\` and `/` are the same separator and case does not matter; on Linux, case matters; on macOS, follow the volume (case-insensitive by default). On Windows, the capability `identity/user-auth` and the file `specs\identity\user-auth\spec.md` are the same spec.
 
-   If any check fails, stop without writing anything: name what is missing or inconsistent, and suggest `/sa-specify <name>` to complete or fix the specification.
+   If any check fails, stop without writing anything: name what is missing or inconsistent, and explain that the specification stage must be finished first: a proposal, one delta spec for each capability it lists, and none for capabilities it does not list. Suggest `sa-specify <name>` to complete or fix it if that skill is installed.
 
 4. **Find the planning work**
 
    - **Nothing to plan**: if the planning set is empty - every artifact the schema requires for implementation is part of the specification - write nothing. Tell the user the change is already ready to implement, and hand off as in **Output**.
    - Otherwise, read the proposal and every delta spec from disk - re-read them even if you saw them earlier in the conversation. For each artifact of the planning set, check `artifactPaths.<id>.existingOutputPaths`: an artifact with files is **existing** (step 5 reviews it) and one without is **missing** (step 6 creates it).
 
-   **If the specification has a problem**: when, at any point, you find a contradiction, a gap, or an infeasible requirement in the proposal or the delta specs, do not edit them. Tell the user what the problem is and suggest resolving it in the specification with `/sa-specify <name>` before continuing.
+   **If the specification has a problem**: when, at any point, you find a contradiction, a gap, or an infeasible requirement in the proposal or the delta specs, do not edit them. Tell the user what the problem is and suggest resolving it in the specification before continuing (with `sa-specify <name>` if that skill is installed).
 
 5. **Revise the existing planning artifacts**
 
@@ -144,7 +144,7 @@ After planning, summarize:
 - Change name and location (`changeRoot`)
 - Planning artifacts created, revised, or skipped (and why), and any revision the user rejected
 - What's ready: "The change is ready to implement."
-- Prompt: "When you are ready, use `/sa-implement` to start implementing it."
+- Prompt: "The plan is ready for review. When you’re ready, ask me to implement it."
 
 Then stop.
 

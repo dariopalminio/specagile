@@ -1,18 +1,14 @@
-```
-█▀▀ █▀▄ █▀▀ █▀▀  ▄▀█ █▀▀ █ █   █▀▀
-▄▄█ █▀  ██▄ █▄▄  █▀█ █▄█ █ █▄▄ ██▄  on
-```
 <p align="center">
-  <a href="https://github.com/Fission-AI/OpenSpec">
+  <a href="https://github.com/dariopalminio/specagile">
     <picture>
-      <source srcset="assets/openspec_bg.png">
-      <img src="assets/openspec_bg.png" alt="OpenSpec logo">
+      <source srcset="assets/specagile_bg.png">
+      <img src="assets/specagile_bg.png" alt="SpecAgile logo">
     </picture>
   </a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/Fission-AI/OpenSpec/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/Fission-AI/OpenSpec/actions/workflows/ci.yml/badge.svg" /></a>
+  <a href="https://github.com/dariopalminio/specagile/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/dariopalminio/specagile/actions/workflows/ci.yml/badge.svg" /></a>
   <a href="https://www.npmjs.com/package/specagile"><img alt="npm version" src="https://img.shields.io/npm/v/specagile?style=flat-square" /></a>
   <a href="./LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square" /></a>
   <a href="https://discord.gg/YctCnvvshC"><img alt="Discord" src="https://img.shields.io/discord/1411657095639601154?style=flat-square&logo=discord&logoColor=white&label=Discord&suffix=%20online" /></a>
@@ -21,24 +17,25 @@
 <details>
 <summary><strong>The most loved spec framework.</strong></summary>
 
-[![Stars](https://img.shields.io/github/stars/Fission-AI/OpenSpec?style=flat-square&label=Stars)](https://github.com/Fission-AI/OpenSpec/stargazers)
+[![Stars](https://img.shields.io/github/stars/dariopalminio/specagile?style=flat-square&label=Stars)](https://github.com/dariopalminio/specagile/stargazers)
 [![Downloads](https://img.shields.io/npm/dm/specagile?style=flat-square&label=Downloads/mo)](https://www.npmjs.com/package/specagile)
-[![Contributors](https://img.shields.io/github/contributors/Fission-AI/OpenSpec?style=flat-square&label=Contributors)](https://github.com/Fission-AI/OpenSpec/graphs/contributors)
+[![Contributors](https://img.shields.io/github/contributors/dariopalminio/specagile?style=flat-square&label=Contributors)](https://github.com/dariopalminio/specagile/graphs/contributors)
 
 </details>
 <p></p>
 Our philosophy:
 
 ```text
-→ fluid not rigid
-→ iterative not waterfall
-→ easy not complex
-→ built for brownfield not just greenfield
-→ scalable from personal projects to enterprises
+→ Fluid not rigid
+→ Flexible for Iterative or Phased Development
+→ Easy not complex
+→ Built for brownfield or greenfield
+→ Scalable from personal projects to enterprises
+→ Tool-agnostic
 ```
 
 <p align="center">
-  Follow <a href="https://x.com/0xTab">@0xTab on X</a> for updates · Join the <a href="https://discord.gg/YctCnvvshC">OpenSpec Discord</a> for help and questions.
+  Follow <a href="https://x.com/0xTab">@0xTab on X</a> for updates · Join the <a href="https://discord.gg/YctCnvvshC">SpecAgile Discord</a> for help and questions.
 </p>
 
 <!-- TODO: Add GIF demo of /sa-propose → /sa-archive workflow -->
@@ -124,7 +121,7 @@ Solo, OpenSpec keeps you and your AI honest on a single repo. On a team, the har
 
 ## Quick Start
 
-Install SpecAgile from npm (needs Node.js 22.12.0 or higher):
+Install SpecAgile from npm (needs Node.js 22.20.0 or higher):
 
 ```bash
 npm install -g specagile
@@ -217,7 +214,7 @@ npm install -g specagile@latest
 
 **Refresh agent instructions**
 
-Run this inside each project to regenerate AI guidance and refresh the installed skills:
+Run this once to refresh the skills installed on your machine. If your team keeps skills in Git, run it in each project that commits them.
 
 ```bash
 specagile update

@@ -13,6 +13,8 @@ import {
   CommandAdapterRegistry,
 } from '../command-generation/index.js';
 import type { GeneratedCommand } from '../command-generation/types.js';
+import { AI_TOOLS } from '../config.js';
+import { LEGACY_TOOL_ROOTS, legacyCommandPath } from '../migration.js';
 import { getCommandContents } from './skill-generation.js';
 import { COMMAND_IDS, normalizeCommandContent } from './tool-detection.js';
 import { isReleasedGeneratedContent } from './generated-fingerprint.js';
@@ -68,7 +70,8 @@ export function classifyCommandFiles(
   projectPath: string,
   toolId: string,
   workflows: readonly string[],
-  view: FileView = DISK_VIEW
+  view: FileView = DISK_VIEW,
+  includeFormerRoots = false
 ): CommandFileClassification {
   const generated: CommandFileEntry[] = [];
   const kept: string[] = [];
@@ -77,9 +80,20 @@ export function classifyCommandFiles(
   const adapter = CommandAdapterRegistry.get(toolId);
   if (!adapter) return { generated, kept, unchecked };
 
-  const present: (CommandFileEntry & { workflow: string })[] = [];
-  for (const workflow of COMMAND_IDS) {
-    const cmdPath = adapter.getFilePath(workflow);
+  const currentRoot = AI_TOOLS.find(tool => tool.value === toolId)?.skillsDir;
+  const formerRoots = includeFormerRoots ? LEGACY_TOOL_ROOTS[toolId] ?? [] : [];
+  // SpecAgile: COMMAND_IDS, not ALL_WORKFLOWS (see the comment above).
+  const candidates = COMMAND_IDS.flatMap(workflow => {
+    const current = adapter.getFilePath(workflow);
+    const paths = [current];
+    for (const { root } of formerRoots) {
+      const former = currentRoot && legacyCommandPath(current, currentRoot, root);
+      if (former) paths.push(former);
+    }
+    return paths.map(cmdPath => ({ workflow, cmdPath }));
+  });
+  const present: (CommandFileEntry & { workflow: typeof COMMAND_IDS[number] })[] = [];
+  for (const { workflow, cmdPath } of candidates) {
     let fullPath: string;
     try {
       fullPath = FileSystemUtils.resolveProjectArtifactPath(projectPath, cmdPath);
@@ -100,7 +114,7 @@ export function classifyCommandFiles(
   if (present.length === 0) return { generated, kept, unchecked };
 
   const candidateSets: readonly (readonly string[])[] = [
-    present.map((entry) => entry.workflow),
+    [...new Set(present.map((entry) => entry.workflow))],
     workflows,
     COMMAND_IDS,
   ];
@@ -122,11 +136,11 @@ export function classifyCommandFiles(
     }
   }
 
-  for (const { cmdPath, fullPath } of present) {
+  for (const { workflow, cmdPath, fullPath } of present) {
     try {
       const content = view.read(fullPath);
       const onDisk = normalizeCommandContent(content);
-      if ((generatedByPath.get(cmdPath) ?? []).includes(onDisk) || isReleasedGeneratedContent(content)) {
+      if ((generatedByPath.get(adapter.getFilePath(workflow)) ?? []).includes(onDisk) || isReleasedGeneratedContent(content)) {
         generated.push({ cmdPath, fullPath });
       } else {
         kept.push(cmdPath);

@@ -138,7 +138,7 @@ describe('tool-detection', () => {
       expect(status.skillCount).toBe(SKILL_NAMES.length);
     });
 
-    it('should detect MiniMax Code only from its global OpenSpec skill target', async () => {
+    it('should detect MiniMax Code from its project skill target', async () => {
       const globalSkill = path.join(
         testDir,
         'home',
@@ -150,11 +150,7 @@ describe('tool-detection', () => {
       await fs.mkdir(path.dirname(globalSkill), { recursive: true });
       await fs.writeFile(globalSkill, 'test content');
 
-      expect(getToolSkillStatus(testDir, 'minimax-code')).toMatchObject({
-        configured: true,
-        fullyConfigured: false,
-        skillCount: 1,
-      });
+      expect(getToolSkillStatus(testDir, 'minimax-code').configured).toBe(false);
 
       await fs.rm(path.join(testDir, 'home'), { recursive: true, force: true });
       const localSkill = path.join(
@@ -167,7 +163,7 @@ describe('tool-detection', () => {
       await fs.mkdir(path.dirname(localSkill), { recursive: true });
       await fs.writeFile(localSkill, 'test content');
 
-      expect(getToolSkillStatus(testDir, 'minimax-code').configured).toBe(false);
+      expect(getToolSkillStatus(testDir, 'minimax-code').configured).toBe(true);
     });
 
     it('should detect DeepSeek Harness skills under project .dsh/skills', async () => {
@@ -224,7 +220,6 @@ describe('tool-detection', () => {
       const sharedSkill = path.join(sharedSkills, 'sa-explore', 'SKILL.md');
       const globalSkill = path.join(
         testDir,
-        'home',
         '.minimax',
         'skills',
         'sa-explore',
@@ -502,6 +497,18 @@ Content here
   });
 
   describe('getConfiguredTools', () => {
+    it('keeps the selected regional agent when two agents read the same folder', async () => {
+      const shared = path.join(testDir, '.agents/skills');
+      const target = path.join(testDir, '.qoder/skills/openspec-propose');
+      await fs.mkdir(shared, { recursive: true });
+      await fs.mkdir(target, { recursive: true });
+      await fs.writeFile(path.join(target, 'SKILL.md'), 'installed');
+      await fs.writeFile(path.join(shared, '.openspec-target'), 'qoder-cn own-files\n');
+      expect(getConfiguredTools(testDir)).toEqual(['qoder-cn']);
+      await fs.rm(target, { recursive: true });
+      expect(getConfiguredTools(testDir)).toEqual([]);
+    });
+
     it('should return empty array when no tools are configured', () => {
       const tools = getConfiguredTools(testDir);
       expect(tools).toEqual([]);

@@ -14,3 +14,15 @@ SpecAgile sends no telemetry. It still reads `OPENSPEC_TELEMETRY` and `DO_NOT_TR
 ## DO_NOT_TRACK
 
 ## XDG_CONFIG_HOME and XDG_DATA_HOME
+
+## OPENSPEC_SKILLS_SCOPE
+
+Set to `global` or `project` to choose where `specagile init` installs skills for a new repo. An explicit `--scope` takes precedence. Existing repo skills stay in place.
+
+For a CI job that needs agent skills in its checkout:
+
+```bash
+OPENSPEC_SKILLS_SCOPE=project specagile init --tools claude
+```
+
+A validation-only job can run `specagile validate --all` directly.

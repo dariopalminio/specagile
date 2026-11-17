@@ -6,13 +6,13 @@ SpecAgile is the npm package `specagile`. It installs one command, `specagile`, 
 
 ## Install
 
-SpecAgile needs Node.js 22.12.0 or newer. In your terminal:
+SpecAgile needs Node.js 22.20.0 or newer. In your terminal:
 
 ```bash
 node --version
 ```
 
-If that prints `v22.12.0` or higher, install with npm:
+If that prints `v22.20.0` or higher, install with npm:
 
 ```bash
 npm install -g specagile
@@ -65,13 +65,13 @@ npm install -g specagile@latest
 
 (`pnpm add -g specagile@latest`, `yarn global add specagile@latest` or `bun add -g specagile@latest` with the others.) From a clone, run `git pull`, `pnpm install` and `pnpm build`.
 
-Then, in each project where you ran init:
+Then, in your terminal:
 
 ```bash
 specagile update
 ```
 
-When a newer CLI is out, [`specagile update`](../reference/cli.md#specagile-update) says so, and for an npm install it can run the upgrade for you. Every run refreshes the project's generated skills, which never update on their own. A current project prints `✓ All 2 tool(s) up to date (v2.0.0)`.
+When a newer CLI is out, [`specagile update`](../reference/cli.md#specagile-update) says so, and for an npm install it can run the upgrade for you. Every run refreshes your skills, which never update on their own. With global skills, running it once from any folder is enough, and it prints `✓ The 8 skills for this machine are up to date (v2.1.0)`. With skills kept in a project, run it in each project; a current one prints `✓ All 2 tool(s) up to date (v2.1.0)`.
 
 > [!NOTE]
 > A global npm install belongs to one Node installation. Switch Node versions with nvm and the `specagile` command doesn't come along, so install it again under the new version.
@@ -96,6 +96,7 @@ npm uninstall -g specagile
 
 **3. Delete what's left, or keep it.**
 
-- Generated agent files, per project: the `sa-*` skills and `.openspec-target` in `.agents/skills/`, and the `sa-*` links in tool folders like `.claude/skills/`. [Supported tools](../reference/supported-tools.md) lists which tools get links; MiniMax Code keeps skills in `~/.minimax/skills`.
+- Skills installed for this machine: remove them with `npx skills remove --global`, picking the `sa-` ones, or delete the `sa-*` folders in `~/.agents/skills/` and the `sa-*` links in tool folders like `~/.claude/skills/`.
+- Generated agent files, per project: the `sa-*` skills and `.openspec-target` in `.agents/skills/`, and the `sa-*` links in tool folders like `.claude/skills/`. [Supported tools](../reference/supported-tools.md) lists which tools get links.
 - The `openspec/` folder: pause first. `specs/` and `changes/archive/` are your record of the system, plain Markdown that reads fine without SpecAgile.
 - Per-machine state: settings in `~/.config/openspec/`; schema overrides and store registrations in `~/.local/share/openspec/` (Windows: `%APPDATA%\openspec`, `%LOCALAPPDATA%\openspec`). OpenSpec uses the same folders, so keep them if you also use OpenSpec. Registrations are pointers; the store repos they point to are untouched.

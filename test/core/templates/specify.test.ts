@@ -2,30 +2,17 @@ import { describe, expect, it } from 'vitest';
 import { parse as parseYaml } from 'yaml';
 
 import { getSpecifySkillTemplate } from '../../../src/core/templates/skill-templates.js';
-import { resolveOptionalWorkflows } from '../../../src/core/templates/optional-workflow.js';
 import { generateSkillContent } from '../../../src/core/shared/skill-generation.js';
 import { STORE_SELECTION_GUIDANCE } from '../../../src/core/templates/workflows/store-selection.js';
 import { PROJECT_ROOT_GUARD } from '../../../src/core/templates/workflows/project-root.js';
-import { ALL_WORKFLOWS } from '../../../src/core/profiles.js';
 import { applyForkIdentity } from '../../../src/core/fork/identity.js';
 
 // The specify skill is the specification stage of the fork's three-step flow.
 // These guards pin its contract (specs/opsx-specify-skill/spec.md) in the text
-// an agent actually receives, for each set of installed workflows it can be
-// generated against.
+// an agent actually receives. Since upstream 2.1 that text is the same for
+// every set of installed workflows (one-text-per-skill.test.ts).
 
-const EVERY = [...new Set<string>([...ALL_WORKFLOWS, 'specify', 'plan'])];
-const without = (...ids: string[]) => EVERY.filter((id) => !ids.includes(id));
-
-function render(workflows: readonly string[]): string {
-  const template = getSpecifySkillTemplate();
-  return generateSkillContent(
-    { ...template, instructions: resolveOptionalWorkflows(template.instructions, new Set(workflows)) },
-    'TEST'
-  );
-}
-
-const withAll = render(EVERY);
+const withAll = generateSkillContent(getSpecifySkillTemplate(), 'TEST');
 
 /** The text between two markers, both of which must exist. */
 function section(body: string, start: string, end: string): string {
@@ -65,10 +52,12 @@ describe('specify skill template', () => {
     expect(withAll.indexOf(rootGuard)).toBeLessThan(withAll.indexOf('**Steps**'));
   });
 
-  it('renders cleanly for every combination of the workflows it names', () => {
-    for (const workflows of [EVERY, without('plan'), without('propose'), without('plan', 'propose')]) {
-      expect(() => render(workflows)).not.toThrow();
-      expect(render(workflows)).not.toContain('[[opsx:');
+  it('names another skill only if that skill is installed', () => {
+    expect(withAll).not.toContain('[[opsx:');
+    for (const id of ['propose', 'plan', 'apply', 'continue']) {
+      for (const match of withAll.matchAll(new RegExp(`/opsx:${id}\\b[^\\n]*`, 'g'))) {
+        expect(match[0], `/opsx:${id}`).toContain('if that skill is installed');
+      }
     }
   });
 
@@ -165,11 +154,9 @@ describe('specify skill template', () => {
     });
 
     it('leaves an existing plan untouched and warns that it may be stale', () => {
-      for (const workflows of [EVERY, without('plan')]) {
-        const body = section(render(workflows), '**Change already planned**', '**Create the missing artifacts');
-        expect(body).toContain('do not modify them');
-        expect(body).toContain('the technical plan may now be out of date');
-      }
+      const body = section(withAll, '**Change already planned**', '**Create the missing artifacts');
+      expect(body).toContain('do not modify them');
+      expect(body).toContain('the technical plan may now be out of date');
     });
   });
 
@@ -190,35 +177,24 @@ describe('specify skill template', () => {
       expect(stop).toContain('does not separate the specification from the plan');
     });
 
-    it('suggests propose only when it is installed', () => {
-      const stop = (workflows: readonly string[]) =>
-        section(render(workflows), '**Schema without a specs artifact**: ', '**Change that declares skip_specs**');
-      expect(stop(EVERY)).toContain('`/opsx:propose`');
-      expect(stop(without('propose'))).not.toContain('/opsx:propose');
-      expect(stop(without('propose'))).toContain('`specagile instructions <artifact-id> --change "<name>"`');
-      expect(render(without('propose'))).not.toContain('/opsx:propose');
+    it('suggests propose if it is installed, and the CLI otherwise', () => {
+      const stop = section(withAll, '**Schema without a specs artifact**: ', '**Change that declares skip_specs**');
+      expect(stop).toContain('`/opsx:propose` if that skill is installed');
+      expect(stop).toContain('or otherwise one at a time with `specagile instructions <artifact-id> --change "<name>"`');
     });
   });
 
   describe('handoff', () => {
-    const output = (workflows: readonly string[]) => section(render(workflows), '**Output**', '**Artifact Creation Guidelines**');
+    const output = section(withAll, '**Output**', '**Artifact Creation Guidelines**');
 
-    it('hands off to plan when plan is installed', () => {
-      expect(output(EVERY)).toContain('The specification is ready for review. When you are ready, use `/opsx:plan`');
-    });
-
-    it('never names plan when it is not installed, and points at the CLI instead', () => {
-      const body = render(without('plan'));
-      expect(body).not.toContain('/opsx:plan');
-      expect(body).not.toContain('sa-plan');
-    expect(body).not.toContain('openspec-plan');
-      expect(output(without('plan'))).toContain(
-        'generate the next artifact with `specagile instructions <artifact-id> --change "<name>"`'
-      );
+    it('hands off to planning without assuming the plan skill is installed', () => {
+      expect(output).toContain('The specification is ready for review. When you’re ready, ask me to plan it.');
+      expect(withAll).not.toContain('sa-plan');
+      expect(withAll).not.toContain('openspec-plan');
     });
 
     it('stops after summarizing', () => {
-      expect(output(EVERY)).toContain('Then stop.');
+      expect(output).toContain('Then stop.');
       expect(withAll).toContain('After presenting the specification, stop and wait for a new user request');
     });
   });

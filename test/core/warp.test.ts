@@ -83,7 +83,7 @@ describe('Warp integration', () => {
         expect(content).not.toMatch(/\/opsx[:\-]|\$sa-/);
       }
       // The shared copy names other skills plainly, for every tool reading it.
-      expect(await fs.readFile(skillPath('sa-propose'), 'utf8')).toContain('`sa-implement`');
+      expect(await fs.readFile(skillPath('sa-propose'), 'utf8')).toContain('ask me to apply it');
       expect((await fs.readdir(projectPath)).sort()).toEqual(['.agents', 'openspec']);
       expect(getConfiguredTools(projectPath)).toEqual(['warp']);
       expect(getToolSkillStatus(projectPath, 'warp').configured).toBe(true);
@@ -99,8 +99,7 @@ describe('Warp integration', () => {
 
     expect(await installedSkills()).toEqual(getSkillTemplates().map(({ dirName }) => dirName).sort());
     const onboarding = await fs.readFile(skillPath('sa-onboard'), 'utf8');
-    expect(onboarding).toContain('`sa-new-change');
-    expect(onboarding).toContain('`sa-implement');
+    expect(onboarding).toContain('Omit workflows you cannot invoke');
     expect(onboarding).not.toMatch(/\/opsx[:\-]|\$sa-|\/sa-/);
   });
 
@@ -144,7 +143,8 @@ describe('Warp integration', () => {
   it('refreshes outdated skills without force and stays current after commands-only reinitialization', async () => {
     await new InitCommand({ tools: 'warp', force: true }).execute(projectPath);
     const original = await fs.readFile(skillPath('sa-explore'), 'utf8');
-    const outdated = original.replace(/generatedBy: "[^"]+"/, 'generatedBy: "0.0.1"');
+    // The installed text has no version stamp; one from an older release is outdated.
+    const outdated = original.replace(/(\n {2}version: "[^"]+"\n)/, '$1  generatedBy: "0.0.1"\n');
     expect(outdated).not.toBe(original);
     await fs.writeFile(skillPath('sa-explore'), outdated);
 
