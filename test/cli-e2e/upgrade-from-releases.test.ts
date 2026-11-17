@@ -293,8 +293,8 @@ describe.skipIf(!enabled)('upgrading projects from released versions', () => {
     expect(await fs.readFile(edited, 'utf8')).toBe(editedText);
     const commands = listFiles(box.project).filter((rel) => /(^|\/)opsx[-/:][^/]+$/.test(rel));
     expect(commands).toEqual(['.claude/commands/opsx/apply.md']);
-    expect(existsSync(path.join(box.project, '.agents', 'skills', 'openspec-propose', 'SKILL.md'))).toBe(true);
-    expect(existsSync(path.join(box.project, '.claude', 'skills', 'openspec-propose', 'SKILL.md'))).toBe(true);
+    expect(existsSync(path.join(box.project, '.agents', 'skills', 'sa-propose', 'SKILL.md'))).toBe(true);
+    expect(existsSync(path.join(box.project, '.claude', 'skills', 'sa-propose', 'SKILL.md'))).toBe(true);
 
     const before = snapshot(box.project);
     expect(run(currentBin, ['update'], box).output).toContain('up to date');
@@ -357,7 +357,7 @@ describe.skipIf(!enabled)('upgrading projects from released versions', () => {
     expect(result.status, result.output).toBe(0);
     // 2.0 installs skills only: Antigravity gets them in the shared folder,
     // and its old commands are removed rather than moved.
-    expect(existsSync(path.join(box.project, '.agents', 'skills', 'openspec-propose', 'SKILL.md'))).toBe(true);
+    expect(existsSync(path.join(box.project, '.agents', 'skills', 'sa-propose', 'SKILL.md'))).toBe(true);
     for (const name of old) {
       expect(existsSync(path.join(box.project, '.agents', 'workflows', name)), name).toBe(false);
     }
