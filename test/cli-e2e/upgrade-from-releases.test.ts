@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { execFileSync, spawnSync } from 'child_process';
 import { createHash } from 'crypto';
-import { promises as fs, existsSync, readdirSync, readFileSync, readlinkSync } from 'fs';
+import { promises as fs, existsSync, lstatSync, readdirSync, readFileSync, readlinkSync } from 'fs';
 import os from 'os';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -207,6 +207,8 @@ describe.skipIf(!enabled)('upgrading projects from released versions', () => {
     const edited = path.join(box.project, shared, 'openspec-propose/SKILL.md');
     await fs.appendFile(edited, '\nLocal edit');
     const editedText = await fs.readFile(edited, 'utf8');
+    // 2.0 gives Claude a link to the shared copy, or a copy where links can't be made.
+    const claudeLinked = lstatSync(path.join(box.project, '.claude/skills/openspec-propose')).isSymbolicLink();
     const protectedFiles = {
       'openspec/config.yaml': 'schema: spec-driven\ncontext: Team context\n',
       'openspec/specs/team/spec.md': '# Team spec\n',
@@ -240,7 +242,11 @@ describe.skipIf(!enabled)('upgrading projects from released versions', () => {
     }
     expect(named(FORMER_SKILL_NAMES, shared)).toEqual(['openspec-propose']);
     expect(readFileSync(edited, 'utf8')).toBe(editedText);
-    expect(named(FORMER_SKILL_NAMES, '.claude/skills')).toEqual([]);
+    // Claude's link to the kept copy stays with it; an unchanged copy goes.
+    expect(named(FORMER_SKILL_NAMES, '.claude/skills')).toEqual(claudeLinked ? ['openspec-propose'] : []);
+    if (claudeLinked) {
+      expect(readFileSync(path.join(box.project, '.claude/skills/openspec-propose/SKILL.md'), 'utf8')).toBe(editedText);
+    }
     for (const [rel, data] of Object.entries(protectedFiles)) expect(readFileSync(path.join(box.project, rel), 'utf8')).toBe(data);
     expect(readFileSync(path.join(box.project, shared, '.openspec-target'), 'utf8')).toBe('claude own-files\ncursor\n');
     const before = snapshot(box.project);
