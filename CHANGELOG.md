@@ -1,5 +1,26 @@
 # @fission-ai/openspec
 
+## 2.1.2
+
+### Patch Changes
+
+- **The npm package is complete again.** The 2.1.1 package was published without most of `dist/`, `dist/cli/` included, so the `specagile` command failed to start with `ERR_MODULE_NOT_FOUND`. If you installed 2.1.1, run `npm install -g specagile@latest`.
+- **The build no longer fails at random on Windows.** Cleaning `dist/` failed with `EPERM` when an antivirus scan, the search indexer or an editor's file watcher still held a file the previous build had just written, and left `dist/` half deleted. `npm publish` builds twice in a row, so it hit this often; that is how 2.1.1 ended up incomplete. The build now retries the clean.
+
+## 2.1.1
+
+SpecAgile's first release on OpenSpec 2.1.0. The 2.1.0 notes below apply to SpecAgile too, with `specagile` in place of `openspec` and the `sa-*` skill names. These are the changes since SpecAgile 2.0.0.
+
+### Minor Changes
+
+- **Skills come from SpecAgile's repository.** `specagile init` and `specagile update` install the `sa-*` skills through Vercel's `skills` installer, from the `skills/` folder of [github.com/dariopalminio/specagile](https://github.com/dariopalminio/specagile) at the tag of your CLI version (`v2.1.1`). They go in the project or, with `--scope global`, once for every project on the machine. Installing or refreshing skills needs Git and access to GitHub.
+- **Skills from SpecAgile 2.0.0 and OpenSpec 2.0.0 are still recognized.** The skill text changed in 2.1, so the move to `sa-*` now also recognizes what those versions wrote under the `openspec-*` names, and removes it. A skill you edited is kept and reported, as before.
+
+### Patch Changes
+
+- [#4](https://github.com/dariopalminio/specagile/pull/4) `specagile init --scope global` also removes the `openspec-*` skills an earlier release left in a tool's former folder, such as `.agent/skills/` (Antigravity) or `.codex/skills/` (Codex). Before, the next `specagile update` found them and set the project up in the repo again. If you edited one of them, the switch stops before removing anything and names it.
+- [#4](https://github.com/dariopalminio/specagile/pull/4) `specagile update --dry-run`: where a skill folder is a link to somewhere else and the skill is still installed, the plan lists the new `SKILL.md` as added, not updated, which is what the update does on Windows.
+
 ## 2.1.0
 
 ### Minor Changes

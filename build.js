@@ -16,7 +16,11 @@ console.log('🔨 Building OpenSpec...\n');
 // Clean dist directory
 if (existsSync('dist')) {
   console.log('Cleaning dist directory...');
-  rmSync('dist', { recursive: true, force: true });
+  // On Windows, an antivirus scan, the indexer or an editor's file watcher can
+  // hold files just written for a moment, and removing dist fails with EPERM
+  // or EBUSY. `npm publish` builds twice in a row (prepublishOnly, then
+  // prepare), so the second clean hits it. rmSync retries those errors.
+  rmSync('dist', { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
 }
 
 // Run TypeScript compiler (use local version explicitly)
