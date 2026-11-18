@@ -4,6 +4,7 @@ import * as path from 'node:path';
 import * as os from 'node:os';
 import { Command } from 'commander';
 import { runCLI } from '../helpers/run-cli.js';
+import { getChangesDir, getConfigFile, getSpecsDir, getToolDir } from '../helpers/layout.js';
 
 /**
  * A global config file with a typo is still the user's file. Reads fall back
@@ -360,9 +361,10 @@ describe('an unparseable global config', () => {
 
   it('is left byte-identical by a read-only CLI command', async () => {
     const project = path.join(tempDir, 'project');
-    fs.mkdirSync(path.join(project, 'openspec', 'specs'), { recursive: true });
-    fs.mkdirSync(path.join(project, 'openspec', 'changes'), { recursive: true });
-    fs.writeFileSync(path.join(project, 'openspec', 'config.yaml'), 'schema: spec-driven\n');
+    fs.mkdirSync(getSpecsDir(project), { recursive: true });
+    fs.mkdirSync(getChangesDir(project), { recursive: true });
+    fs.mkdirSync(getToolDir(project), { recursive: true });
+    fs.writeFileSync(getConfigFile(project), 'schema: spec-driven\n');
     fs.writeFileSync(configPath, TYPO);
 
     const result = await runCLI(['list'], {

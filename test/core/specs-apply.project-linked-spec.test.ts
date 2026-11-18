@@ -8,12 +8,13 @@ import {
   findSpecUpdates,
   writeUpdatedSpec,
 } from '../../src/core/specs-apply.js';
+import { RELATIVE_SPECS_DIR, getChangesDir, getSpecsDir, getToolDir } from '../helpers/layout.js';
 
 const itWithSymlinks = it.skipIf(process.platform === 'win32');
 
 /**
  * A project may keep its main specs beside the product documentation they
- * belong to and link `openspec/specs/<capability>/spec.md` to them, so the
+ * belong to and link `${RELATIVE_SPECS_DIR}/<capability>/spec.md` to them, so the
  * docs and OpenSpec read and write the same bytes (#2100). The merge has to
  * write through such a link, and still refuse one that leaves the project.
  */
@@ -57,8 +58,8 @@ describe('a spec.md linked to a file elsewhere in the project', () => {
   beforeEach(async () => {
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-project-linked-spec-'));
     projectDir = path.join(tempDir, 'repo');
-    changeDir = path.join(projectDir, 'openspec', 'changes', 'add-mfa');
-    mainSpecsDir = path.join(projectDir, 'openspec', 'specs');
+    changeDir = path.join(getChangesDir(projectDir), 'add-mfa');
+    mainSpecsDir = getSpecsDir(projectDir);
     docsSpec = path.join(projectDir, 'docs', 'auth', 'specs', 'login.md');
     linkedSpec = path.join(mainSpecsDir, 'login', 'spec.md');
 
@@ -67,6 +68,8 @@ describe('a spec.md linked to a file elsewhere in the project', () => {
     await fs.mkdir(path.dirname(docsSpec), { recursive: true });
     await fs.writeFile(docsSpec, MAIN_SPEC);
     await fs.mkdir(path.dirname(linkedSpec), { recursive: true });
+    // SpecAgile: specagile/ is what makes repo/ the project (src/core/fork/layout.ts).
+    await fs.mkdir(getToolDir(projectDir), { recursive: true });
   });
 
   afterEach(async () => {
@@ -194,7 +197,7 @@ describe('a spec.md linked to a file elsewhere in the project', () => {
     async () => {
       // Not specific to the linked layout: the canonical file at the end of the
       // chain can be swapped for a link too, so the re-check has to catch that
-      // for a plain `openspec/specs/<capability>/spec.md` as well.
+      // for a plain `specs/<capability>/spec.md` as well.
       await fs.writeFile(linkedSpec, MAIN_SPEC);
       const [update] = await findSpecUpdates(changeDir, mainSpecsDir);
       const built = await buildUpdatedSpec(update, 'add-mfa', { silent: true });

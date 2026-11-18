@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { execFileSync } from 'child_process';
+import { getChangesDir } from '../helpers/layout.js';
 
 // Note: We cannot truly simulate TTY prompts in this test runner easily.
 // Instead, we verify non-interactive fallback behavior and basic invocation.
@@ -9,7 +10,7 @@ import { execFileSync } from 'child_process';
 describe('change validate (interactive behavior)', () => {
   const projectRoot = process.cwd();
   const testDir = path.join(projectRoot, 'test-change-validate-tmp');
-  const changesDir = path.join(testDir, 'openspec', 'changes');
+  const changesDir = getChangesDir(testDir);
   const bin = path.join(projectRoot, 'bin', 'specagile.js');
 
 

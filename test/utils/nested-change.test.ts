@@ -7,18 +7,22 @@ import {
   findNestedChanges,
   findNestedChangesIn,
 } from '../../src/utils/nested-change.js';
+import { RELATIVE_CHANGES_DIR, getChangesDir, getConfigFile, getProjectSchemasDir, getToolDir } from '../helpers/layout.js';
 
 describe('nested change detection (#1846)', () => {
+  let tempDir: string;
   let changesDir: string;
 
   beforeEach(async () => {
-    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-nested-'));
-    changesDir = path.join(tempDir, 'openspec', 'changes');
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-nested-'));
+    changesDir = getChangesDir(tempDir);
     await fs.mkdir(changesDir, { recursive: true });
   });
 
   afterEach(async () => {
-    await fs.rm(path.dirname(path.dirname(changesDir)), { recursive: true, force: true });
+    // SpecAgile: remove the temp root itself, never a folder derived from
+    // changesDir, whose depth depends on the layout.
+    await fs.rm(tempDir, { recursive: true, force: true });
   });
 
   async function write(relativePath: string, contents = 'x'): Promise<void> {
@@ -134,8 +138,8 @@ describe('nested change detection (#1846)', () => {
       // Same custom schema, earlier in the change's life: only the proposal
       // exists, so neither the root markers nor specs/ can vouch for it. The
       // project's schema can - the file sits exactly where it generates.
-      const projectRoot = path.dirname(path.dirname(changesDir));
-      const schemaDir = path.join(projectRoot, 'openspec', 'schemas', 'rfc-flow');
+      const projectRoot = tempDir;
+      const schemaDir = path.join(getProjectSchemasDir(projectRoot), 'rfc-flow');
       await fs.mkdir(schemaDir, { recursive: true });
       await fs.writeFile(
         path.join(schemaDir, 'schema.yaml'),
@@ -151,7 +155,8 @@ describe('nested change detection (#1846)', () => {
           '',
         ].join('\n')
       );
-      await fs.writeFile(path.join(projectRoot, 'openspec', 'config.yaml'), 'schema: rfc-flow\n');
+      await fs.mkdir(getToolDir(projectRoot), { recursive: true });
+      await fs.writeFile(getConfigFile(projectRoot), 'schema: rfc-flow\n');
       await write(path.join('hand-made', 'rfc', 'proposal.md'));
 
       expect(await findNestedChangesIn(changesDir, 'hand-made')).toBeUndefined();
@@ -215,7 +220,7 @@ describe('nested change detection (#1846)', () => {
     const message = describeNestedChange(finding);
 
     expect(message).toContain('"mobile" is not a change');
-    expect(message).toContain('openspec/changes/mobile/refresh-token/');
+    expect(message).toContain(`${RELATIVE_CHANGES_DIR}/mobile/refresh-token/`);
     expect(message).toContain('"mobile-refresh-token"');
   });
 });

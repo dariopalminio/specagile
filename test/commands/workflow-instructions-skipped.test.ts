@@ -12,13 +12,14 @@ import {
   generateApplyInstructions,
 } from '../../src/commands/workflow/instructions.js';
 import { printStatusText } from '../../src/commands/workflow/status.js';
+import { getChangesDir, getProjectSchemasDir } from '../helpers/layout.js';
 
 describe('printInstructionsText for skip_specs changes', () => {
   let tempDir: string;
 
   beforeEach(() => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openspec-test-'));
-    const changeDir = path.join(tempDir, 'openspec', 'changes', 'my-change');
+    const changeDir = path.join(getChangesDir(tempDir), 'my-change');
     fs.mkdirSync(changeDir, { recursive: true });
     fs.writeFileSync(path.join(changeDir, 'proposal.md'), '# Proposal');
     fs.writeFileSync(
@@ -115,7 +116,7 @@ describe('generateApplyInstructions for skip_specs changes', () => {
   it('does not block apply on a skipped artifact when the schema requires all artifacts', async () => {
     // A schema with no apply block falls back to requiring every artifact,
     // including the specs-producing one - the skip must count as present.
-    const schemaDir = path.join(tempDir, 'openspec', 'schemas', 'mini');
+    const schemaDir = path.join(getProjectSchemasDir(tempDir), 'mini');
     fs.mkdirSync(schemaDir, { recursive: true });
     fs.writeFileSync(
       path.join(schemaDir, 'schema.yaml'),
@@ -140,7 +141,7 @@ describe('generateApplyInstructions for skip_specs changes', () => {
         '',
       ].join('\n')
     );
-    const changeDir = path.join(tempDir, 'openspec', 'changes', 'my-change');
+    const changeDir = path.join(getChangesDir(tempDir), 'my-change');
     fs.mkdirSync(changeDir, { recursive: true });
     fs.writeFileSync(path.join(changeDir, 'proposal.md'), '# Proposal');
     fs.writeFileSync(path.join(changeDir, 'tasks.md'), '## 1. W\n\n- [ ] 1.1 Do\n');

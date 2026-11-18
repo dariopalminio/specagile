@@ -3,6 +3,7 @@ import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { SpecCommand } from '../../../src/commands/spec.js';
+import { getSpecsDir, getToolDir } from '../../helpers/layout.js';
 
 describe('SpecCommand path boundaries', () => {
   let tempDir: string;
@@ -15,7 +16,8 @@ describe('SpecCommand path boundaries', () => {
     // A spec file may link to another file in the same project, so the escape
     // these cases guard against is one that leaves the project entirely.
     projectDir = path.join(tempDir, 'repo');
-    await fs.mkdir(path.join(projectDir, 'openspec', 'specs'), { recursive: true });
+    await fs.mkdir(getToolDir(projectDir), { recursive: true });
+    await fs.mkdir(getSpecsDir(projectDir), { recursive: true });
     process.chdir(projectDir);
   });
 
@@ -38,7 +40,7 @@ describe('SpecCommand path boundaries', () => {
     'rejects a spec file symlink that leaves the project',
     async () => {
       const outsideSpec = path.join(tempDir, 'outside.md');
-      const linkedSpec = path.join(projectDir, 'openspec', 'specs', 'linked', 'spec.md');
+      const linkedSpec = path.join(getSpecsDir(projectDir), 'linked', 'spec.md');
       await fs.writeFile(outsideSpec, '# Outside sentinel');
       await fs.mkdir(path.dirname(linkedSpec), { recursive: true });
       await fs.symlink(outsideSpec, linkedSpec);
@@ -60,7 +62,7 @@ describe('SpecCommand path boundaries', () => {
         docsSpec,
         '# login\n\n## Purpose\n\nUsers sign in.\n\n## Requirements\n'
       );
-      const linkedSpec = path.join(projectDir, 'openspec', 'specs', 'login', 'spec.md');
+      const linkedSpec = path.join(getSpecsDir(projectDir), 'login', 'spec.md');
       await fs.mkdir(path.dirname(linkedSpec), { recursive: true });
       await fs.symlink(
         path.relative(path.dirname(linkedSpec), docsSpec),
@@ -82,7 +84,7 @@ describe('SpecCommand path boundaries', () => {
       );
       await fs.symlink(
         sharedCapability,
-        path.join(projectDir, 'openspec', 'specs', 'shared')
+        path.join(getSpecsDir(projectDir), 'shared')
       );
 
       await expect(new SpecCommand().show('shared')).resolves.toBeUndefined();
@@ -92,7 +94,7 @@ describe('SpecCommand path boundaries', () => {
   it.skipIf(process.platform === 'win32')(
     'allows a spec file symlink elsewhere in the specs root',
     async () => {
-      const specsDir = path.join(projectDir, 'openspec', 'specs');
+      const specsDir = getSpecsDir(projectDir);
       const sharedSpec = path.join(specsDir, 'shared.md');
       const linkedSpec = path.join(specsDir, 'linked', 'spec.md');
       await fs.writeFile(

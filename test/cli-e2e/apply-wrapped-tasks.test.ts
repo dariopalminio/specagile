@@ -3,6 +3,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
 import { runCLI } from '../helpers/run-cli.js';
+import { getChangesDir, getToolDir } from '../helpers/layout.js';
 
 /**
  * End to end, the exact repro from #2227: a task wrapped onto a second line
@@ -33,8 +34,9 @@ describe('wrapped task text (#2227)', () => {
     tempRoots.push(base);
     const home = path.join(base, 'home');
     const project = path.join(base, 'project');
-    const changeDir = path.join(project, 'openspec', 'changes', 'repro-multiline-tasks');
+    const changeDir = path.join(getChangesDir(project), 'repro-multiline-tasks');
     await fs.mkdir(home, { recursive: true });
+    await fs.mkdir(getToolDir(project), { recursive: true });
     await fs.mkdir(changeDir, { recursive: true });
     await fs.writeFile(path.join(changeDir, '.openspec.yaml'), 'schema: spec-driven\n');
     await fs.writeFile(path.join(changeDir, 'tasks.md'), TASKS);

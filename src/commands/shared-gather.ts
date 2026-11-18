@@ -4,7 +4,6 @@
  * inspection. Doctor layers its health-only inputs (store facts,
  * wrong-turn detection) on top.
  */
-import * as path from 'node:path';
 
 import { readRegistrySnapshot, type RegistrySnapshot } from '../core/store/registry.js';
 import {
@@ -15,6 +14,7 @@ import {
 import { assembleReferenceIndex, type ReferenceIndexEntry } from '../core/references.js';
 import { inspectOpenSpecRoot, type OpenSpecRootInspection } from '../core/openspec-root.js';
 import type { ResolvedOpenSpecRoot } from '../core/root-selection.js';
+import { getConfigFilePaths } from '../core/fork/layout.js';
 
 export interface RelationshipData {
   registrySnapshot: RegistrySnapshot;
@@ -31,7 +31,7 @@ export async function gatherRelationshipData(
 
   const projectConfig = readProjectConfig(root.path);
   const storeConfigPath =
-    resolveConfigFilePath(root.path) ?? path.join(root.path, 'openspec', 'config.yaml');
+    resolveConfigFilePath(root.path) ?? getConfigFilePaths(root.path)[0];
 
   const referenceEntries = await assembleReferenceIndex({
     references: projectConfig?.references ?? [],

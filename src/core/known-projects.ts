@@ -19,7 +19,7 @@ import {
   statSync,
   writeFileSync,
 } from 'fs';
-import { OPENSPEC_DIR_NAME } from './config.js';
+import { detectFormerLayout, getToolDir } from './fork/layout.js';
 import { getGlobalDataDir } from './global-config.js';
 
 export const KNOWN_PROJECTS_FILE_NAME = 'projects.json';
@@ -39,10 +39,12 @@ function canonical(projectPath: string): string {
   }
 }
 
-/** Whether a folder holds `openspec/`, is gone, or can't be told right now (an unmounted drive, say). */
+/** Whether a folder holds `specagile/`, is gone, or can't be told right now (an unmounted drive, say). */
 function projectState(projectPath: string): 'project' | 'gone' | 'unknown' {
   try {
-    return statSync(path.join(projectPath, OPENSPEC_DIR_NAME)).isDirectory() ? 'project' : 'gone';
+    // SpecAgile: one with the former openspec/ layout waits for its migration.
+    if (detectFormerLayout(projectPath)) return 'project';
+    return statSync(getToolDir(projectPath)).isDirectory() ? 'project' : 'gone';
   } catch (error) {
     const code = (error as NodeJS.ErrnoException).code;
     return code === 'ENOENT' || code === 'ENOTDIR' ? 'gone' : 'unknown';

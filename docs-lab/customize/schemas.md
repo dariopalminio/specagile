@@ -14,7 +14,7 @@ Fork a schema when you want these to be different documents, whether that means 
 
 OpenSpec looks for a schema in three places, in order, and uses the first one it finds:
 
-1. **Your project**: `openspec/schemas/`, committed with the repo so your whole team gets it.
+1. **Your project**: `specagile/schemas/`, committed with the repo so your whole team gets it.
 2. **Your machine**: `~/.local/share/openspec/schemas` on macOS and Linux (or under `$XDG_DATA_HOME` if you set it), or `%LOCALAPPDATA%\openspec\schemas` on Windows. Schemas here are available in every project you work in.
 3. **The package**: the built-ins, like `spec-driven`, ship inside openspec itself.
 
@@ -24,7 +24,7 @@ The same name can exist in more than one place, and the more specific location w
 $ specagile schema which spec-driven
 Schema: spec-driven
 Source: project
-Path: /your-project/openspec/schemas/spec-driven
+Path: /your-project/specagile/schemas/spec-driven
 
 Shadows:
   package: .../openspec/schemas/spec-driven
@@ -82,7 +82,7 @@ There are two ways to get your own schema:
    ✔ Forked 'spec-driven' to 'spec-driven-custom'
 
    Source: .../openspec/schemas/spec-driven (package)
-   Destination: /your-project/openspec/schemas/spec-driven-custom
+   Destination: /your-project/specagile/schemas/spec-driven-custom
    ```
 
    Pass a second argument to pick the name (`specagile schema fork spec-driven team-flow`). Names are kebab-case.
@@ -97,7 +97,7 @@ There are two ways to get your own schema:
 
    This is the one command that catches a broken schema (missing templates, bad YAML, dependency cycles) before you're in the middle of a change.
 
-4. Point your project at it in openspec/config.yaml. This step is yours to do because fork leaves config.yaml untouched:
+4. Point your project at it in specagile/config.yaml. This step is yours to do because fork leaves config.yaml untouched:
 
    ```yaml
    schema: spec-driven-custom
@@ -115,7 +115,7 @@ To replace the default everywhere without touching config.yaml, fork to the same
 $ specagile schema init lite --description "Lite flow" --artifacts proposal,tasks
 
 ✔ Created schema 'lite'
-Schema created at: /your-project/openspec/schemas/lite
+Schema created at: /your-project/specagile/schemas/lite
 Artifacts: proposal, tasks
 ```
 
@@ -151,15 +151,15 @@ Validate after every hand-edit. A broken schema otherwise surfaces in the middle
 
 ## A fork is a snapshot
 
-`specagile update` refreshes the installed skills, and it never touches `openspec/schemas/`. Your fork keeps working exactly as you left it, which also means it stops receiving improvements when the built-in schema evolves. To pick those up later, fork the built-in again under a new name and port the differences across.
+`specagile update` refreshes the installed skills, and it never touches `specagile/schemas/`. Your fork keeps working exactly as you left it, which also means it stops receiving improvements when the built-in schema evolves. To pick those up later, fork the built-in again under a new name and port the differences across.
 
 ## Sharing schemas
 
 Sharing a schema means copying its folder.
 
-- **With your team**: commit `openspec/schemas/` and everyone on the repo uses it.
+- **With your team**: commit `specagile/schemas/` and everyone on the repo uses it.
 - **Across your projects**: put the folder in the user-level directory from [Where schemas live](#where-schemas-live).
-- **From the community**: the [community catalog](https://github.com/Fission-AI/OpenSpec/blob/main/docs/customization.md#community-schemas) lists shared schemas. Copy one into `openspec/schemas/<name>` and it works like your own.
+- **From the community**: the [community catalog](https://github.com/Fission-AI/OpenSpec/blob/main/docs/customization.md#community-schemas) lists shared schemas. Copy one into `specagile/schemas/<name>` and it works like your own.
 
 We're working on a schema registry, public and private, so schemas can be installed by name instead of copied by hand.
 

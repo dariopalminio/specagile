@@ -11,6 +11,7 @@ import { makeStoreDiagnostic, type StoreDiagnostic } from './store/errors.js';
 import { sanitizeInline, type ReferenceIndexEntry } from './references.js';
 import { storePointerProblem } from './project-config.js';
 import { toRootOutput, type ResolvedOpenSpecRoot } from './root-selection.js';
+import { RELATIVE_CONFIG_FILE } from './fork/layout.js';
 
 export interface RelationshipHealth {
   root: {
@@ -96,7 +97,7 @@ export function inspectRelationships(input: InspectRelationshipsInput): Relation
       warning(
         'pointer_declarations_inert',
         `${input.inertPointerDeclarations.filePath} declares ${input.inertPointerDeclarations.fields.join(' and ')}, but commands read the resolved store's config — these declarations are inert.`,
-        `Move the ${input.inertPointerDeclarations.fields.join('/')} declarations into the store's openspec/config.yaml.`
+        `Move the ${input.inertPointerDeclarations.fields.join('/')} declarations into the store's ${RELATIVE_CONFIG_FILE}.`
       )
     );
   }

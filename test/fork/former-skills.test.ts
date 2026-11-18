@@ -17,6 +17,7 @@ import { generateSkillContent, getSkillTemplates } from '../../src/core/shared/s
 import { transformToSharedSkillReferences } from '../../src/utils/command-references.js';
 import type { GlobalConfig } from '../../src/core/global-config.js';
 import { withUpstreamIdentity } from '../helpers/fork-identity.js';
+import { getToolDir } from '../helpers/layout.js';
 
 const mockState = {
   config: { featureFlags: {}, profile: 'core', delivery: 'both' } as GlobalConfig,
@@ -76,7 +77,7 @@ describe('migration of skills under their former openspec-* names', () => {
    * `openspec init --tools agents`, whose tool reads the shared folder itself.
    */
   async function openspecProject(claudeSpots: 'links' | 'copies' | 'shared-only' = 'copies'): Promise<void> {
-    await fs.mkdir(path.join(testDir, 'openspec'), { recursive: true });
+    await fs.mkdir(getToolDir(testDir), { recursive: true });
     for (const workflow of CORE_WORKFLOWS) {
       await write(shared(former(workflow), 'SKILL.md'), upstreamSharedText(workflow));
       if (claudeSpots === 'links') await link(shared(former(workflow)), claude(former(workflow)));
@@ -233,7 +234,7 @@ describe('migration of skills under their former openspec-* names', () => {
   });
 
   it('removes an untouched copy a 1.x release wrote in the tool folder', async () => {
-    await fs.mkdir(path.join(testDir, 'openspec'), { recursive: true });
+    await fs.mkdir(getToolDir(testDir), { recursive: true });
     await write(
       claude('openspec-explore', 'SKILL.md'),
       readFileSync(path.join(RELEASED_SKILLS, 'openspec-explore', 'SKILL.md'), 'utf-8')
@@ -284,7 +285,7 @@ describe('migration of skills under their former openspec-* names', () => {
   it('recognizes as untouched this version\'s text of every workflow, with upstream\'s names', async () => {
     const every = Object.keys(FORMER_SKILL_NAME_BY_WORKFLOW) as WorkflowId[];
     mockState.config = { featureFlags: {}, profile: 'custom', delivery: 'both', workflows: every };
-    await fs.mkdir(path.join(testDir, 'openspec'), { recursive: true });
+    await fs.mkdir(getToolDir(testDir), { recursive: true });
     for (const workflow of every) {
       await write(shared(former(workflow), 'SKILL.md'), upstreamSharedText(workflow, every));
     }

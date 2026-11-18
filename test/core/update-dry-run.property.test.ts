@@ -9,6 +9,7 @@ import {
   generateCopilotSetupSteps,
   persistCopilotCloudOptIn,
 } from '../../src/core/github-copilot/cloud-agent.js';
+import { RELATIVE_TOOL_DIR, getToolDir } from '../helpers/layout.js';
 
 /**
  * `update --dry-run` promises the plan is exactly what a real update changes
@@ -223,9 +224,9 @@ describe('update --dry-run plans exactly what a real update changes', () => {
       ['AGENTS.md marker block', () => {
         fs.writeFileSync(path.join(root, 'AGENTS.md'), '<!-- OPENSPEC:START -->\nold\n<!-- OPENSPEC:END -->\nkeep\n');
       }],
-      ['openspec/AGENTS.md', () => {
-        fs.mkdirSync(path.join(root, 'openspec'), { recursive: true });
-        fs.writeFileSync(path.join(root, 'openspec/AGENTS.md'), 'legacy\n');
+      [`${RELATIVE_TOOL_DIR}/AGENTS.md`, () => {
+        fs.mkdirSync(getToolDir(root), { recursive: true });
+        fs.writeFileSync(path.join(root, `${RELATIVE_TOOL_DIR}/AGENTS.md`), 'legacy\n');
       }],
       ['codex global prompts', () => {
         const dir = path.join(process.env.CODEX_HOME!, 'prompts');
@@ -284,7 +285,7 @@ describe('update --dry-run plans exactly what a real update changes', () => {
         fs.writeFileSync(configPath, '{ not json');
       }],
       ['openspec dir missing', () => {
-        if (chance(0.3)) fs.rmSync(path.join(root, 'openspec'), { recursive: true, force: true });
+        if (chance(0.3)) fs.rmSync(getToolDir(root), { recursive: true, force: true });
       }],
     ];
     const weight = (name: string) =>

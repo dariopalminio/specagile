@@ -22,6 +22,11 @@ import fs from 'fs/promises';
 import os from 'os';
 import { execFileSync } from 'node:child_process';
 import { isolatedGitEnv } from '../helpers/store-git.js';
+import { RELATIVE_CONFIG_FILE, RELATIVE_TOOL_DIR, createFormerLayout, getToolDir } from '../helpers/layout.js';
+import { snapshotDirectory } from '../helpers/fs-snapshot.js';
+import { readStorePointer } from '../../src/core/project-config.js';
+import { listSchemas } from '../../src/core/artifact-graph/resolver.js';
+import { getActiveChangeIds } from '../../src/utils/item-discovery.js';
 
 const { selectMock, confirmMock, searchableMultiSelectMock, interactiveState } = vi.hoisted(() => ({
   selectMock: vi.fn(),
@@ -153,7 +158,7 @@ describe('UpdateCommand', () => {
     process.env.USERPROFILE = path.join(testDir, 'home');
 
     // Create openspec directory
-    const openspecDir = path.join(testDir, 'openspec');
+    const openspecDir = getToolDir(testDir);
     await fs.mkdir(openspecDir, { recursive: true });
 
     updateCommand = new UpdateCommand();
@@ -192,13 +197,13 @@ describe('UpdateCommand', () => {
     expect(await FileSystemUtils.fileExists(skill)).toBe(true);
     expect(install).not.toHaveBeenCalled();
     // The choice sits with the project's other settings, and the tool list stays a list of tools.
-    expect(await fs.readFile(path.join(testDir, 'openspec/config.yaml'), 'utf8')).toMatch(/^skillsScope: project$/m);
+    expect(await fs.readFile(path.join(testDir, RELATIVE_CONFIG_FILE), 'utf8')).toMatch(/^skillsScope: project$/m);
     expect(await fs.readFile(path.join(testDir, '.agents/skills/.openspec-target'), 'utf8')).toBe('claude own-files\ncursor\n');
     const checkout = path.join(testDir, 'second-checkout');
     const env = { ...process.env, ...isolatedGitEnv(testDir) };
     const git = (...args: string[]) => execFileSync('git', args, { cwd: testDir, env, stdio: 'pipe' });
     git('init', '--quiet');
-    git('add', 'openspec', '.agents', '.claude');
+    git('add', 'specagile', 'specs', 'changes', '.agents', '.claude');
     git('commit', '-qm', 'Keep skills in the project');
     git('clone', '--quiet', testDir, checkout);
 
@@ -249,7 +254,7 @@ describe('UpdateCommand', () => {
   describe('basic validation', () => {
     it('should throw error if openspec directory does not exist', async () => {
       // Remove openspec directory
-      await fs.rm(path.join(testDir, 'openspec'), {
+      await fs.rm(getToolDir(testDir), {
         recursive: true,
         force: true,
       });
@@ -3013,7 +3018,7 @@ ${OPENSPEC_MARKERS.end}
 
       // Create legacy openspec/AGENTS.md
       await fs.writeFile(
-        path.join(testDir, 'openspec', 'AGENTS.md'),
+        path.join(getToolDir(testDir), 'AGENTS.md'),
         '# Old AGENTS.md content'
       );
 
@@ -3025,12 +3030,12 @@ ${OPENSPEC_MARKERS.end}
 
       // Should show cleanup message
       expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Removed openspec/AGENTS.md')
+        expect.stringContaining(`Removed ${RELATIVE_TOOL_DIR}/AGENTS.md`)
       );
 
       // Legacy file should be deleted
       const legacyExists = await FileSystemUtils.fileExists(
-        path.join(testDir, 'openspec', 'AGENTS.md')
+        path.join(getToolDir(testDir), 'AGENTS.md')
       );
       expect(legacyExists).toBe(false);
 
@@ -4294,6 +4299,115 @@ content
 
       const workflows = scanInstalledWorkflows(testDir, ['claude']);
       expect(workflows).toContain('explore');
+    });
+  });
+
+  // SpecAgile: the former openspec/ layout moves first (src/core/fork/layout-migration.ts).
+  describe('moving the former layout', () => {
+    const exists = (...segments: string[]) => FileSystemUtils.fileExists(path.join(testDir, ...segments));
+    const read = (...segments: string[]) => fs.readFile(path.join(testDir, ...segments), 'utf8');
+
+    async function formerProject(files: Record<string, string>): Promise<void> {
+      // The suite's setup made specagile/: a project made by 2.1 has none.
+      await fs.rm(getToolDir(testDir), { recursive: true, force: true });
+      createFormerLayout(testDir, files);
+    }
+
+    function output(spy: ReturnType<typeof vi.spyOn>): string {
+      return spy.mock.calls.map((call) => call.join(' ')).join('\n');
+    }
+
+    it('moves a project made with openspec init or SpecAgile 2.1, and reports each move', async () => {
+      await formerProject({
+        'config.yaml': 'schema: spec-driven\n',
+        'specs/auth/spec.md': '# auth\n',
+        'changes/add-login/proposal.md': '# add-login\n',
+        'changes/archive/2026-01-10-setup/proposal.md': '# setup\n',
+      });
+      const consoleSpy = vi.spyOn(console, 'log');
+
+      await updateCommand.execute(testDir);
+
+      expect(await read('specagile', 'config.yaml')).toBe('schema: spec-driven\n');
+      expect(await read('specs', 'auth', 'spec.md')).toBe('# auth\n');
+      expect(await read('changes', 'add-login', 'proposal.md')).toBe('# add-login\n');
+      expect(await read('changes', 'archive', '2026-01-10-setup', 'proposal.md')).toBe('# setup\n');
+      expect(await FileSystemUtils.directoryExists(path.join(testDir, 'openspec'))).toBe(false);
+      const printed = output(consoleSpy);
+      expect(printed).toContain('Moved openspec/specs/ → specs/');
+      expect(printed).toContain('Moved openspec/changes/ → changes/');
+      expect(printed).toContain('Moved openspec/config.yaml → specagile/config.yaml');
+      expect(printed).toContain('Commit the move');
+    });
+
+    it('moves the rest of openspec/ into specagile/, and the project schema stays listed', async () => {
+      await formerProject({
+        'config.yaml': 'schema: spec-driven\n',
+        'changes/add-login/proposal.md': '# add-login\n',
+        'schemas/my-flow/schema.yaml': 'name: my-flow\nversion: 1\nartifacts: []\n',
+        'explorations/notes.md': 'notes\n',
+      });
+
+      await updateCommand.execute(testDir);
+
+      expect(await exists('specagile', 'schemas', 'my-flow', 'schema.yaml')).toBe(true);
+      expect(await read('specagile', 'explorations', 'notes.md')).toBe('notes\n');
+      expect(listSchemas(testDir)).toContain('my-flow');
+    });
+
+    it('moves a repo whose only planning is a config that declares a store', async () => {
+      await formerProject({ 'config.yaml': 'store: team\n' });
+
+      // The repo points at an unregistered store: the update itself may stop
+      // there, after the move.
+      await updateCommand.execute(testDir).catch(() => undefined);
+
+      expect(await read('specagile', 'config.yaml')).toBe('store: team\n');
+      expect(readStorePointer(testDir).value).toBe('team');
+    });
+
+    it('leaves openspec/ untouched beside the layout in force, and says it is not used', async () => {
+      await fs.writeFile(path.join(getToolDir(testDir), 'config.yaml'), 'schema: spec-driven\n');
+      await fs.mkdir(path.join(testDir, 'changes', 'add-login'), { recursive: true });
+      createFormerLayout(testDir, { 'changes/old-change/proposal.md': '# old\n' });
+      const consoleSpy = vi.spyOn(console, 'log');
+
+      await updateCommand.execute(testDir);
+
+      expect(await read('openspec', 'changes', 'old-change', 'proposal.md')).toBe('# old\n');
+      expect(output(consoleSpy)).toContain('openspec/ is not used');
+      expect(await getActiveChangeIds(testDir)).toEqual(['add-login']);
+    });
+
+    it('stops before any change when a specs/ folder of tests is in the way', async () => {
+      await formerProject({ 'config.yaml': 'schema: spec-driven\n', 'changes/add-login/proposal.md': '# add-login\n' });
+      await fs.mkdir(path.join(testDir, 'specs'));
+      await fs.writeFile(path.join(testDir, 'specs', 'login.test.ts'), 'test\n');
+      const before = snapshotDirectory(testDir);
+
+      await expect(updateCommand.execute(testDir)).rejects.toThrow(/specs\/ already exists with content.*run specagile update again/s);
+
+      expect(snapshotDirectory(testDir)).toEqual(before);
+    });
+
+    it('moves into an empty changes/ folder', async () => {
+      await formerProject({ 'config.yaml': 'schema: spec-driven\n', 'changes/add-login/proposal.md': '# add-login\n' });
+      await fs.mkdir(path.join(testDir, 'changes'));
+
+      await updateCommand.execute(testDir);
+
+      expect(await read('changes', 'add-login', 'proposal.md')).toBe('# add-login\n');
+    });
+
+    it("keeps a moved change's metadata", async () => {
+      await formerProject({
+        'config.yaml': 'schema: spec-driven\n',
+        'changes/add-login/.openspec.yaml': 'schema: spec-driven\nskip_specs: true\n',
+      });
+
+      await updateCommand.execute(testDir);
+
+      expect(await read('changes', 'add-login', '.openspec.yaml')).toBe('schema: spec-driven\nskip_specs: true\n');
     });
   });
 

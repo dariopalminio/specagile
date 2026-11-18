@@ -5,6 +5,7 @@ import path from 'path';
 
 import { CLI_WORDS } from '../../src/core/fork/identity.js';
 import { runCLI } from '../helpers/run-cli.js';
+import { getChangesDir, getConfigFile, getToolDir } from '../helpers/layout.js';
 
 /**
  * SpecAgile's CLI is `specagile`. Every message that tells the user to run a
@@ -91,10 +92,10 @@ describe('specagile CLI output', () => {
     fs.rmSync(dir, { recursive: true, force: true });
   });
 
-  it('suggests specagile status after specagile new change, under openspec/changes/', async () => {
+  it('suggests specagile status after specagile new change, under changes/', async () => {
     const project = path.join(dir, 'project');
-    fs.mkdirSync(path.join(project, 'openspec'), { recursive: true });
-    fs.writeFileSync(path.join(project, 'openspec', 'config.yaml'), 'schema: spec-driven\n');
+    fs.mkdirSync(getToolDir(project), { recursive: true });
+    fs.writeFileSync(getConfigFile(project), 'schema: spec-driven\n');
 
     const result = await runCLI(['new', 'change', 'add-login'], { cwd: project, env });
 
@@ -102,7 +103,8 @@ describe('specagile CLI output', () => {
     const output = `${result.stdout}\n${result.stderr}`;
     expect(output).toContain('specagile status --change add-login');
     expect(output).not.toMatch(/\bopenspec status\b/);
-    expect(fs.existsSync(path.join(project, 'openspec', 'changes', 'add-login'))).toBe(true);
+    expect(fs.existsSync(path.join(getChangesDir(project), 'add-login'))).toBe(true);
+    expect(output).toContain(`Created change 'add-login' at ${path.join('changes', 'add-login')}`);
   });
 
   it('suggests specagile init when specagile list finds no project', async () => {

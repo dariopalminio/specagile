@@ -24,6 +24,7 @@ import { getTaskProgressDetailForChange, type SchemaGlobCache } from '../utils/t
 import { FileSystemUtils } from '../utils/file-system.js';
 import { folderStyleNameProblem } from '../core/id.js';
 import { readConfigParseError } from '../core/project-config.js';
+import { RELATIVE_CHANGES_DIR } from '../core/fork/layout.js';
 
 type ItemType = 'change' | 'spec';
 
@@ -411,7 +412,7 @@ export class ValidateCommand {
     // bullets below would point at a directory that is not the change (#1846).
     const nestedIssue = issues.some(i => i.message.includes(NESTED_CHANGE_ISSUE_MARKER));
     if (type === 'change' && nestedIssue) {
-      bullets.push('- Move each nested change directly under openspec/changes/, folding the namespace into its name');
+      bullets.push(`- Move each nested change directly under ${RELATIVE_CHANGES_DIR}/, folding the namespace into its name`);
       bullets.push('- Only specs may be nested by domain; change directories are always flat');
     } else if (type === 'change' && conflictIssue) {
       bullets.push('- This change declares skip_specs (no spec deltas): delete the files under specs/, or remove skip_specs from .openspec.yaml if requirements do change');

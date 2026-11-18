@@ -4,6 +4,7 @@ import os from 'os';
 import path from 'path';
 import { Validator } from '../../src/core/validation/validator.js';
 import { buildUpdatedSpec, findSpecUpdates } from '../../src/core/specs-apply.js';
+import { getChangesDir, getSpecsDir } from '../helpers/layout.js';
 
 /**
  * validate reports the scenario loss archive refuses to apply (#1477).
@@ -64,8 +65,8 @@ describe('validate: MODIFIED blocks that would drop a main-spec scenario (#1477)
 
   beforeEach(async () => {
     testDir = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-scenario-loss-'));
-    changesDir = path.join(testDir, 'openspec', 'changes');
-    mainSpecsDir = path.join(testDir, 'openspec', 'specs');
+    changesDir = getChangesDir(testDir);
+    mainSpecsDir = getSpecsDir(testDir);
     await fs.mkdir(changesDir, { recursive: true });
     await fs.mkdir(mainSpecsDir, { recursive: true });
   });

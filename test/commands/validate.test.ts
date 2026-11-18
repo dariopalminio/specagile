@@ -2,14 +2,16 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { runCLI } from '../helpers/run-cli.js';
+import { getChangesDir, getSpecsDir, getToolDir } from '../helpers/layout.js';
 
 describe('top-level validate command', () => {
   const projectRoot = process.cwd();
   const testDir = path.join(projectRoot, 'test-validate-command-tmp');
-  const changesDir = path.join(testDir, 'openspec', 'changes');
-  const specsDir = path.join(testDir, 'openspec', 'specs');
+  const changesDir = getChangesDir(testDir);
+  const specsDir = getSpecsDir(testDir);
 
   beforeEach(async () => {
+    await fs.mkdir(getToolDir(testDir), { recursive: true });
     await fs.mkdir(changesDir, { recursive: true });
     await fs.mkdir(specsDir, { recursive: true });
 
@@ -28,11 +30,13 @@ describe('top-level validate command', () => {
       '- **WHEN** the module runs the default flow',
       '- **THEN** the output matches the expected fixture result',
     ].join('\n');
+    await fs.mkdir(getToolDir(testDir), { recursive: true });
     await fs.mkdir(path.join(specsDir, 'alpha'), { recursive: true });
     await fs.writeFile(path.join(specsDir, 'alpha', 'spec.md'), specContent, 'utf-8');
 
     // Create a simple change with bullets (parser supports this)
     const changeContent = `# Test Change\n\n## Why\nBecause reasons that are sufficiently long for validation.\n\n## What Changes\n- **alpha:** Add something`;
+    await fs.mkdir(getToolDir(testDir), { recursive: true });
     await fs.mkdir(path.join(changesDir, 'c1'), { recursive: true });
     await fs.writeFile(path.join(changesDir, 'c1', 'proposal.md'), changeContent, 'utf-8');
     const deltaContent = [
@@ -50,11 +54,13 @@ describe('top-level validate command', () => {
     await fs.writeFile(path.join(c1DeltaDir, 'spec.md'), deltaContent, 'utf-8');
 
     // Duplicate name for ambiguity test
+    await fs.mkdir(getToolDir(testDir), { recursive: true });
     await fs.mkdir(path.join(changesDir, 'dup'), { recursive: true });
     await fs.writeFile(path.join(changesDir, 'dup', 'proposal.md'), changeContent, 'utf-8');
     const dupDeltaDir = path.join(changesDir, 'dup', 'specs', 'dup');
     await fs.mkdir(dupDeltaDir, { recursive: true });
     await fs.writeFile(path.join(dupDeltaDir, 'spec.md'), deltaContent, 'utf-8');
+    await fs.mkdir(getToolDir(testDir), { recursive: true });
     await fs.mkdir(path.join(specsDir, 'dup'), { recursive: true });
     await fs.writeFile(path.join(specsDir, 'dup', 'spec.md'), specContent, 'utf-8');
   });
@@ -151,6 +157,7 @@ describe('top-level validate command', () => {
       '- **alpha:** Ensure validation passes on CRLF files',
     ]);
 
+    await fs.mkdir(getToolDir(testDir), { recursive: true });
     await fs.mkdir(path.join(changesDir, changeId), { recursive: true });
     await fs.writeFile(path.join(changesDir, changeId, 'proposal.md'), crlfContent, 'utf-8');
 
@@ -211,8 +218,9 @@ describe('top-level validate command', () => {
 
   it('includes a sole proposal-less change in --all (not "No items found") (#1182)', async () => {
     const isoRoot = path.join(projectRoot, 'test-validate-iso-tmp');
-    const isoChanges = path.join(isoRoot, 'openspec', 'changes');
+    const isoChanges = getChangesDir(isoRoot);
     const deltaDir = path.join(isoChanges, 'only', 'specs', 'alpha');
+    await fs.mkdir(getToolDir(isoRoot), { recursive: true });
     await fs.mkdir(deltaDir, { recursive: true });
     try {
       await fs.writeFile(path.join(isoChanges, 'only', '.openspec.yaml'), 'schema: spec-driven\n', 'utf-8');

@@ -7,6 +7,7 @@ import { getGlobalDataDir, registerStore } from '../../src/core/index.js';
 import { runCLI, type RunCLIResult } from '../helpers/run-cli.js';
 import { snapshotDirectory as snapshot } from '../helpers/fs-snapshot.js';
 import { createOpenSpecRoot, writeSpec } from '../helpers/openspec-fixtures.js';
+import { getChangesDir, getConfigFile, getToolDir } from '../helpers/layout.js';
 
 describe('store references in instructions (3.1)', () => {
   let tempDir: string;
@@ -32,8 +33,9 @@ describe('store references in instructions (3.1)', () => {
 
     appRepo = path.join(tempDir, 'app-repo');
     createOpenSpecRoot(appRepo);
+    fs.mkdirSync(getToolDir(appRepo), { recursive: true });
     fs.writeFileSync(
-      path.join(appRepo, 'openspec', 'config.yaml'),
+      getConfigFile(appRepo),
       'schema: spec-driven\nreferences:\n  - team-context\n'
     );
   });
@@ -105,7 +107,8 @@ describe('store references in instructions (3.1)', () => {
   });
 
   it('omits the references field entirely when none are declared', async () => {
-    fs.writeFileSync(path.join(appRepo, 'openspec', 'config.yaml'), 'schema: spec-driven\n');
+    fs.mkdirSync(getToolDir(appRepo), { recursive: true });
+    fs.writeFileSync(getConfigFile(appRepo), 'schema: spec-driven\n');
     await createChange(appRepo, 'plain-change');
 
     const result = await runCLI(
@@ -119,8 +122,9 @@ describe('store references in instructions (3.1)', () => {
   it('omits the references field when the only declaration is a self-reference', async () => {
     // A store whose config copy-pasted its own id: the omitted-not-empty
     // contract must hold so field presence stays a reliable signal.
+    fs.mkdirSync(getToolDir(storeRoot), { recursive: true });
     fs.writeFileSync(
-      path.join(storeRoot, 'openspec', 'config.yaml'),
+      getConfigFile(storeRoot),
       'schema: spec-driven\nreferences:\n  - team-context\n'
     );
     await createChange(appRepo, 'self-ref-change', ['--store', 'team-context']);
@@ -141,8 +145,9 @@ describe('store references in instructions (3.1)', () => {
     createOpenSpecRoot(upstreamRoot);
     writeSpec(upstreamRoot, 'platform-rules', '## Purpose\n\nPlatform rules.\n');
     await registerStore({ id: 'upstream-context', localPath: upstreamRoot, globalDataDir });
+    fs.mkdirSync(getToolDir(storeRoot), { recursive: true });
     fs.writeFileSync(
-      path.join(storeRoot, 'openspec', 'config.yaml'),
+      getConfigFile(storeRoot),
       'schema: spec-driven\nreferences:\n  - upstream-context\n'
     );
 
@@ -162,8 +167,9 @@ describe('store references in instructions (3.1)', () => {
     await registerStore({ id: 'upstream-context', localPath: upstreamRoot, globalDataDir });
     // team-context references upstream-context; the app repo references
     // only team-context. upstream-context must not appear.
+    fs.mkdirSync(getToolDir(storeRoot), { recursive: true });
     fs.writeFileSync(
-      path.join(storeRoot, 'openspec', 'config.yaml'),
+      getConfigFile(storeRoot),
       'schema: spec-driven\nreferences:\n  - upstream-context\n'
     );
 
@@ -212,13 +218,7 @@ describe('store references in instructions (3.1)', () => {
     expect(outputs.referenced).toEqual(outputs.plain);
     expect(snapshot(storeRoot)).toEqual(storeBefore);
     // No per-change link metadata in the app repo's change.
-    const metadataPath = path.join(
-      appRepo,
-      'openspec',
-      'changes',
-      'parity-check',
-      '.openspec.yaml'
-    );
+    const metadataPath = path.join(getChangesDir(appRepo), 'parity-check', '.openspec.yaml');
     if (fs.existsSync(metadataPath)) {
       expect(fs.readFileSync(metadataPath, 'utf-8')).not.toContain('reference');
     }
@@ -238,7 +238,7 @@ describe('store references in instructions (3.1)', () => {
     expect(fetchResult.stdout).toContain('Usage-based invoicing.');
 
     // The design lands in the app repo's own root, citing the store spec.
-    const changeDir = path.join(appRepo, 'openspec', 'changes', 'billing-rework');
+    const changeDir = path.join(getChangesDir(appRepo), 'billing-rework');
     fs.writeFileSync(
       path.join(changeDir, 'proposal.md'),
       '## Why\n\nDerives from team-context/billing (see referenced stores).\n\n## What Changes\n\n- **invoicing:** Rework invoicing\n'

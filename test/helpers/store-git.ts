@@ -2,15 +2,17 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 
 import { DEFAULT_OPENSPEC_SCHEMA } from '../../src/core/index.js';
+import { getArchiveDir, getSpecsDir, getToolDir } from './layout.js';
 
 /**
  * Shared fixtures for store tests that touch real Git.
  */
 
 export function createHealthyOpenSpecRoot(root: string, configName = 'config.yaml'): void {
-  fs.mkdirSync(path.join(root, 'openspec', 'specs'), { recursive: true });
-  fs.mkdirSync(path.join(root, 'openspec', 'changes', 'archive'), { recursive: true });
-  fs.writeFileSync(path.join(root, 'openspec', configName), `schema: ${DEFAULT_OPENSPEC_SCHEMA}\n`);
+  fs.mkdirSync(getSpecsDir(root), { recursive: true });
+  fs.mkdirSync(getArchiveDir(root), { recursive: true });
+  fs.mkdirSync(getToolDir(root), { recursive: true });
+  fs.writeFileSync(path.join(getToolDir(root), configName), `schema: ${DEFAULT_OPENSPEC_SCHEMA}\n`);
 }
 
 /**

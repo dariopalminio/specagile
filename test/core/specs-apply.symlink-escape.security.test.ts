@@ -4,6 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 
 import { findSpecUpdates } from '../../src/core/specs-apply.js';
+import { getChangesDir, getSpecsDir } from '../helpers/layout.js';
 
 const itWithSymlinks = it.skipIf(process.platform === 'win32');
 
@@ -24,8 +25,8 @@ describe('a linked capability directory outside the project', () => {
   beforeEach(async () => {
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-spec-link-escape-'));
     projectDir = path.join(tempDir, 'repo');
-    changeDir = path.join(projectDir, 'openspec', 'changes', 'test-change');
-    mainSpecsDir = path.join(projectDir, 'openspec', 'specs');
+    changeDir = path.join(getChangesDir(projectDir), 'test-change');
+    mainSpecsDir = getSpecsDir(projectDir);
     outsideDir = path.join(tempDir, 'outside');
     await fs.mkdir(path.join(changeDir, 'specs', 'widgets'), { recursive: true });
     await fs.mkdir(mainSpecsDir, { recursive: true });

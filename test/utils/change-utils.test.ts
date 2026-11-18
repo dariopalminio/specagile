@@ -3,6 +3,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
 import { validateChangeName, createChange } from '../../src/utils/change-utils.js';
+import { getChangesDir } from '../helpers/layout.js';
 
 describe('validateChangeName', () => {
   describe('valid names', () => {
@@ -158,7 +159,7 @@ describe('createChange', () => {
     it('should create change directory', async () => {
       await createChange(testDir, 'add-auth');
 
-      const changeDir = path.join(testDir, 'openspec', 'changes', 'add-auth');
+      const changeDir = path.join(getChangesDir(testDir), 'add-auth');
       const stats = await fs.stat(changeDir);
       expect(stats.isDirectory()).toBe(true);
     });
@@ -166,7 +167,7 @@ describe('createChange', () => {
     it('should create a numeric-prefixed change directory (#850, #1169)', async () => {
       await createChange(testDir, '100-add-feature');
 
-      const changeDir = path.join(testDir, 'openspec', 'changes', '100-add-feature');
+      const changeDir = path.join(getChangesDir(testDir), '100-add-feature');
       const stats = await fs.stat(changeDir);
       expect(stats.isDirectory()).toBe(true);
     });
@@ -174,7 +175,7 @@ describe('createChange', () => {
     it('should create .openspec.yaml metadata file with default schema', async () => {
       await createChange(testDir, 'add-auth');
 
-      const metaPath = path.join(testDir, 'openspec', 'changes', 'add-auth', '.openspec.yaml');
+      const metaPath = path.join(getChangesDir(testDir), 'add-auth', '.openspec.yaml');
       const content = await fs.readFile(metaPath, 'utf-8');
       expect(content).toContain('schema: spec-driven');
       expect(content).toMatch(/created: \d{4}-\d{2}-\d{2}/);
@@ -187,7 +188,7 @@ describe('createChange', () => {
 
       await createChange(testDir, 'local-date-change');
 
-      const metaPath = path.join(testDir, 'openspec', 'changes', 'local-date-change', '.openspec.yaml');
+      const metaPath = path.join(getChangesDir(testDir), 'local-date-change', '.openspec.yaml');
       const content = await fs.readFile(metaPath, 'utf-8');
       expect(content).toContain('created: 2026-07-15');
     });
@@ -199,7 +200,7 @@ describe('createChange', () => {
 
       await createChange(testDir, 'same-date-change');
 
-      const metaPath = path.join(testDir, 'openspec', 'changes', 'same-date-change', '.openspec.yaml');
+      const metaPath = path.join(getChangesDir(testDir), 'same-date-change', '.openspec.yaml');
       const content = await fs.readFile(metaPath, 'utf-8');
       expect(content).toContain('created: 2026-01-05');
     });
@@ -207,7 +208,7 @@ describe('createChange', () => {
     it('should create .openspec.yaml with custom schema', async () => {
       await createChange(testDir, 'add-auth', { schema: 'spec-driven' });
 
-      const metaPath = path.join(testDir, 'openspec', 'changes', 'add-auth', '.openspec.yaml');
+      const metaPath = path.join(getChangesDir(testDir), 'add-auth', '.openspec.yaml');
       const content = await fs.readFile(metaPath, 'utf-8');
       expect(content).toContain('schema: spec-driven');
     });
@@ -259,7 +260,7 @@ describe('createChange', () => {
       // openspec/changes/ does not exist yet
       await createChange(newProjectDir, 'add-auth');
 
-      const changeDir = path.join(newProjectDir, 'openspec', 'changes', 'add-auth');
+      const changeDir = path.join(getChangesDir(newProjectDir), 'add-auth');
       const stats = await fs.stat(changeDir);
       expect(stats.isDirectory()).toBe(true);
     });

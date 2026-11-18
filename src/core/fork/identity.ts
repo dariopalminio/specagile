@@ -5,10 +5,13 @@
  * never conflicts here. Upstream lists that name skills read these tables, and
  * upstream skill templates are never edited: generated text goes through
  * `applyForkIdentity`, which swaps OpenSpec's CLI and skill names for the
- * fork's. See "Identidad SpecAgile" in FORK.md.
+ * fork's (`applyForkNames`) and upstream's layout paths for SpecAgile's
+ * (`applyLayoutText`, src/core/fork/layout.ts). See "SpecAgile identity" in
+ * FORK.md.
  */
 
 import type { WorkflowId } from '../profiles.js';
+import { applyLayoutText } from './layout.js';
 
 /** The executable users run: `specagile init`, `specagile update`, ... */
 export const CLI_NAME = 'specagile';
@@ -166,11 +169,12 @@ const EXACT_REPLACEMENTS: ReadonlyArray<readonly [string, string]> = [
  * `openspec <word>` with a word in CLI_WORDS becomes `specagile <word>`, and a
  * few exact frontmatter texts name the `specagile` CLI. Project paths
  * (`openspec/changes/`), internal files (`.openspec-target`), "OpenSpec" in
- * prose and anything outside the tables are left as written.
+ * prose and anything outside the tables are left as written. This is the
+ * whole translation SpecAgile 2.1 applied, so it also tells its output apart.
  *
- * Idempotent: text that already has the fork's identity comes back unchanged.
+ * Idempotent: text that already has the fork's names comes back unchanged.
  */
-export function applyForkIdentity(text: string): string {
+export function applyForkNames(text: string): string {
   let result = text.replace(FORMER_SKILL_TOKEN, (token) => SKILL_NAME_BY_FORMER.get(token) ?? token);
   result = result.replace(CLI_INVOCATION, (match, word: string) =>
     CLI_WORD_SET.has(word) ? `${CLI_NAME} ${word}` : match
@@ -179,4 +183,18 @@ export function applyForkIdentity(text: string): string {
     result = result.split(from).join(to);
   }
   return result;
+}
+
+/**
+ * Rewrites text written by upstream into SpecAgile's identity: its names
+ * (`applyForkNames`), then its layout paths (`applyLayoutText`), so
+ * `<planningHome.root>/openspec/specs/` reads `<planningHome.root>/specs/` and
+ * `<root.path>/openspec/config.yaml` reads `<root.path>/specagile/config.yaml`.
+ * Internal files (`.openspec.yaml`, `.openspec-target`, `.openspec-store/`),
+ * the store location `~/openspec/<id>` and "OpenSpec" in prose stay.
+ *
+ * Idempotent: text that already has the fork's identity comes back unchanged.
+ */
+export function applyForkIdentity(text: string): string {
+  return applyLayoutText(applyForkNames(text));
 }

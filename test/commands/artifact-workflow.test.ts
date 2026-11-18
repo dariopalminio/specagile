@@ -4,6 +4,7 @@ import path from 'path';
 import os from 'os';
 import { runCLI } from '../helpers/run-cli.js';
 import { FileSystemUtils } from '../../src/utils/file-system.js';
+import { getChangesDir, getConfigFile, getProjectSchemasDir, getSpecsDir, getToolDir } from '../helpers/layout.js';
 
 describe('artifact-workflow CLI commands', () => {
   let tempDir: string;
@@ -13,7 +14,7 @@ describe('artifact-workflow CLI commands', () => {
 
   beforeEach(async () => {
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-artifact-workflow-'));
-    changesDir = path.join(tempDir, 'openspec', 'changes');
+    changesDir = getChangesDir(tempDir);
     await fs.mkdir(changesDir, { recursive: true });
   });
 
@@ -212,7 +213,7 @@ describe('artifact-workflow CLI commands', () => {
         // The line is built from the resolved artifact id, so a project whose
         // schema has no proposal/specs/design/tasks must still get a usable
         // command rather than a hard-coded default-schema one.
-        const schemaDir = path.join(tempDir, 'openspec', 'schemas', 'lean');
+        const schemaDir = path.join(getProjectSchemasDir(tempDir), 'lean');
         await fs.mkdir(path.join(schemaDir, 'templates'), { recursive: true });
         await fs.writeFile(path.join(schemaDir, 'templates', 'brief.md'), '# Brief\n');
         await fs.writeFile(path.join(schemaDir, 'templates', 'plan.md'), '# Plan\n');
@@ -491,7 +492,7 @@ describe('artifact-workflow CLI commands', () => {
   describe('instructions command', () => {
     it('keeps instructions available for missing companion outputs after a glob artifact is done', async () => {
       const schemaName = 'companion-outputs';
-      const schemaDir = path.join(tempDir, 'openspec', 'schemas', schemaName);
+      const schemaDir = path.join(getProjectSchemasDir(tempDir), schemaName);
       const outputPath = 'reviews/*/notes.md';
       const template = '# Review\n\n## Findings\n';
       await fs.mkdir(path.join(schemaDir, 'templates'), { recursive: true });
@@ -521,8 +522,9 @@ artifacts:
       await fs.writeFile(path.join(schemaDir, 'templates', 'brief.md'), '# Brief\n');
       await fs.writeFile(path.join(schemaDir, 'templates', 'review.md'), template);
       await fs.writeFile(path.join(schemaDir, 'templates', 'signoff.md'), '# Signoff\n');
+      await fs.mkdir(getToolDir(tempDir), { recursive: true });
       await fs.writeFile(
-        path.join(tempDir, 'openspec', 'config.yaml'),
+        getConfigFile(tempDir),
         `schema: ${schemaName}
 context: Review both the API and UI components.
 rules:
@@ -747,7 +749,7 @@ rules:
     });
 
     it('marks changes as skip_specs when their schema cannot generate specs', async () => {
-      const schemaDir = path.join(tempDir, 'openspec', 'schemas', 'no-specs');
+      const schemaDir = path.join(getProjectSchemasDir(tempDir), 'no-specs');
       await fs.mkdir(path.join(schemaDir, 'templates'), { recursive: true });
       await fs.writeFile(
         path.join(schemaDir, 'schema.yaml'),
@@ -771,8 +773,9 @@ apply:
       );
       await fs.writeFile(path.join(schemaDir, 'templates', 'proposal.md'), '# Proposal\n');
       await fs.writeFile(path.join(schemaDir, 'templates', 'tasks.md'), '# Tasks\n');
+      await fs.mkdir(getToolDir(tempDir), { recursive: true });
       await fs.writeFile(
-        path.join(tempDir, 'openspec', 'config.yaml'),
+        getConfigFile(tempDir),
         'schema: no-specs\n'
       );
 
@@ -795,7 +798,7 @@ apply:
     it('does not mark spec-producing schemas that use Windows separators', async () => {
       const schemaName = 'windows-specs';
       const generates = String.raw`specs\**\*.md`;
-      const schemaDir = path.join(tempDir, 'openspec', 'schemas', schemaName);
+      const schemaDir = path.join(getProjectSchemasDir(tempDir), schemaName);
       await fs.mkdir(path.join(schemaDir, 'templates'), { recursive: true });
       await fs.writeFile(
         path.join(schemaDir, 'schema.yaml'),
@@ -810,8 +813,9 @@ artifacts:
 `
       );
       await fs.writeFile(path.join(schemaDir, 'templates', 'spec.md'), '# Spec\n');
+      await fs.mkdir(getToolDir(tempDir), { recursive: true });
       await fs.writeFile(
-        path.join(tempDir, 'openspec', 'config.yaml'),
+        getConfigFile(tempDir),
         `schema: ${schemaName}\n`
       );
 
@@ -941,8 +945,9 @@ The system SHALL support the example behavior.
     });
 
     it('shows blocked state when required artifacts are missing', async () => {
+      await fs.mkdir(getToolDir(tempDir), { recursive: true });
       await fs.writeFile(
-        path.join(tempDir, 'openspec', 'config.yaml'),
+        getConfigFile(tempDir),
         `schema: spec-driven
 context: Required blocked-state context
 operations:
@@ -987,8 +992,9 @@ operations:
     });
 
     it('returns current context and matching apply guidance as separate JSON fields', async () => {
+      await fs.mkdir(getToolDir(tempDir), { recursive: true });
       await fs.writeFile(
-        path.join(tempDir, 'openspec', 'config.yaml'),
+        getConfigFile(tempDir),
         `schema: spec-driven
 context: |
   Current project context
@@ -1033,8 +1039,9 @@ operations:
     });
 
     it('renders required context and advisory apply guidance as distinct text sections', async () => {
+      await fs.mkdir(getToolDir(tempDir), { recursive: true });
       await fs.writeFile(
-        path.join(tempDir, 'openspec', 'config.yaml'),
+        getConfigFile(tempDir),
         `schema: spec-driven
 context: Project background
 operations:
@@ -1060,8 +1067,9 @@ operations:
     });
 
     it('omits absent operation inputs without changing apply state behavior', async () => {
+      await fs.mkdir(getToolDir(tempDir), { recursive: true });
       await fs.writeFile(
-        path.join(tempDir, 'openspec', 'config.yaml'),
+        getConfigFile(tempDir),
         `schema: spec-driven
 rules:
   specs:
@@ -1084,7 +1092,8 @@ rules:
     });
 
     it('reads a fresh apply config snapshot on every command invocation', async () => {
-      const configPath = path.join(tempDir, 'openspec', 'config.yaml');
+      const configPath = getConfigFile(tempDir);
+      await fs.mkdir(getToolDir(tempDir), { recursive: true });
       await createTestChange('apply-fresh-inputs', ['proposal', 'design', 'specs', 'tasks']);
       await fs.writeFile(
         configPath,
@@ -1127,8 +1136,9 @@ operations:
     });
 
     it('reads malformed operation config once and emits one warning per command', async () => {
+      await fs.mkdir(getToolDir(tempDir), { recursive: true });
       await fs.writeFile(
-        path.join(tempDir, 'openspec', 'config.yaml'),
+        getConfigFile(tempDir),
         `schema: spec-driven
 operations:
   apply:
@@ -1151,7 +1161,7 @@ operations:
     });
 
     it('resolves single-star glob artifacts consistently between status and apply', async () => {
-      const schemaDir = path.join(tempDir, 'openspec', 'schemas', 'glob-test');
+      const schemaDir = path.join(getProjectSchemasDir(tempDir), 'glob-test');
       const templatesDir = path.join(schemaDir, 'templates');
       await fs.mkdir(templatesDir, { recursive: true });
 
@@ -1219,8 +1229,9 @@ apply:
     });
 
     it('shows all_done state when all tasks are complete', async () => {
+      await fs.mkdir(getToolDir(tempDir), { recursive: true });
       await fs.writeFile(
-        path.join(tempDir, 'openspec', 'config.yaml'),
+        getConfigFile(tempDir),
         `schema: spec-driven
 context: Required all-done context
 operations:
@@ -1296,7 +1307,7 @@ operations:
     it('fallback: requires all artifacts when schema has no apply block', async () => {
       // Create a minimal schema without an apply block in user schemas dir
       const userDataDir = path.join(tempDir, 'user-data');
-      const noApplySchemaDir = path.join(userDataDir, 'openspec', 'schemas', 'no-apply');
+      const noApplySchemaDir = path.join(path.join(userDataDir, 'openspec', 'schemas'), 'no-apply');
       const templatesDir = path.join(noApplySchemaDir, 'templates');
       await fs.mkdir(templatesDir, { recursive: true });
 
@@ -1346,7 +1357,7 @@ artifacts:
     it('fallback: ready when all artifacts exist for schema without apply block', async () => {
       // Create a minimal schema without an apply block
       const userDataDir = path.join(tempDir, 'user-data-2');
-      const noApplySchemaDir = path.join(userDataDir, 'openspec', 'schemas', 'no-apply-full');
+      const noApplySchemaDir = path.join(path.join(userDataDir, 'openspec', 'schemas'), 'no-apply-full');
       const templatesDir = path.join(noApplySchemaDir, 'templates');
       await fs.mkdir(templatesDir, { recursive: true });
 
@@ -1388,8 +1399,9 @@ artifacts:
 
   describe('instructions archive command', () => {
     it('returns current archive context, guidance, and the root envelope in JSON', async () => {
+      await fs.mkdir(getToolDir(tempDir), { recursive: true });
       await fs.writeFile(
-        path.join(tempDir, 'openspec', 'config.yaml'),
+        getConfigFile(tempDir),
         `schema: spec-driven
 context: Archive project context
 rules:
@@ -1428,8 +1440,9 @@ operations:
     });
 
     it('renders required context and advisory archive guidance as separate text sections', async () => {
+      await fs.mkdir(getToolDir(tempDir), { recursive: true });
       await fs.writeFile(
-        path.join(tempDir, 'openspec', 'config.yaml'),
+        getConfigFile(tempDir),
         `schema: spec-driven
 context: Archive background
 operations:
@@ -1455,8 +1468,9 @@ operations:
     });
 
     it('succeeds with valid empty inputs and omits optional JSON fields', async () => {
+      await fs.mkdir(getToolDir(tempDir), { recursive: true });
       await fs.writeFile(
-        path.join(tempDir, 'openspec', 'config.yaml'),
+        getConfigFile(tempDir),
         'schema: spec-driven\n'
       );
       await createTestChange('archive-no-inputs');
@@ -1502,7 +1516,8 @@ operations:
     });
 
     it('reads fresh archive inputs without mutating specs or the change', async () => {
-      const configPath = path.join(tempDir, 'openspec', 'config.yaml');
+      const configPath = getConfigFile(tempDir);
+      await fs.mkdir(getToolDir(tempDir), { recursive: true });
       const changeDir = await createTestChange('archive-read-only', [
         'proposal',
         'design',
@@ -1552,11 +1567,11 @@ operations:
       expect(await fs.readFile(proposalPath, 'utf-8')).toBe(proposalBefore);
       expect(await fs.readdir(path.join(changeDir, 'specs'))).toEqual(['test-spec.md']);
       expect(
-        await fs.readdir(path.join(tempDir, 'openspec', 'changes'))
+        await fs.readdir(getChangesDir(tempDir))
       ).toContain('archive-read-only');
       expect(
         await fs
-          .stat(path.join(tempDir, 'openspec', 'specs'))
+          .stat(getSpecsDir(tempDir))
           .then(() => true)
           .catch(() => false)
       ).toBe(false);
@@ -1674,8 +1689,9 @@ operations:
       it('creates change with schema from project config', async () => {
         // Create project config with spec-driven schema
         // Note: changesDir is already at tempDir/openspec/changes (created in beforeEach)
+        await fs.mkdir(getToolDir(tempDir), { recursive: true });
         await fs.writeFile(
-          path.join(tempDir, 'openspec', 'config.yaml'),
+          getConfigFile(tempDir),
           'schema: spec-driven\n'
         );
 
@@ -1692,8 +1708,9 @@ operations:
       it('CLI schema overrides config schema', async () => {
         // Create project config with spec-driven schema
         // Note: openspec directory already exists (from changesDir creation in beforeEach)
+        await fs.mkdir(getToolDir(tempDir), { recursive: true });
         await fs.writeFile(
-          path.join(tempDir, 'openspec', 'config.yaml'),
+          getConfigFile(tempDir),
           'schema: spec-driven\n'
         );
 
@@ -1715,8 +1732,9 @@ operations:
       it('injects context and rules from config into instructions', async () => {
         // Create project config with context and rules
         // Note: openspec directory already exists (from changesDir creation in beforeEach)
+        await fs.mkdir(getToolDir(tempDir), { recursive: true });
         await fs.writeFile(
-          path.join(tempDir, 'openspec', 'config.yaml'),
+          getConfigFile(tempDir),
           `schema: spec-driven
 context: |
   Tech stack: TypeScript, React
@@ -1750,8 +1768,9 @@ rules:
       it('does not inject rules for non-matching artifact', async () => {
         // Create project config with rules only for proposal
         // Note: openspec directory already exists (from changesDir creation in beforeEach)
+        await fs.mkdir(getToolDir(tempDir), { recursive: true });
         await fs.writeFile(
-          path.join(tempDir, 'openspec', 'config.yaml'),
+          getConfigFile(tempDir),
           `schema: spec-driven
 rules:
   proposal:
@@ -1819,8 +1838,9 @@ rules:
       it('config changes are reflected without restart', async () => {
         // Create initial config
         // Note: openspec directory already exists (from changesDir creation in beforeEach)
+        await fs.mkdir(getToolDir(tempDir), { recursive: true });
         await fs.writeFile(
-          path.join(tempDir, 'openspec', 'config.yaml'),
+          getConfigFile(tempDir),
           `schema: spec-driven
 context: Initial context
 `
@@ -1838,8 +1858,9 @@ context: Initial context
         expect(result1.stdout).toContain('Initial context');
 
         // Update config
+        await fs.mkdir(getToolDir(tempDir), { recursive: true });
         await fs.writeFile(
-          path.join(tempDir, 'openspec', 'config.yaml'),
+          getConfigFile(tempDir),
           `schema: spec-driven
 context: Updated context
 `

@@ -2,7 +2,7 @@
 
 > Make the workflows plan changes the way you want with a few lines in config.yaml.
 
-`openspec/config.yaml` tells the workflows how you want changes planned.
+`specagile/config.yaml` tells the workflows how you want changes planned.
 
 For example, the following configuration updates the creation rules for the [tasks.md](../reference/schemas/spec-driven/index.md) artifact:
 

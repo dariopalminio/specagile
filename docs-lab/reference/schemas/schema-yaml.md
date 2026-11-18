@@ -6,10 +6,10 @@
 
 ## Location
 
-A project schema lives under `openspec/schemas/<name>/`:
+A project schema lives under `specagile/schemas/<name>/`:
 
 ```text
-openspec/schemas/review-first/
+specagile/schemas/review-first/
 ├── schema.yaml
 └── templates/
     ├── proposal.md
@@ -20,7 +20,7 @@ OpenSpec checks three places for that directory. The first match wins.
 
 | Copy | Directory |
 |---|---|
-| **1. Project** | `<project>/openspec/schemas/<name>/` |
+| **1. Project** | `<project>/specagile/schemas/<name>/` |
 | **2. User, macOS and Linux** | `~/.local/share/openspec/schemas/<name>/` |
 | **2. User, Windows** | `%LOCALAPPDATA%\openspec\schemas\<name>\` |
 | **3. Package** | The schemas installed with the CLI |
@@ -65,7 +65,7 @@ generates: proposal.md
 The artifact goes here:
 
 ```text
-openspec/changes/add-auth/proposal.md
+changes/add-auth/proposal.md
 ```
 
 A glob can match several files:
@@ -74,7 +74,7 @@ A glob can match several files:
 generates: specs/**/*.md
 ```
 
-This matches Markdown files below `openspec/changes/add-auth/specs/`.
+This matches Markdown files below `changes/add-auth/specs/`.
 
 OpenSpec recognizes these glob forms in `generates`:
 
@@ -106,7 +106,7 @@ template: proposal.md
 OpenSpec reads this file:
 
 ```text
-openspec/schemas/review-first/templates/proposal.md
+specagile/schemas/review-first/templates/proposal.md
 ```
 
 OpenSpec gives the template's contents to the agent as the output format. It doesn't copy the template into the change folder.
@@ -137,7 +137,7 @@ Artifact `requires` controls planning order. `apply.requires` controls when appl
 The path starts from the change folder. For a change named `add-auth`, `tracks: tasks.md` reads:
 
 ```text
-openspec/changes/add-auth/tasks.md
+changes/add-auth/tasks.md
 ```
 
 A glob such as `tracks: "**/tasks.md"` reads every matching file, such as `backend/tasks.md` and `frontend/tasks.md`. OpenSpec combines their tasks and progress. Use the same value for an artifact's `generates` field so status and list track the same files. The brace limits from `generates` (16 levels deep, 1,024 expanded patterns) apply here too.

@@ -4,6 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 
 import { buildUpdatedSpec, findSpecUpdates } from '../../src/core/specs-apply.js';
+import { getChangesDir, getSpecsDir } from '../helpers/layout.js';
 
 /**
  * `## Purpose` extraction masked HTML comments with `/<!--[\s\S]*?--!?>/g`,
@@ -20,8 +21,8 @@ describe('spec comment masking is linear', () => {
 
   beforeEach(async () => {
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-mask-comments-'));
-    changeDir = path.join(tempDir, 'openspec', 'changes', 'test-change');
-    mainSpecsDir = path.join(tempDir, 'openspec', 'specs');
+    changeDir = path.join(getChangesDir(tempDir), 'test-change');
+    mainSpecsDir = getSpecsDir(tempDir);
     await fs.mkdir(path.join(changeDir, 'specs', 'widgets'), { recursive: true });
     await fs.mkdir(mainSpecsDir, { recursive: true });
   });

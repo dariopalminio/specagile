@@ -11,6 +11,7 @@ import { CORE_WORKFLOWS } from '../../src/core/profiles.js';
 import { CommandAdapterRegistry, generateCommands } from '../../src/core/command-generation/index.js';
 import { getCommandContents } from '../../src/core/shared/index.js';
 import { COMMAND_IDS } from '../../src/core/shared/tool-detection.js';
+import { getToolDir } from '../helpers/layout.js';
 
 /**
  * Claude's skill as 2.0 writes it: the one shared copy in .agents/skills, a
@@ -79,7 +80,7 @@ describe('profile sync drift detection', () => {
 
   beforeEach(() => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openspec-profile-sync-drift-test-'));
-    fs.mkdirSync(path.join(tempDir, 'openspec'), { recursive: true });
+    fs.mkdirSync(getToolDir(tempDir), { recursive: true });
     vi.stubEnv('HOME', path.join(tempDir, 'home'));
     vi.stubEnv('USERPROFILE', path.join(tempDir, 'home'));
   });

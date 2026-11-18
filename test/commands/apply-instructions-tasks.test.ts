@@ -4,6 +4,7 @@ import * as path from 'node:path';
 import * as os from 'node:os';
 import { generateApplyInstructions } from '../../src/commands/workflow/instructions.js';
 import { getTaskProgressForChange } from '../../src/utils/task-progress.js';
+import { getChangesDir, getProjectSchemasDir } from '../helpers/layout.js';
 
 /**
  * The apply task list and task progress read the same tasks file, so they must
@@ -16,7 +17,7 @@ describe('generateApplyInstructions task list', () => {
 
   beforeEach(() => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openspec-apply-tasks-'));
-    changeDir = path.join(tempDir, 'openspec', 'changes', 'my-change');
+    changeDir = path.join(getChangesDir(tempDir), 'my-change');
     fs.mkdirSync(path.join(changeDir, 'specs', 'demo'), { recursive: true });
     fs.writeFileSync(path.join(changeDir, '.openspec.yaml'), 'schema: spec-driven\n');
     fs.writeFileSync(path.join(changeDir, 'proposal.md'), '## Why\nx\n');
@@ -36,7 +37,7 @@ describe('generateApplyInstructions task list', () => {
   }
 
   function writeGlobTasksSchema(): void {
-    const schemaDir = path.join(tempDir, 'openspec', 'schemas', 'glob-tasks');
+    const schemaDir = path.join(getProjectSchemasDir(tempDir), 'glob-tasks');
     fs.mkdirSync(schemaDir, { recursive: true });
     fs.writeFileSync(
       path.join(schemaDir, 'schema.yaml'),
@@ -57,7 +58,7 @@ apply:
   }
 
   it.each([true, false])('resolves custom tracking configuration (enabled: %s)', async (tracked) => {
-    const schemaDir = path.join(tempDir, 'openspec', 'schemas', 'custom');
+    const schemaDir = path.join(getProjectSchemasDir(tempDir), 'custom');
     fs.mkdirSync(schemaDir, { recursive: true });
     fs.writeFileSync(
       path.join(schemaDir, 'schema.yaml'),
@@ -125,7 +126,7 @@ ${tracked ? '  tracks: checklist.md\n' : ''}`
 
     const instructions = await generateApplyInstructions(tempDir, 'my-change');
     const listProgress = await getTaskProgressForChange(
-      path.join(tempDir, 'openspec', 'changes'),
+      getChangesDir(tempDir),
       'my-change',
       tempDir
     );
@@ -259,7 +260,7 @@ ${tracked ? '  tracks: checklist.md\n' : ''}`
     // `openspec list` reads progress through getTaskProgressForChange, not the
     // apply parser. The two must not disagree about the same file.
     const listProgress = await getTaskProgressForChange(
-      path.join(tempDir, 'openspec', 'changes'),
+      getChangesDir(tempDir),
       'my-change',
       tempDir
     );
@@ -290,7 +291,7 @@ ${tracked ? '  tracks: checklist.md\n' : ''}`
 
     const instructions = await generateApplyInstructions(tempDir, 'my-change');
     const listProgress = await getTaskProgressForChange(
-      path.join(tempDir, 'openspec', 'changes'),
+      getChangesDir(tempDir),
       'my-change',
       tempDir
     );
@@ -338,7 +339,7 @@ ${tracked ? '  tracks: checklist.md\n' : ''}`
 
     const instructions = await generateApplyInstructions(tempDir, 'my-change');
     const listProgress = await getTaskProgressForChange(
-      path.join(tempDir, 'openspec', 'changes'),
+      getChangesDir(tempDir),
       'my-change',
       tempDir
     );

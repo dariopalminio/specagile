@@ -7,6 +7,7 @@ import {
   findSpecUpdates,
   writeUpdatedSpec,
 } from '../../src/core/specs-apply.js';
+import { getChangesDir, getSpecsDir } from '../helpers/layout.js';
 
 const itWithSymlinks = it.skipIf(process.platform === 'win32');
 
@@ -23,9 +24,9 @@ describe('spec apply path boundaries', () => {
     // A spec file may link to another file in the same project, so the escape
     // these cases guard against is one that leaves the project entirely.
     projectDir = path.join(tempDir, 'repo');
-    changeDir = path.join(projectDir, 'openspec', 'changes', 'test-change');
+    changeDir = path.join(getChangesDir(projectDir), 'test-change');
     changeSpecsDir = path.join(changeDir, 'specs');
-    mainSpecsDir = path.join(projectDir, 'openspec', 'specs');
+    mainSpecsDir = getSpecsDir(projectDir);
     outsideDir = path.join(tempDir, 'outside');
     await fs.mkdir(changeSpecsDir, { recursive: true });
     await fs.mkdir(mainSpecsDir, { recursive: true });

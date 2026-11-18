@@ -7,6 +7,7 @@ import { getGlobalDataDir, registerStore } from '../../src/core/index.js';
 import { runCLI, type RunCLIResult } from '../helpers/run-cli.js';
 import { snapshotDirectory as snapshot } from '../helpers/fs-snapshot.js';
 import { createOpenSpecRoot, writeSpec } from '../helpers/openspec-fixtures.js';
+import { RELATIVE_CONFIG_FILE, getArchiveDir, getChangesDir, getConfigFile, getSpecsDir, getToolDir } from '../helpers/layout.js';
 
 describe('declared store fallback (3.2)', () => {
   let tempDir: string;
@@ -32,9 +33,9 @@ describe('declared store fallback (3.2)', () => {
     await registerStore({ id: 'team-context', localPath: storeRoot, globalDataDir });
 
     pointerRepo = path.join(tempDir, 'app-repo');
-    fs.mkdirSync(path.join(pointerRepo, 'openspec'), { recursive: true });
+    fs.mkdirSync(getToolDir(pointerRepo), { recursive: true });
     fs.writeFileSync(
-      path.join(pointerRepo, 'openspec', 'config.yaml'),
+      getConfigFile(pointerRepo),
       'store: team-context\n'
     );
   });
@@ -90,7 +91,7 @@ describe('declared store fallback (3.2)', () => {
     );
     expect(instructions.exitCode).toBe(0);
 
-    const changeDir = path.join(storeRoot, 'openspec', 'changes', 'billing-rework');
+    const changeDir = path.join(getChangesDir(storeRoot), 'billing-rework');
     fs.writeFileSync(
       path.join(changeDir, 'proposal.md'),
       '## Why\n\nBilling rework.\n\n## What Changes\n\n- **billing:** Rework billing\n'
@@ -122,7 +123,7 @@ describe('declared store fallback (3.2)', () => {
       env,
     });
     expect(archive.exitCode).toBe(0);
-    const archived = fs.readdirSync(path.join(storeRoot, 'openspec', 'changes', 'archive'));
+    const archived = fs.readdirSync(getArchiveDir(storeRoot));
     expect(archived.some((name) => name.endsWith('billing-rework'))).toBe(true);
 
     // The pointer repo is byte-identical: no specs/, no changes/, nothing.
@@ -136,8 +137,9 @@ describe('declared store fallback (3.2)', () => {
     createOpenSpecRoot(upstreamRoot);
     writeSpec(upstreamRoot, 'platform-rules', '## Purpose\n\nPlatform rules.\n');
     await registerStore({ id: 'upstream-context', localPath: upstreamRoot, globalDataDir });
+    fs.mkdirSync(getToolDir(storeRoot), { recursive: true });
     fs.writeFileSync(
-      path.join(storeRoot, 'openspec', 'config.yaml'),
+      getConfigFile(storeRoot),
       'schema: spec-driven\nreferences:\n  - upstream-context\n'
     );
 
@@ -156,7 +158,7 @@ describe('declared store fallback (3.2)', () => {
   });
 
   it('installs integrations in a pointer repo without creating a local planning root', async () => {
-    const legacyAgentsPath = path.join(pointerRepo, 'openspec', 'AGENTS.md');
+    const legacyAgentsPath = path.join(getToolDir(pointerRepo), 'AGENTS.md');
     fs.writeFileSync(legacyAgentsPath, 'Keep this pointer-repo file.\n');
     const before = snapshot(pointerRepo);
     const initialized = await runCLI(['init', '.', '--tools', 'claude'], {
@@ -166,14 +168,14 @@ describe('declared store fallback (3.2)', () => {
 
     expect(initialized.exitCode).toBe(0);
     expect(fs.existsSync(path.join(pointerRepo, '.claude', 'skills', 'sa-propose', 'SKILL.md'))).toBe(true);
-    expect(fs.readFileSync(path.join(pointerRepo, 'openspec', 'config.yaml'), 'utf8')).toBe(
+    expect(fs.readFileSync(getConfigFile(pointerRepo), 'utf8')).toBe(
       'store: team-context\n'
     );
-    expect(fs.existsSync(path.join(pointerRepo, 'openspec', 'specs'))).toBe(false);
-    expect(fs.existsSync(path.join(pointerRepo, 'openspec', 'changes'))).toBe(false);
+    expect(fs.existsSync(getSpecsDir(pointerRepo))).toBe(false);
+    expect(fs.existsSync(getChangesDir(pointerRepo))).toBe(false);
     expect(fs.readFileSync(legacyAgentsPath, 'utf8')).toBe('Keep this pointer-repo file.\n');
 
-    expect(before.get('openspec/config.yaml')).toBe('store: team-context\n');
+    expect(before.get(RELATIVE_CONFIG_FILE)).toBe('store: team-context\n');
   });
 
   it.skipIf(process.platform === 'win32')('installs integrations through a symlinked pointer-repo root', async () => {
@@ -186,13 +188,13 @@ describe('declared store fallback (3.2)', () => {
 
     expect(initialized.exitCode).toBe(0);
     expect(fs.existsSync(path.join(pointerRepo, '.claude', 'skills', 'sa-propose', 'SKILL.md'))).toBe(true);
-    expect(fs.readFileSync(path.join(pointerRepo, 'openspec', 'config.yaml'), 'utf8')).toBe(
+    expect(fs.readFileSync(getConfigFile(pointerRepo), 'utf8')).toBe(
       'store: team-context\n'
     );
   });
 
   it('applies explicit Copilot cloud choices without changing the pointer config', async () => {
-    const configPath = path.join(pointerRepo, 'openspec', 'config.yaml');
+    const configPath = getConfigFile(pointerRepo);
     const setupStepsPath = path.join(
       pointerRepo,
       '.github',
@@ -221,7 +223,7 @@ describe('declared store fallback (3.2)', () => {
     expect(fs.existsSync(setupStepsPath)).toBe(false);
     expect(fs.existsSync(agentPath)).toBe(false);
     expect(fs.readFileSync(configPath, 'utf8')).toBe(before);
-    expect(fs.existsSync(path.join(pointerRepo, 'openspec', 'specs'))).toBe(false);
+    expect(fs.existsSync(getSpecsDir(pointerRepo))).toBe(false);
   });
 
   it('rejects --language in a pointer repo without changing either root', async () => {
@@ -240,19 +242,21 @@ describe('declared store fallback (3.2)', () => {
 
   it('refuses init for malformed pointers and from pointer-repo subdirectories', async () => {
     // A broken declaration must not be buried under a scaffold.
+    fs.mkdirSync(getToolDir(pointerRepo), { recursive: true });
     fs.writeFileSync(
-      path.join(pointerRepo, 'openspec', 'config.yaml'),
+      getConfigFile(pointerRepo),
       'store: [team-context]\n'
     );
     const malformed = await runCLI(['init', '.'], { cwd: pointerRepo, env });
     expect(malformed.exitCode).toBe(1);
     expect(malformed.stderr).toContain('Fix or remove the store: line');
-    expect(fs.existsSync(path.join(pointerRepo, 'openspec', 'specs'))).toBe(false);
+    expect(fs.existsSync(getSpecsDir(pointerRepo))).toBe(false);
 
     // And a subdirectory of a pointer repo must not grow a nested root
     // that silently diverts work away from the declared store.
+    fs.mkdirSync(getToolDir(pointerRepo), { recursive: true });
     fs.writeFileSync(
-      path.join(pointerRepo, 'openspec', 'config.yaml'),
+      getConfigFile(pointerRepo),
       'store: team-context\n'
     );
     const subdir = path.join(pointerRepo, 'packages', 'api');
@@ -260,7 +264,7 @@ describe('declared store fallback (3.2)', () => {
     const nested = await runCLI(['init', '.'], { cwd: subdir, env });
     expect(nested.exitCode).toBe(1);
     expect(nested.stderr).toContain("externalized to store 'team-context'");
-    expect(fs.existsSync(path.join(subdir, 'openspec'))).toBe(false);
+    expect(fs.existsSync(getToolDir(subdir))).toBe(false);
   });
 
   it('keeps real-root stdout byte-identical when a pointer is present, with one warning', async () => {
@@ -272,7 +276,8 @@ describe('declared store fallback (3.2)', () => {
       ['without', 'schema: spec-driven\n'],
       ['with', 'schema: spec-driven\nstore: team-context\n'],
     ] as const) {
-      fs.writeFileSync(path.join(realRepo, 'openspec', 'config.yaml'), config);
+      fs.mkdirSync(getToolDir(realRepo), { recursive: true });
+      fs.writeFileSync(getConfigFile(realRepo), config);
       const result = await runCLI(['list', '--json'], { cwd: realRepo, env });
       expect(result.exitCode).toBe(0);
       runs[label] = {

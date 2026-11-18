@@ -3,6 +3,7 @@ import { Command } from 'commander';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
+import { getToolDir } from '../helpers/layout.js';
 
 vi.mock('@inquirer/prompts', () => ({
   select: vi.fn(),
@@ -88,14 +89,14 @@ describe('config profile interactive flow', () => {
   let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
 
   function setupDriftedProjectArtifacts(projectDir: string): void {
-    fs.mkdirSync(path.join(projectDir, 'openspec'), { recursive: true });
+    fs.mkdirSync(getToolDir(projectDir), { recursive: true });
     const exploreSkillPath = path.join(projectDir, '.claude', 'skills', 'sa-explore', 'SKILL.md');
     fs.mkdirSync(path.dirname(exploreSkillPath), { recursive: true });
     fs.writeFileSync(exploreSkillPath, 'name: sa-explore\n', 'utf-8');
   }
 
   function setupSyncedCoreBothArtifacts(projectDir: string): void {
-    fs.mkdirSync(path.join(projectDir, 'openspec'), { recursive: true });
+    fs.mkdirSync(getToolDir(projectDir), { recursive: true });
     const coreSkillDirs = [
       'sa-propose',
       'sa-explore',
@@ -303,7 +304,7 @@ describe('config profile interactive flow', () => {
     const configPath = getGlobalConfigPath();
     const beforeContent = fs.readFileSync(configPath, 'utf-8');
 
-    fs.mkdirSync(path.join(tempDir, 'openspec'), { recursive: true });
+    fs.mkdirSync(getToolDir(tempDir), { recursive: true });
     select.mockResolvedValueOnce('workflows');
     checkbox.mockResolvedValueOnce(['propose', 'explore', 'specify', 'plan', 'apply', 'update', 'sync', 'archive']);
 
@@ -403,7 +404,7 @@ describe('config profile interactive flow', () => {
     const { select, checkbox, confirm } = await getPromptMocks();
 
     saveGlobalConfig({ featureFlags: {}, profile: 'core', delivery: 'both', workflows: ['propose', 'explore', 'specify', 'plan', 'apply', 'update', 'sync', 'archive'] });
-    fs.mkdirSync(path.join(tempDir, 'openspec'), { recursive: true });
+    fs.mkdirSync(getToolDir(tempDir), { recursive: true });
 
     select.mockResolvedValueOnce('workflows');
     checkbox.mockResolvedValueOnce(['propose', 'explore', 'apply']);
@@ -423,7 +424,7 @@ describe('config profile interactive flow', () => {
     const { select, checkbox, confirm } = await getPromptMocks();
 
     saveGlobalConfig({ featureFlags: {}, profile: 'core', delivery: 'both', workflows: ['propose', 'explore', 'specify', 'plan', 'apply', 'update', 'sync', 'archive'] });
-    fs.mkdirSync(path.join(tempDir, 'openspec'), { recursive: true });
+    fs.mkdirSync(getToolDir(tempDir), { recursive: true });
     const emptyBinDir = path.join(tempDir, 'empty-bin');
     fs.mkdirSync(emptyBinDir);
     vi.stubEnv('PATH', emptyBinDir);
@@ -447,7 +448,7 @@ describe('config profile interactive flow', () => {
     const { select, checkbox, confirm } = await getPromptMocks();
 
     saveGlobalConfig({ featureFlags: {}, profile: 'core', delivery: 'both', workflows: ['propose', 'explore', 'specify', 'plan', 'apply', 'update', 'sync', 'archive'] });
-    fs.mkdirSync(path.join(tempDir, 'openspec'), { recursive: true });
+    fs.mkdirSync(getToolDir(tempDir), { recursive: true });
     const executeSpy = vi.spyOn(UpdateCommand.prototype, 'execute')
       .mockRejectedValueOnce(new Error('permission denied'));
 

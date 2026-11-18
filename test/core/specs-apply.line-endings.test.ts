@@ -7,6 +7,7 @@ import {
   findSpecUpdates,
   writeUpdatedSpec,
 } from '../../src/core/specs-apply.js';
+import { getChangesDir, getSpecsDir } from '../helpers/layout.js';
 
 /**
  * A spec written by a Windows editor, or checked out with core.autocrlf=true,
@@ -61,8 +62,8 @@ describe('spec line-ending preservation', () => {
 
   beforeEach(async () => {
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-spec-eol-'));
-    changeDir = path.join(tempDir, 'openspec', 'changes', 'eol-test');
-    mainSpecsDir = path.join(tempDir, 'openspec', 'specs');
+    changeDir = path.join(getChangesDir(tempDir), 'eol-test');
+    mainSpecsDir = getSpecsDir(tempDir);
     source = path.join(changeDir, 'specs', 'demo', 'spec.md');
     target = path.join(mainSpecsDir, 'demo', 'spec.md');
     await fs.mkdir(path.dirname(source), { recursive: true });

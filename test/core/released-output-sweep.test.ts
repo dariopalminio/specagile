@@ -14,6 +14,7 @@ import {
   legacyCleanupDeletesOnlyReleasedOutput,
 } from '../../src/core/legacy-cleanup.js';
 import { runCLI } from '../helpers/run-cli.js';
+import { RELATIVE_CHANGES_DIR, RELATIVE_SPECS_DIR, RELATIVE_TOOL_DIR } from '../helpers/layout.js';
 
 const fixtures = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../fixtures/released-output');
 // Real files released versions wrote, kept byte for byte.
@@ -233,7 +234,9 @@ describe('stale released output', () => {
       }
     };
     await walk(project);
-    const toolFiles = written.filter((rel) => rel.includes('/') && !rel.startsWith('openspec/'));
+    const toolFiles = written.filter(
+      (rel) => rel.includes('/') && ![RELATIVE_SPECS_DIR, RELATIVE_CHANGES_DIR, RELATIVE_TOOL_DIR].some((dir) => rel.startsWith(`${dir}/`))
+    );
     expect(toolFiles.length).toBeGreaterThan(100);
     expect(toolFiles.filter((rel) => !current.has(rel))).toEqual([]);
     // And none of it is ever reported stale.

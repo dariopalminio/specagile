@@ -2,11 +2,12 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { execFileSync } from 'child_process';
+import { getChangesDir } from '../helpers/layout.js';
 
 describe('change show (interactive behavior)', () => {
   const projectRoot = process.cwd();
   const testDir = path.join(projectRoot, 'test-change-show-tmp');
-  const changesDir = path.join(testDir, 'openspec', 'changes');
+  const changesDir = getChangesDir(testDir);
   const bin = path.join(projectRoot, 'bin', 'specagile.js');
 
 

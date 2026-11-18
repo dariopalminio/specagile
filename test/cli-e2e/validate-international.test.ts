@@ -3,6 +3,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { tmpdir } from 'os';
 import { runCLI } from '../helpers/run-cli.js';
+import { getChangesDir, getSpecsDir, getToolDir } from '../helpers/layout.js';
 
 const tempRoots: string[] = [];
 
@@ -10,7 +11,8 @@ const tempRoots: string[] = [];
 async function prepareNonEnglishSpec(): Promise<string> {
   const projectDir = await fs.mkdtemp(path.join(tmpdir(), 'openspec-i18n-validation-'));
   tempRoots.push(projectDir);
-  const specDir = path.join(projectDir, 'openspec', 'specs', '日志记录');
+  const specDir = path.join(getSpecsDir(projectDir), '日志记录');
+  await fs.mkdir(getToolDir(projectDir), { recursive: true });
   await fs.mkdir(specDir, { recursive: true });
   await fs.writeFile(
     path.join(specDir, 'spec.md'),
@@ -36,14 +38,8 @@ async function prepareNonEnglishSpec(): Promise<string> {
 async function prepareNonEnglishChange(): Promise<string> {
   const projectDir = await fs.mkdtemp(path.join(tmpdir(), 'openspec-i18n-change-validation-'));
   tempRoots.push(projectDir);
-  const specDir = path.join(
-    projectDir,
-    'openspec',
-    'changes',
-    '添加日志',
-    'specs',
-    '日志记录'
-  );
+  const specDir = path.join(getChangesDir(projectDir), '添加日志', 'specs', '日志记录');
+  await fs.mkdir(getToolDir(projectDir), { recursive: true });
   await fs.mkdir(specDir, { recursive: true });
   await fs.writeFile(
     path.join(specDir, 'spec.md'),

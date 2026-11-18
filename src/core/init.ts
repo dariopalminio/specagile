@@ -21,6 +21,17 @@ import {
 import { findRepoPlanningRootSync } from './planning-home.js';
 import { resolveOpenSpecRoot } from './root-selection.js';
 import { ANCHORED_OPENSPEC_DIRS, ensureDirectoryAnchor } from './openspec-root.js';
+import { describeLayoutMigration, migrateFormerLayout } from './fork/layout-migration.js';
+import {
+  RELATIVE_CONFIG_FILE,
+  RELATIVE_CONFIG_FILES,
+  detectFormerLayout,
+  getArchiveDir,
+  getChangesDir,
+  getConfigFilePaths,
+  getSpecsDir,
+  getToolDir,
+} from './fork/layout.js';
 import { getSkillReferenceTransformer, transformToSkillReferences, usesNaturalLanguageSkillReferences } from '../utils/command-references.js';
 import { REPOSITORY_URL, applyForkIdentity } from './fork/identity.js';
 import { formerSkillsKeptMessage, migrateFormerSkills } from './fork/former-skills.js';
@@ -30,7 +41,6 @@ import {
   SKILL_LINKED_TOOL_IDS,
   getUniversalTool,
   universalToolFallbackHint,
-  OPENSPEC_DIR_NAME,
   AIToolOption,
   resolveToolIdAlias,
 } from './config.js';
@@ -191,11 +201,25 @@ export class InitCommand {
 
   async execute(targetPath: string): Promise<void> {
     const projectPath = FileSystemUtils.canonicalizeExistingPath(targetPath);
-    const openspecDir = OPENSPEC_DIR_NAME;
-    const openspecPath = path.join(projectPath, openspecDir);
+    const openspecPath = getToolDir(projectPath);
 
     // Validation happens silently in the background
-    const extendMode = await this.validate(projectPath, openspecPath);
+    let extendMode = await this.validate(projectPath, openspecPath);
+
+    // SpecAgile: a project with the former openspec/ layout is set up already.
+    // Move it first (src/core/fork/layout-migration.ts), so the pointer guard
+    // below reads specagile/config.yaml and init goes on with the layout in
+    // force. The move changes no file's content, so a refusal below leaves
+    // nothing inconsistent.
+    if (detectFormerLayout(projectPath)) {
+      const layout = await migrateFormerLayout(projectPath);
+      if (layout.status === 'unused') console.log(chalk.yellow(layout.warning));
+      if (layout.status === 'migrated') {
+        for (const line of describeLayoutMigration(layout)) console.log(chalk.dim(line));
+        if (layout.warning) console.log(chalk.yellow(layout.warning));
+      }
+      extendMode = true;
+    }
 
     // Pointer guard (slice 3.2): a config-only openspec/ with a store:
     // declaration is externalized planning, not a root to extend — and a
@@ -234,7 +258,7 @@ export class InitCommand {
     }
 
     if (!integrationsOnly) {
-      await this.assertLanguageCanBeApplied(projectPath, openspecPath);
+      await this.assertLanguageCanBeApplied(projectPath);
     } else if (this.language) {
       throw new Error(
         '--language cannot update an external store through a pointer repo. ' +
@@ -246,7 +270,7 @@ export class InitCommand {
     this.resolveProfileOverride();
     const canPrompt = this.canPromptInteractively();
     if ((await this.resolveSkillScope(projectPath, detectedTools)) === 'global') {
-      const done = await this.setUpWithGlobalSkills(projectPath, openspecPath, {
+      const done = await this.setUpWithGlobalSkills(projectPath, {
         extendMode, integrationsOnly, toolStates: getToolStates(projectPath), detectedTools,
       });
       if (done) {
@@ -294,7 +318,7 @@ export class InitCommand {
     // Pointer repos only receive integrations. Their planning structure and
     // config stay in the declared store.
     if (!integrationsOnly) {
-      await this.createDirectoryStructure(openspecPath, extendMode);
+      await this.createDirectoryStructure(projectPath, extendMode);
     }
 
     // Generate skills and commands for each tool
@@ -314,7 +338,7 @@ export class InitCommand {
     // declares its store, so preserve it byte-for-byte.
     const configStatus = integrationsOnly
       ? 'exists' as const
-      : await this.createConfig(openspecPath, extendMode);
+      : await this.createConfig(projectPath, extendMode);
 
     // Persist an explicit Copilot cloud decision so `openspec update` (which
     // never prompts) honors it. Best-effort: a config-write failure must not
@@ -399,11 +423,10 @@ export class InitCommand {
 
   /**
    * Set up a project that uses the skills installed for this machine: the
-   * project gets its openspec/ folder, the skills go to the home folder.
+   * project gets its planning folders, the skills go to the home folder.
    */
   private async setUpWithGlobalSkills(
     projectPath: string,
-    openspecPath: string,
     context: {
       extendMode: boolean;
       integrationsOnly: boolean;
@@ -508,8 +531,8 @@ export class InitCommand {
           'answers Yes to set up their tools, or runs specagile init --tools <ids> in a script.'
       );
     }
-    if (!context.integrationsOnly) await this.createDirectoryStructure(openspecPath, context.extendMode);
-    const configStatus = context.integrationsOnly ? 'exists' : await this.createConfig(openspecPath, context.extendMode);
+    if (!context.integrationsOnly) await this.createDirectoryStructure(projectPath, context.extendMode);
+    const configStatus = context.integrationsOnly ? 'exists' : await this.createConfig(projectPath, context.extendMode);
     this.displaySuccessMessage(
       projectPath,
       supported,
@@ -1062,32 +1085,32 @@ export class InitCommand {
   // DIRECTORY STRUCTURE
   // ═══════════════════════════════════════════════════════════
 
-  private async createDirectoryStructure(openspecPath: string, extendMode: boolean): Promise<void> {
+  private async createDirectoryStructure(projectPath: string, extendMode: boolean): Promise<void> {
     const directories = [
-      openspecPath,
-      path.join(openspecPath, 'specs'),
-      path.join(openspecPath, 'changes'),
-      path.join(openspecPath, 'changes', 'archive'),
+      getToolDir(projectPath),
+      getSpecsDir(projectPath),
+      getChangesDir(projectPath),
+      getArchiveDir(projectPath),
     ];
 
     if (extendMode) {
       // In extend mode, just ensure directories exist without spinner
       for (const dir of directories) {
-        FileSystemUtils.assertProjectArtifactPath(path.dirname(openspecPath), dir);
+        FileSystemUtils.assertProjectArtifactPath(projectPath, dir);
         await FileSystemUtils.createDirectory(dir);
       }
-      await this.writeGitkeepFiles(openspecPath);
+      await this.writeGitkeepFiles(projectPath);
       return;
     }
 
     const spinner = this.startSpinner('Creating OpenSpec structure...');
 
     for (const dir of directories) {
-      FileSystemUtils.assertProjectArtifactPath(path.dirname(openspecPath), dir);
+      FileSystemUtils.assertProjectArtifactPath(projectPath, dir);
       await FileSystemUtils.createDirectory(dir);
     }
 
-    await this.writeGitkeepFiles(openspecPath);
+    await this.writeGitkeepFiles(projectPath);
 
     spinner.stopAndPersist({
       symbol: PALETTE.white('▌'),
@@ -1095,9 +1118,9 @@ export class InitCommand {
     });
   }
 
-  private async writeGitkeepFiles(openspecPath: string): Promise<void> {
+  private async writeGitkeepFiles(projectPath: string): Promise<void> {
     for (const relativeDir of ANCHORED_OPENSPEC_DIRS) {
-      await ensureDirectoryAnchor(path.dirname(openspecPath), relativeDir);
+      await ensureDirectoryAnchor(projectPath, relativeDir);
     }
   }
 
@@ -1302,26 +1325,22 @@ export class InitCommand {
     return formatLanguageContext(this.language);
   }
 
-  private async assertLanguageCanBeApplied(
-    projectPath: string,
-    openspecPath: string
-  ): Promise<void> {
+  private async assertLanguageCanBeApplied(projectPath: string): Promise<void> {
     const languageContext = this.languageContext();
     if (!languageContext) return;
 
-    const configPath = path.join(openspecPath, 'config.yaml');
-    const hasConfig = fs.existsSync(configPath) ||
-      fs.existsSync(path.join(openspecPath, 'config.yml'));
+    const [configPath, configYmlPath] = getConfigFilePaths(projectPath);
+    const hasConfig = fs.existsSync(configPath) || fs.existsSync(configYmlPath);
     if (!hasConfig) {
       try {
         FileSystemUtils.assertProjectArtifactPath(projectPath, configPath);
       } catch (error) {
         const reason = error instanceof Error ? `: ${error.message}` : '';
-        throw new Error(`Cannot create openspec/config.yaml for --language${reason}`);
+        throw new Error(`Cannot create ${RELATIVE_CONFIG_FILE} for --language${reason}`);
       }
       if (!(await FileSystemUtils.canWriteFile(configPath))) {
         throw new Error(
-          'Cannot create openspec/config.yaml for --language: the destination is not writable.'
+          `Cannot create ${RELATIVE_CONFIG_FILE} for --language: the destination is not writable.`
         );
       }
       return;
@@ -1336,9 +1355,8 @@ export class InitCommand {
     );
   }
 
-  private async createConfig(openspecPath: string, extendMode: boolean): Promise<'created' | 'exists' | 'skipped'> {
-    const configPath = path.join(openspecPath, 'config.yaml');
-    const configYmlPath = path.join(openspecPath, 'config.yml');
+  private async createConfig(projectPath: string, extendMode: boolean): Promise<'created' | 'exists' | 'skipped'> {
+    const [configPath, configYmlPath] = getConfigFilePaths(projectPath);
     const configYamlExists = fs.existsSync(configPath);
     const configYmlExists = fs.existsSync(configYmlPath);
 
@@ -1352,13 +1370,13 @@ export class InitCommand {
         schema: DEFAULT_SCHEMA,
         context: this.languageContext(),
       });
-      FileSystemUtils.assertProjectArtifactPath(path.dirname(openspecPath), configPath);
+      FileSystemUtils.assertProjectArtifactPath(projectPath, configPath);
       await FileSystemUtils.writeFile(configPath, yamlContent);
       return 'created';
     } catch (error) {
       if (this.language) {
         const reason = error instanceof Error ? `: ${error.message}` : '';
-        throw new Error(`Failed to create openspec/config.yaml for --language${reason}`);
+        throw new Error(`Failed to create ${RELATIVE_CONFIG_FILE} for --language${reason}`);
       }
       return 'skipped';
     }
@@ -1477,13 +1495,11 @@ export class InitCommand {
 
     // Config status
     if (configStatus === 'created') {
-      console.log(`Config: openspec/config.yaml (schema: ${DEFAULT_SCHEMA})`);
+      console.log(`Config: ${RELATIVE_CONFIG_FILE} (schema: ${DEFAULT_SCHEMA})`);
     } else if (configStatus === 'exists') {
       // Show actual filename (config.yaml or config.yml)
-      const configYaml = path.join(projectPath, OPENSPEC_DIR_NAME, 'config.yaml');
-      const configYml = path.join(projectPath, OPENSPEC_DIR_NAME, 'config.yml');
-      const configName = fs.existsSync(configYaml) ? 'config.yaml' : fs.existsSync(configYml) ? 'config.yml' : 'config.yaml';
-      console.log(`Config: openspec/${configName} (exists)`);
+      const found = getConfigFilePaths(projectPath).findIndex((candidate) => fs.existsSync(candidate));
+      console.log(`Config: ${RELATIVE_CONFIG_FILES[Math.max(found, 0)]} (exists)`);
     } else {
       console.log(chalk.dim(`Config: skipped (non-interactive mode)`));
     }

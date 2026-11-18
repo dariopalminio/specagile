@@ -4,6 +4,7 @@ import os from 'os';
 import path from 'path';
 import { Validator } from '../../src/core/validation/validator.js';
 import { buildUpdatedSpec, findSpecUpdates } from '../../src/core/specs-apply.js';
+import { getChangesDir, getSpecsDir } from '../helpers/layout.js';
 
 /**
  * validate reports the deltas archive would refuse to apply (#1112).
@@ -61,8 +62,8 @@ describe('validate: deltas archive would refuse (#1112)', () => {
     testDir = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-preflight-'));
     // The project sits one level down, so a link written to testDir leaves it:
     // a spec link that stays inside the project is allowed, one that leaves is not.
-    changesDir = path.join(testDir, 'repo', 'openspec', 'changes');
-    mainSpecsDir = path.join(testDir, 'repo', 'openspec', 'specs');
+    changesDir = getChangesDir(path.join(testDir, 'repo'));
+    mainSpecsDir = getSpecsDir(path.join(testDir, 'repo'));
     await fs.mkdir(changesDir, { recursive: true });
     await fs.mkdir(mainSpecsDir, { recursive: true });
   });

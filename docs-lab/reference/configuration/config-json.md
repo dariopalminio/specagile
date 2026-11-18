@@ -37,7 +37,7 @@ Boolean toggles keyed by flag name, set with `specagile config set featureFlags.
 
 ### defaultStore
 
-The machine-level fallback store id for root resolution, consulted only when no `--store` flag, local `openspec/`, or project `store:` pointer resolves. The full ladder is [Root resolution](../../multi-repo/stores.md#where-artifacts-get-created-when-using-stores).
+The machine-level fallback store id for root resolution, consulted only when no `--store` flag, local `specagile/`, or project `store:` pointer resolves. The full ladder is [Root resolution](../../multi-repo/stores.md#where-artifacts-get-created-when-using-stores).
 
 ### skillsScope
 

@@ -2,24 +2,28 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { execFileSync, spawnSync } from 'child_process';
+import { RELATIVE_CHANGES_DIR, getChangesDir, getSpecsDir, getToolDir } from '../helpers/layout.js';
 
 describe('top-level show command', () => {
   const projectRoot = process.cwd();
   const testDir = path.join(projectRoot, 'test-show-command-tmp');
-  const changesDir = path.join(testDir, 'openspec', 'changes');
-  const specsDir = path.join(testDir, 'openspec', 'specs');
+  const changesDir = getChangesDir(testDir);
+  const specsDir = getSpecsDir(testDir);
   const openspecBin = path.join(projectRoot, 'bin', 'specagile.js');
 
 
   beforeEach(async () => {
+    await fs.mkdir(getToolDir(testDir), { recursive: true });
     await fs.mkdir(changesDir, { recursive: true });
     await fs.mkdir(specsDir, { recursive: true });
 
     const changeContent = `# Change: Demo\n\n## Why\nBecause reasons.\n\n## What Changes\n- **auth:** Add requirement\n`;
+    await fs.mkdir(getToolDir(testDir), { recursive: true });
     await fs.mkdir(path.join(changesDir, 'demo'), { recursive: true });
     await fs.writeFile(path.join(changesDir, 'demo', 'proposal.md'), changeContent, 'utf-8');
 
     const specContent = `## Purpose\nAuth spec.\n\n## Requirements\n\n### Requirement: User Authentication\nText\n`;
+    await fs.mkdir(getToolDir(testDir), { recursive: true });
     await fs.mkdir(path.join(specsDir, 'auth'), { recursive: true });
     await fs.writeFile(path.join(specsDir, 'auth', 'spec.md'), specContent, 'utf-8');
   });
@@ -100,6 +104,7 @@ describe('top-level show command', () => {
 
   it('handles ambiguity and suggests --type', async () => {
     // create matching spec and change named 'foo'
+    await fs.mkdir(getToolDir(testDir), { recursive: true });
     await fs.mkdir(path.join(changesDir, 'foo'), { recursive: true });
     await fs.writeFile(path.join(changesDir, 'foo', 'proposal.md'), '# Change: Foo\n\n## Why\n\n## What Changes\n', 'utf-8');
     await fs.mkdir(path.join(specsDir, 'foo'), { recursive: true });
@@ -125,6 +130,7 @@ describe('top-level show command', () => {
   it('resolves a scaffolded change that has no proposal.md yet', async () => {
     // `openspec new change <name>` writes only .openspec.yaml, so `show` must
     // resolve the change the same way `list` and `status` already do.
+    await fs.mkdir(getToolDir(testDir), { recursive: true });
     await fs.mkdir(path.join(changesDir, 'scaffolded'), { recursive: true });
     await fs.writeFile(path.join(changesDir, 'scaffolded', '.openspec.yaml'), 'schema: spec-driven\n', 'utf-8');
 
@@ -151,6 +157,7 @@ describe('top-level show command', () => {
     // nested change is invisible and the folder around it reads as an empty
     // change. Saying "no proposal.md yet" would send the user to a second dead
     // end (`status --change mobile`).
+    await fs.mkdir(getToolDir(testDir), { recursive: true });
     await fs.mkdir(path.join(changesDir, 'mobile', 'refresh-token'), { recursive: true });
     await fs.writeFile(
       path.join(changesDir, 'mobile', 'refresh-token', 'proposal.md'),
@@ -169,7 +176,7 @@ describe('top-level show command', () => {
       expect(err.status).not.toBe(0);
       const stderr = err.stderr.toString();
       expect(stderr).toContain('"mobile" is not a change');
-      expect(stderr).toContain('openspec/changes/mobile/refresh-token/');
+      expect(stderr).toContain(`${RELATIVE_CHANGES_DIR}/mobile/refresh-token/`);
       expect(stderr).toContain('mobile-refresh-token');
       expect(stderr).not.toContain('has no proposal.md yet');
     } finally {
@@ -178,6 +185,7 @@ describe('top-level show command', () => {
   });
 
   it('reports a namespace folder from "status --change" too (#1846)', async () => {
+    await fs.mkdir(getToolDir(testDir), { recursive: true });
     await fs.mkdir(path.join(changesDir, 'mobile', 'refresh-token'), { recursive: true });
     await fs.writeFile(
       path.join(changesDir, 'mobile', 'refresh-token', 'tasks.md'),
@@ -199,6 +207,7 @@ describe('top-level show command', () => {
   });
 
   it('offers a scaffolded change when "change show" is called without a name', async () => {
+    await fs.mkdir(getToolDir(testDir), { recursive: true });
     await fs.mkdir(path.join(changesDir, 'scaffolded'), { recursive: true });
     await fs.writeFile(path.join(changesDir, 'scaffolded', '.openspec.yaml'), 'schema: spec-driven\n', 'utf-8');
 

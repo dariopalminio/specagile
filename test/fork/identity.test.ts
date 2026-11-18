@@ -13,8 +13,12 @@ import {
   REPOSITORY_URL,
   SKILL_NAME_BY_WORKFLOW,
   applyForkIdentity,
+  applyForkNames,
 } from '../../src/core/fork/identity.js';
+import { LAYOUT_TEXT_REPLACEMENTS } from '../../src/core/fork/layout.js';
 import { ALL_WORKFLOWS, type WorkflowId } from '../../src/core/profiles.js';
+import { getCommandTemplates, getSkillTemplates } from '../../src/core/shared/skill-generation.js';
+import { withUpstreamIdentity } from '../helpers/fork-identity.js';
 
 const EXPECTED_SKILL_NAMES: Record<WorkflowId, [former: string, current: string]> = {
   explore: ['openspec-explore', 'sa-explore'],
@@ -154,5 +158,55 @@ describe('applyForkIdentity', () => {
     expect(applyForkIdentity(once)).toBe(once);
     expect(once).not.toMatch(/openspec-propose|openspec-apply-change|openspec status|openspec implement/);
     expect(once).toContain('openspec/changes/x/');
+  });
+});
+
+// SpecAgile: the layout paths in upstream's text (src/core/fork/layout.ts).
+describe('the layout in generated text', () => {
+  const templateTexts = (): Array<[string, string]> => [
+    ...getSkillTemplates().flatMap(({ template, workflowId }) => [
+      [`${workflowId} skill instructions`, template.instructions] as [string, string],
+      [`${workflowId} skill description`, template.description] as [string, string],
+    ]),
+    ...getCommandTemplates().map(({ template, id }) => [`${id} command`, template.content] as [string, string]),
+  ];
+
+  it('translates each entry of the table', () => {
+    for (const [upstream, fork] of LAYOUT_TEXT_REPLACEMENTS) {
+      expect(applyForkIdentity(upstream), upstream).toBe(fork);
+      expect(fork, upstream).not.toContain('openspec/');
+    }
+  });
+
+  it('keeps the names-only translation of SpecAgile 2.1 apart', () => {
+    const upstream = 'Read `<root.path>/openspec/config.yaml`, then run `openspec status`.';
+    expect(applyForkNames(upstream)).toBe('Read `<root.path>/openspec/config.yaml`, then run `specagile status`.');
+    expect(applyForkIdentity(upstream)).toBe('Read `<root.path>/specagile/config.yaml`, then run `specagile status`.');
+  });
+
+  it('is idempotent on every template', () => {
+    for (const [label, text] of templateTexts()) {
+      const once = applyForkIdentity(text);
+      expect(applyForkIdentity(once), label).toBe(once);
+    }
+  });
+
+  it('leaves internal files, the store location and the npm package alone', () => {
+    const untouched = [
+      'changes/<name>/.openspec.yaml',
+      '.agents/skills/.openspec-target',
+      '<store>/.openspec-store/store.yaml',
+      'specagile store setup team --path ~/openspec/team',
+      'npm install -g @fission-ai/openspec@latest',
+    ];
+    for (const text of untouched) {
+      expect(applyForkIdentity(text), text).toBe(text);
+    }
+  });
+
+  it('goes back to the upstream text, exactly, from every template', () => {
+    for (const [label, text] of templateTexts()) {
+      expect(withUpstreamIdentity(applyForkIdentity(text)), label).toBe(text);
+    }
   });
 });

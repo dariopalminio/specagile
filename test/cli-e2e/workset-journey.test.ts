@@ -13,6 +13,7 @@ import {
   readLaunchLog,
 } from '../helpers/fake-tool.js';
 import { snapshotDirectory as snapshot } from '../helpers/fs-snapshot.js';
+import { getConfigFile, getToolDir } from '../helpers/layout.js';
 
 /**
  * The 7.1 journey: compose -> list -> open (both styles) -> remove,
@@ -54,8 +55,9 @@ describe('workset journey (7.1 e2e)', () => {
 
     appRepo = path.join(tempDir, 'web-app');
     createOpenSpecRoot(appRepo);
+    fs.mkdirSync(getToolDir(appRepo), { recursive: true });
     fs.writeFileSync(
-      path.join(appRepo, 'openspec', 'config.yaml'),
+      getConfigFile(appRepo),
       'schema: spec-driven\nreferences:\n  - team-context\n'
     );
 

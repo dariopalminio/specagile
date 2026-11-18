@@ -7,6 +7,7 @@ import { ALL_WORKFLOWS, CORE_WORKFLOWS } from '../../src/core/profiles.js';
 import { getSkillTemplates } from '../../src/core/shared/skill-generation.js';
 import { createOpenSpecRoot } from '../helpers/openspec-fixtures.js';
 import { runCLI } from '../helpers/run-cli.js';
+import { getChangesDir, getConfigFile, getProjectSchemasDir, getToolDir } from '../helpers/layout.js';
 
 describe('profile handoff CLI regressions (#1734)', () => {
   let tempDir: string;
@@ -87,7 +88,7 @@ describe('profile handoff CLI regressions (#1734)', () => {
       await registerStore({ id: 'planning', localPath: root, globalDataDir: getGlobalDataDir({ env }) });
       createOpenSpecRoot(project); // A local root must not steal the selected store's change.
     }
-    const schemaDir = path.join(root, 'openspec', 'schemas', 'handoff-test');
+    const schemaDir = path.join(getProjectSchemasDir(root), 'handoff-test');
     await fs.mkdir(path.join(schemaDir, 'templates'), { recursive: true });
     await fs.writeFile(path.join(schemaDir, 'schema.yaml'), `name: handoff-test
 version: 1
@@ -103,9 +104,10 @@ apply:
   instruction: Implement the brief.
 `);
     await fs.writeFile(path.join(schemaDir, 'templates', 'brief.md'), '# Brief\n');
-    await fs.writeFile(path.join(root, 'openspec', 'config.yaml'), 'schema: handoff-test\ncontext: Preserve existing behavior.\nrules:\n  brief:\n    - Include a verification plan.\n');
+    await fs.mkdir(getToolDir(root), { recursive: true });
+    await fs.writeFile(getConfigFile(root), 'schema: handoff-test\ncontext: Preserve existing behavior.\nrules:\n  brief:\n    - Include a verification plan.\n');
     await cli(['new', 'change', 'original', ...flags]);
-    const changeRoot = path.join(root, 'openspec', 'changes', 'original');
+    const changeRoot = path.join(getChangesDir(root), 'original');
     const before = await fs.readdir(changeRoot);
     const blocked = JSON.parse(await cli(['instructions', 'apply', '--change', 'original', '--json', ...flags]));
     expect(blocked.state).toBe('blocked');
@@ -131,7 +133,7 @@ apply:
     await cli(['new', 'change', 'different-intent', ...flags]);
     expect(await fs.readFile(instructions.resolvedOutputPath, 'utf-8')).toBe('# Brief\n\nConfirmed planning artifact.\n');
     if (scope === 'store') {
-      expect(await fs.readdir(path.join(project, 'openspec', 'changes'))).toEqual(['archive']);
+      expect(await fs.readdir(getChangesDir(project))).toEqual(['archive']);
     }
   }, 30_000);
 
@@ -141,7 +143,7 @@ apply:
     { name: 'text-less checkboxes', content: '- [ ]\n', total: 1 },
   ])('repairs $name tracking without an optional workflow or a ready artifact', async ({ content, total }) => {
     createOpenSpecRoot(project);
-    const schemaDir = path.join(project, 'openspec', 'schemas', 'tracking-test');
+    const schemaDir = path.join(getProjectSchemasDir(project), 'tracking-test');
     await fs.mkdir(path.join(schemaDir, 'templates'), { recursive: true });
     await fs.writeFile(path.join(schemaDir, 'schema.yaml'), `name: tracking-test
 version: 1
@@ -156,9 +158,10 @@ apply:
   tracks: implementation/checklist.md
 `);
     await fs.writeFile(path.join(schemaDir, 'templates', 'brief.md'), '# Brief\n');
-    await fs.writeFile(path.join(project, 'openspec', 'config.yaml'), 'schema: tracking-test\n');
+    await fs.mkdir(getToolDir(project), { recursive: true });
+    await fs.writeFile(getConfigFile(project), 'schema: tracking-test\n');
     await cli(['new', 'change', 'tracking']);
-    const changeRoot = path.join(project, 'openspec', 'changes', 'tracking');
+    const changeRoot = path.join(getChangesDir(project), 'tracking');
     const briefPath = path.join(changeRoot, 'brief.md');
     await fs.writeFile(briefPath, '# Brief\n\nKeep this plan unchanged.\n');
     const trackingPath = path.join(changeRoot, 'implementation', 'checklist.md');

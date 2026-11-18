@@ -35,7 +35,7 @@ Two artifacts can be skipped:
 A change named `add-user-auth`, with every artifact drafted:
 
 ```text
-openspec/changes/add-user-auth/
+changes/add-user-auth/
 ├── .openspec.yaml      change metadata, written when the change is created
 ├── proposal.md
 ├── specs/
@@ -78,8 +78,9 @@ The template the agent receives as the output format ([templates/proposal.md](ht
 ### Modified Capabilities
 <!-- Existing capabilities whose REQUIREMENTS are changing (not just implementation).
      Only list here if spec-level behavior changes. Each needs a delta spec file.
-     Use the exact existing path under openspec/specs/. Leave empty if no requirement
-     changes. A change with no capabilities at all (pure refactor, tooling, docs)
+     Use the exact existing path of its living spec, under <planningHome.root>/specs/
+     (not the change's own specs/). Leave empty if no requirement changes.
+     A change with no capabilities at all (pure refactor, tooling, docs)
      must set `skip_specs: true` in its .openspec.yaml - specagile validate rejects
      a zero-delta change without that marker. Do not invent a requirement just to
      satisfy validation. -->
@@ -102,7 +103,7 @@ Sections:
 - **What Changes**: Bullet list of changes. Be specific about new capabilities, modifications, or removals. Mark breaking changes with **BREAKING**.
 - **Capabilities**: Identify which specs will be created or modified:
   - **New Capabilities**: List capabilities being introduced. Each becomes a new `specs/<capability-path>/spec.md`. Name each capability for a durable system behavior (for example, `user-auth`), not the work in this change (for example, `add-login-endpoint`). Choose a cohesive boundary that can own related requirements as the system evolves; avoid broad catch-all capabilities. Use kebab-case for path segments you introduce (e.g., `user-auth` or `identity/user-auth`) and follow the project's existing spec organization.
-  - **Modified Capabilities**: List existing capabilities whose REQUIREMENTS are changing. Only include if spec-level behavior changes (not just implementation details). Each needs a delta spec file. Use the exact existing path under `openspec/specs/`. Leave empty if no requirement changes.
+  - **Modified Capabilities**: List existing capabilities whose REQUIREMENTS are changing. Only include if spec-level behavior changes (not just implementation details). Each needs a delta spec file. Use the exact existing path of its living spec, `<planningHome.root>/specs/<capability-path>/spec.md`. Leave empty if no requirement changes.
 - **Impact**: Affected code, APIs, dependencies, or systems.
 
 IMPORTANT: The Capabilities section is critical. It creates the contract between
@@ -189,7 +190,7 @@ Create one spec file per capability listed in the proposal's Capabilities sectio
 `<capability-path>` is the spec directory relative to `specs/` (for example,
 `user-auth` or `identity/user-auth`). Preserve the full path:
 - New capabilities: use the exact path from the proposal at `specs/<capability-path>/spec.md`. Any path segment newly introduced in the proposal must be kebab-case. Follow the project's existing organization; do not add a new domain level when the project uses a flat layout.
-- Modified capabilities: use the exact existing path from `openspec/specs/<capability-path>/` when creating the delta at `specs/<capability-path>/spec.md`. Run `specagile list --specs` to confirm that path before writing the delta, appending `--store "<id>"` only for a registered standalone store - a mistyped or invented path targets a capability that does not exist rather than the one you meant. Do not move or rename the capability.
+- Modified capabilities: use the exact existing path of the living spec, `<planningHome.root>/specs/<capability-path>/spec.md`, when creating the delta at `specs/<capability-path>/spec.md` inside the change. Run `specagile list --specs` to confirm that path before writing the delta, appending `--store "<id>"` only for a registered standalone store - a mistyped or invented path targets a capability that does not exist rather than the one you meant. Do not move or rename the capability.
 
 Write the spec files one at a time, so the user sees progress and an
 interrupted run keeps the files it already wrote:
@@ -230,7 +231,7 @@ left with a `TBD ... Update Purpose after archive` placeholder to fill in
 by hand. Do NOT add `## Purpose` to a delta for an existing capability -
 that spec already has one and the delta's is ignored. To change an
 existing capability's Purpose - including a leftover `TBD` placeholder -
-edit `<planningHome.root>/openspec/specs/<capability-path>/spec.md`
+edit `<planningHome.root>/specs/<capability-path>/spec.md`
 directly. `planningHome.root` comes from the `specagile instructions ...
 --json` response. Always use it rather than a repo-relative path: it
 resolves to the store whenever the change lives in one - whether that
@@ -239,7 +240,7 @@ store - and to the current repository otherwise. Do not try to work out
 which case applies; the field already has.
 
 MODIFIED requirements workflow:
-1. Locate the existing requirement in `<planningHome.root>/openspec/specs/<capability-path>/spec.md` (the same store-aware root as above)
+1. Locate the existing requirement in `<planningHome.root>/specs/<capability-path>/spec.md` (the same store-aware root as above)
 2. Copy the ENTIRE requirement block (from `### Requirement:` through all scenarios)
 3. Paste under `## MODIFIED Requirements` and edit to reflect new behavior
 4. Ensure header text matches exactly (whitespace-insensitive)

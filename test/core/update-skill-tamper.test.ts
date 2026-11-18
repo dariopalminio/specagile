@@ -5,6 +5,7 @@ import os from 'os';
 import { UpdateCommand } from '../../src/core/update.js';
 import { InitCommand } from '../../src/core/init.js';
 import type { GlobalConfig } from '../../src/core/global-config.js';
+import { getToolDir } from '../helpers/layout.js';
 
 const mockState = {
   config: {
@@ -54,7 +55,7 @@ describe('update detects a tampered SKILL.md', () => {
     // %LOCALAPPDATA%\openspec\.
     process.env.APPDATA = path.join(testDir, 'appdata');
     process.env.LOCALAPPDATA = path.join(testDir, 'localappdata');
-    await fs.mkdir(path.join(testDir, 'openspec'), { recursive: true });
+    await fs.mkdir(getToolDir(testDir), { recursive: true });
     mockState.config = { featureFlags: {}, profile: 'core', delivery: 'both' };
     vi.restoreAllMocks();
 

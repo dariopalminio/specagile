@@ -105,6 +105,20 @@ function snapshot(root: string): Record<string, string> {
   );
 }
 
+/**
+ * SpecAgile: a snapshot's paths as `init` and `update` move the former layout
+ * (src/core/fork/layout-migration.ts), which they do before anything else,
+ * also when what follows is refused or fails. The content is the same.
+ */
+function asMigrated(files: Record<string, string>): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(files).map(([rel, hash]) => [
+      rel.replace(/^openspec\/(specs|changes)\//, '$1/').replace(/^openspec\//, 'specagile/'),
+      hash,
+    ])
+  );
+}
+
 function listLinks(root: string): string[] {
   const out: string[] = [];
   const walk = (dir: string) => {
@@ -164,9 +178,22 @@ describe.skipIf(!enabled)('upgrading projects from released versions', () => {
 
   it.each(RELEASES)('upgrades a %s project in one update', async (version) => {
     const box = await initWith(version, `jump-${version}`);
+    // A change made with that release, in its openspec/ layout.
+    const change = path.join(box.project, 'openspec', 'changes', 'add-login');
+    await fs.mkdir(change, { recursive: true });
+    await fs.writeFile(path.join(change, 'proposal.md'), '## Why\nUsers sign in.\n\n## What Changes\n- Add login\n');
 
     const first = run(currentBin, ['update'], box);
     expect(first.status, first.output).toBe(0);
+    // SpecAgile: the update moved the project to the layout of src/core/fork/layout.ts.
+    expect(existsSync(path.join(box.project, 'openspec'))).toBe(false);
+    for (const dir of ['specs', 'changes', 'specagile']) {
+      expect(existsSync(path.join(box.project, dir)), dir).toBe(true);
+    }
+    expect(existsSync(path.join(change.replace(`${path.sep}openspec${path.sep}`, path.sep), 'proposal.md'))).toBe(true);
+    const listed = run(currentBin, ['list'], box);
+    expect(listed.status, listed.output).toBe(0);
+    expect(listed.output).toContain('add-login');
     expect(first.output).not.toContain('Run with --force to auto-cleanup');
     expect(first.output).not.toMatch(/differs? from the copy/);
 
@@ -176,7 +203,7 @@ describe.skipIf(!enabled)('upgrading projects from released versions', () => {
     // build writes: no old layout survives, recognized or not.
     const current = currentGeneratablePaths();
     const oldLayout = listFiles(box.project).filter(
-      (rel) => rel.includes('/') && !rel.startsWith('openspec/') && !current.has(rel)
+      (rel) => rel.includes('/') && !/^(specs|changes|specagile)\//.test(rel) && !current.has(rel)
     );
     expect(oldLayout).toEqual([]);
     // Each linked tool reaches the one shared copy: a link, or where links
@@ -247,7 +274,9 @@ describe.skipIf(!enabled)('upgrading projects from released versions', () => {
     if (claudeLinked) {
       expect(readFileSync(path.join(box.project, '.claude/skills/openspec-propose/SKILL.md'), 'utf8')).toBe(editedText);
     }
-    for (const [rel, data] of Object.entries(protectedFiles)) expect(readFileSync(path.join(box.project, rel), 'utf8')).toBe(data);
+    // SpecAgile: the planning files moved with the layout, unchanged.
+    const moved = (rel: string) => rel.replace(/^openspec\/specs\//, 'specs/').replace(/^openspec\//, 'specagile/');
+    for (const [rel, data] of Object.entries(protectedFiles)) expect(readFileSync(path.join(box.project, moved(rel)), 'utf8')).toBe(data);
     expect(readFileSync(path.join(box.project, shared, '.openspec-target'), 'utf8')).toBe('claude own-files\ncursor\n');
     const before = snapshot(box.project);
     expect(run(currentBin, ['update'], box).output).toContain('up to date');
@@ -343,7 +372,7 @@ describe.skipIf(!enabled)('upgrading projects from released versions', () => {
     await fs.appendFile(command, 'Team instructions');
     const edited = snapshot(box.project);
     expect(switchToGlobal().status).toBe(1);
-    expect(snapshot(box.project)).toEqual(edited);
+    expect(snapshot(box.project)).toEqual(asMigrated(edited));
     await fs.writeFile(command, original);
     await fs.writeFile(path.join(commands, 'team.md'), 'Team workflow');
 
@@ -453,7 +482,7 @@ describe.skipIf(!enabled)('upgrading projects from released versions', () => {
     const box = await initWith('0.23.0', 'failed-setup', 'claude');
     // A file where the skills folder should be makes Claude's setup fail.
     await fs.writeFile(path.join(box.project, '.claude', 'skills'), 'not a folder');
-    const before = snapshot(box.project);
+    const before = asMigrated(snapshot(box.project));
 
     const result = run(currentBin, ['update'], box);
     expect(result.status).not.toBe(0);
@@ -477,7 +506,7 @@ describe.skipIf(!enabled)('upgrading projects from released versions', () => {
     const box = { home: other.home, project: path.join(tempRoot, 'shared-home', 'project') };
     await fs.mkdir(box.project, { recursive: true });
     expect(run(currentBin, ['init', '--tools', 'claude'], box).status).toBe(0);
-    await fs.writeFile(path.join(box.project, 'openspec', 'project.md'), '# Our context\n');
+    await fs.writeFile(path.join(box.project, 'specagile', 'project.md'), '# Our context\n');
     const before = snapshot(box.project);
 
     const result = run(currentBin, ['update'], box);

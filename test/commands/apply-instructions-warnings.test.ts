@@ -7,6 +7,7 @@ import {
   printApplyInstructionsText,
 } from '../../src/commands/workflow/instructions.js';
 import { Validator } from '../../src/core/validation/validator.js';
+import { getChangesDir, getProjectSchemasDir } from '../helpers/layout.js';
 
 /**
  * Apply gates on the schema's `apply.requires` (tasks) alone, so a change whose
@@ -19,7 +20,7 @@ describe('generateApplyInstructions warnings', () => {
 
   beforeEach(() => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openspec-apply-warnings-'));
-    changeDir = path.join(tempDir, 'openspec', 'changes', 'my-change');
+    changeDir = path.join(getChangesDir(tempDir), 'my-change');
     fs.mkdirSync(changeDir, { recursive: true });
     fs.writeFileSync(path.join(changeDir, '.openspec.yaml'), 'schema: spec-driven\n');
     fs.writeFileSync(path.join(changeDir, 'proposal.md'), '## Why\nx\n');
@@ -125,7 +126,7 @@ describe('generateApplyInstructions warnings', () => {
   });
 
   it('stays quiet for a schema that produces no specs at all', async () => {
-    const schemaDir = path.join(tempDir, 'openspec', 'schemas', 'mini');
+    const schemaDir = path.join(getProjectSchemasDir(tempDir), 'mini');
     fs.mkdirSync(schemaDir, { recursive: true });
     fs.writeFileSync(
       path.join(schemaDir, 'schema.yaml'),
@@ -158,7 +159,7 @@ describe('generateApplyInstructions warnings', () => {
   });
 
   it('warns for a custom schema whose spec artifact is named something else', async () => {
-    const schemaDir = path.join(tempDir, 'openspec', 'schemas', 'renamed');
+    const schemaDir = path.join(getProjectSchemasDir(tempDir), 'renamed');
     fs.mkdirSync(schemaDir, { recursive: true });
     fs.writeFileSync(
       path.join(schemaDir, 'schema.yaml'),
@@ -205,7 +206,7 @@ describe('generateApplyInstructions warnings', () => {
   it('falls back to a placeholder when a schema declares two spec artifacts', async () => {
     // No single right answer, so the command must not pick one and present it
     // as the step to run.
-    const schemaDir = path.join(tempDir, 'openspec', 'schemas', 'twospec');
+    const schemaDir = path.join(getProjectSchemasDir(tempDir), 'twospec');
     fs.mkdirSync(schemaDir, { recursive: true });
     fs.writeFileSync(
       path.join(schemaDir, 'schema.yaml'),

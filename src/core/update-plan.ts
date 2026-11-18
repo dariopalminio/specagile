@@ -41,7 +41,9 @@ export type UpdatePlanNoteCode =
   | 'removed-skills'
   | 'left-alone-skills'
   // SpecAgile: skills kept under their former `openspec-*` names.
-  | 'kept-former-skills';
+  | 'kept-former-skills'
+  // SpecAgile: the former openspec/ layout moves (src/core/fork/layout-migration.ts).
+  | 'layout-migration';
 
 export interface UpdatePlanNote {
   code: UpdatePlanNoteCode;

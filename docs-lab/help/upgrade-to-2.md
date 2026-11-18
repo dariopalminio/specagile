@@ -2,6 +2,9 @@
 
 > What changes in OpenSpec 2.0, and how to move a project over.
 
+> [!NOTE]
+> This page keeps the paths of the former layout, where everything lived in `openspec/`. SpecAgile now keeps `specs/`, `changes/` and `specagile/` at the project root: see [Move to the SpecAgile layout](move-to-the-specagile-layout.md).
+
 Already on 2.0? [Upgrade to 2.1](upgrade-to-2-1.md) is the short page you need.
 
 To upgrade from 1.x, update the CLI, then run `specagile update` in each project. OpenSpec refreshes its built-in skills and removes old generated commands. It keeps command files you edited.

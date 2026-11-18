@@ -3,6 +3,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
 import { buildUpdatedSpec, findSpecUpdates } from '../../src/core/specs-apply.js';
+import { getChangesDir, getSpecsDir } from '../helpers/layout.js';
 
 /**
  * Two requirement names that differ only in case or interior whitespace are
@@ -49,9 +50,9 @@ describe('buildUpdatedSpec (requirement name near-misses)', () => {
    * without touching any real project.
    */
   async function build(deltaBody: string) {
-    const specsRoot = path.join(tempDir, 'openspec', 'specs');
+    const specsRoot = getSpecsDir(tempDir);
     const specsDir = path.join(specsRoot, 'billing');
-    const changeDir = path.join(tempDir, 'openspec', 'changes', 'c');
+    const changeDir = path.join(getChangesDir(tempDir), 'c');
     await fs.mkdir(specsDir, { recursive: true });
     await fs.mkdir(path.join(changeDir, 'specs', 'billing'), { recursive: true });
     await fs.writeFile(path.join(specsDir, 'spec.md'), MAIN_SPEC);

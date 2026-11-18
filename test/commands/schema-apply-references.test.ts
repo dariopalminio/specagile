@@ -4,6 +4,7 @@ import path from 'path';
 import os from 'os';
 import { parse, stringify } from 'yaml';
 import { runCLI, cliProjectRoot } from '../helpers/run-cli.js';
+import { getChangesDir, getConfigFile, getProjectSchemasDir, getToolDir } from '../helpers/layout.js';
 
 /**
  * End to end: a project schema whose `apply` block names an artifact that does
@@ -41,7 +42,7 @@ async function projectWithApply(
   const cli = (args: string[]) => runCLI(args, { cwd: project, env, timeoutMs: 60_000 });
   expect((await cli(['init', '--tools', 'claude'])).exitCode).toBe(0);
 
-  const schemaDir = path.join(project, 'openspec', 'schemas', 'myflow');
+  const schemaDir = path.join(getProjectSchemasDir(project), 'myflow');
   await fs.cp(path.join(cliProjectRoot, 'schemas', 'spec-driven'), schemaDir, { recursive: true });
   const schemaFile = path.join(schemaDir, 'schema.yaml');
   const schema = parse(await fs.readFile(schemaFile, 'utf-8'));
@@ -53,11 +54,12 @@ async function projectWithApply(
     artifact.generates = value;
   }
   await fs.writeFile(schemaFile, stringify(schema));
-  await fs.writeFile(path.join(project, 'openspec', 'config.yaml'), 'schema: myflow\n');
+  await fs.mkdir(getToolDir(project), { recursive: true });
+  await fs.writeFile(getConfigFile(project), 'schema: myflow\n');
 
   // Written by hand: `openspec new change` loads the schema, so it cannot
   // create a change on a schema that no longer parses.
-  const changeDir = path.join(project, 'openspec', 'changes', 'c');
+  const changeDir = path.join(getChangesDir(project), 'c');
   await fs.mkdir(changeDir, { recursive: true });
   await fs.writeFile(path.join(changeDir, '.openspec.yaml'), 'schema: myflow\n');
   await fs.writeFile(

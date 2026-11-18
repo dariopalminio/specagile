@@ -102,20 +102,20 @@ const EXPECTED_FUNCTION_HASHES: Record<string, string> = {
 };
 
 const EXPECTED_GENERATED_SKILL_CONTENT_HASHES: Record<string, string> = {
-  'sa-explore': '59e7f9a5a9d92f9e5ab10d04f08fc8078ecd758aefd8ed48126c154149d6c832',
-  'sa-new-change': 'b65a932895e1977df4fe5004c06e7acd4a4f5ace2756202c4268b73f27f5f47b',
-  'sa-continue-change': 'beef081f173e813cc8dbe5f34d7eb64ec500b33f6428c1ac8ea48bbbebc61d66',
-  'sa-implement': 'dd0adf6872dd230a81c75402a5f208514c00a185ce7fcf7a8979cf2d1cf78f01',
-  'sa-ff-change': '14a1284e449d218a1e586ff75e58f15c1647399ed789703d6a0367762739a0ea',
-  'sa-sync-specs': 'ae0b40658b35fdb7a56a831bc30453c8a5184acdc345c61f18d300532fcf20e4',
-  'sa-archive': 'cf0c0cd27f92858ca764a4cea0a012db80a7ee61707a203da9e8b78abac596b9',
-  'sa-bulk-archive-change': 'd9f3ca9412452cbd184389c913ad1df580ebde9bdc617bd3759705e3b035fa9d',
-  'sa-verify': 'f6c07a4ba09da167d66c51fda2d8527385ba38a9b98fdaf2f9eba129ebc857fc',
-  'sa-onboard': 'e9f03490b06399b5b2204d157fc06f2d19302372007d316ce7d237b738cc2241',
-  'sa-propose': '92f1c5689174f2a72c738a6dfbfa96d859d42e16020c1fa1586a16a34969cdbb',
-  'sa-update-change': '88196ee571b6dcda65bc7afa37b49e4a705151dc64b380931ab5aab5effc8704',
-  'sa-specify': 'e616172162d7eb218b3c0ee56417d2746e68b59bfcb6eb8dd091bb5eda9a6b6b',
-  'sa-plan': '95f419ad3a55952c740e99fd0dc518d100c63472059cd1d2afbd6eefd8734afd',
+  'sa-explore': '5d15f16d8ccad4e3a860d8d254ba3aebb2c2550341f958e40cf328943a8862ea',
+  'sa-new-change': 'bd70bff38fd52c4048c4de89c32150b70e45a07503d79e680537227b790a3205',
+  'sa-continue-change': '81f8f1993ec88b7928e4b38a68eb0daaa03a4a489c5f498d21152ad7248b14ed',
+  'sa-implement': '365c4b880a0a4a5aa7ae409e07d0d12bbc2934afc3a885bccfdef42451c485f9',
+  'sa-ff-change': '0706b27e4a951780219d9cfe198cad039d0c031abb5954ede526f7daf116e2ed',
+  'sa-sync-specs': '60ab82f691874b852b5967ffa9b8b18690682db343286e6d04d1577827eccde0',
+  'sa-archive': '6a0986164a3fad32f68c912875ac1335ad8d2bc1345d2bf4d722be3b5ad4fb5a',
+  'sa-bulk-archive-change': '67bb2aa4376d718cb060db2c2c17e27a708787927039a97004c07b3dcd1482d0',
+  'sa-verify': '9be29a01b42140e59dd46cb05e71d2c0e607c0a1450d66038b88d750b4287a6b',
+  'sa-onboard': 'a6b5f242fb0c2183f91247a19facf1920f30bfff6e056f9079a220a7b3f6f257',
+  'sa-propose': '9994fe983d5100c5d6fa4bdeb7ab220d3cc19361a782ea7d41c3b1cb3362e1fb',
+  'sa-update-change': '79b2ab90a75a2030efbfb41b30cefc637516ea2e7961c72192c48a9f153755cf',
+  'sa-specify': '4b432b3e544bdd35a75a2f486db8d31bac69244752f2a198f87fa4f07f15d723',
+  'sa-plan': '129f657cfde000800890b9f55945012a6ad5571a5e9ac8221ea75e6de51c94f9',
 };
 
 // Intentionally excludes getFeedbackSkillTemplate: this list only models templates

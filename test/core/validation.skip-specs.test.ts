@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { Validator } from '../../src/core/validation/validator.js';
+import { getChangesDir, getProjectSchemasDir } from '../helpers/layout.js';
 
 const PROPOSAL = `# Test Change
 
@@ -180,9 +181,9 @@ describe('Validator skip_specs handling', () => {
     // The schema-resolution gate must use the same project root as
     // status/instructions (derived from the change directory), or custom
     // project-local schemas would be falsely rejected.
-    const changeDir = path.join(testDir, 'openspec', 'changes', 'refactor');
+    const changeDir = path.join(getChangesDir(testDir), 'refactor');
     await fs.mkdir(changeDir, { recursive: true });
-    const schemaDir = path.join(testDir, 'openspec', 'schemas', 'custom-flow');
+    const schemaDir = path.join(getProjectSchemasDir(testDir), 'custom-flow');
     await fs.mkdir(schemaDir, { recursive: true });
     await fs.writeFile(
       path.join(schemaDir, 'schema.yaml'),
@@ -214,9 +215,9 @@ describe('Validator skip_specs handling', () => {
     // listSchemas only checks that schema.yaml exists; status/instructions
     // fail one step later when resolveSchema parses it. Validate must not
     // honor the marker on name existence alone.
-    const changeDir = path.join(testDir, 'openspec', 'changes', 'refactor');
+    const changeDir = path.join(getChangesDir(testDir), 'refactor');
     await fs.mkdir(changeDir, { recursive: true });
-    const schemaDir = path.join(testDir, 'openspec', 'schemas', 'broken-flow');
+    const schemaDir = path.join(getProjectSchemasDir(testDir), 'broken-flow');
     await fs.mkdir(schemaDir, { recursive: true });
     await fs.writeFile(path.join(schemaDir, 'schema.yaml'), '{broken yaml: [');
     await fs.writeFile(
@@ -234,9 +235,9 @@ describe('Validator skip_specs handling', () => {
   });
 
   it('does not honor skip_specs when the schema parses but fails schema validation', async () => {
-    const changeDir = path.join(testDir, 'openspec', 'changes', 'refactor');
+    const changeDir = path.join(getChangesDir(testDir), 'refactor');
     await fs.mkdir(changeDir, { recursive: true });
-    const schemaDir = path.join(testDir, 'openspec', 'schemas', 'shapeless');
+    const schemaDir = path.join(getProjectSchemasDir(testDir), 'shapeless');
     await fs.mkdir(schemaDir, { recursive: true });
     // Valid YAML, but missing the required artifacts list.
     await fs.writeFile(

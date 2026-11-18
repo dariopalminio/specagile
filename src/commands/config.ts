@@ -24,6 +24,7 @@ import {
 } from '../core/config-schema.js';
 import { CORE_WORKFLOWS, ALL_WORKFLOWS, getProfileWorkflows } from '../core/profiles.js';
 import { OPENSPEC_DIR_NAME } from '../core/config.js';
+import { detectFormerLayout } from '../core/fork/layout.js';
 import { asErrorMessage, isPromptCancellationError } from './shared-output.js';
 
 type EditorOutcome =
@@ -698,7 +699,8 @@ export async function configProfileCommand(preset?: string): Promise<void> {
     // Check if inside an OpenSpec project
     const projectDir = process.cwd();
     const openspecDir = path.join(projectDir, OPENSPEC_DIR_NAME);
-    if (fs.existsSync(openspecDir)) {
+    // SpecAgile: update also moves a project with the former openspec/ layout.
+    if (fs.existsSync(openspecDir) || detectFormerLayout(projectDir)) {
       const applyNow = await confirm({
         message: 'Apply changes to this project now?',
         default: true,

@@ -3,6 +3,7 @@ import { promises as fs } from 'fs';
 import os from 'os';
 import path from 'path';
 import { execFileSync, spawnSync } from 'child_process';
+import { RELATIVE_SPECS_DIR, getChangesDir, getSpecsDir, getToolDir } from '../helpers/layout.js';
 
 describe('openspec show --diff', () => {
   const openspecBin = path.join(process.cwd(), 'bin', 'specagile.js');
@@ -14,12 +15,13 @@ describe('openspec show --diff', () => {
 
   beforeEach(async () => {
     testDir = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-show-diff-'));
-    changesDir = path.join(testDir, 'openspec', 'changes');
-    specsDir = path.join(testDir, 'openspec', 'specs');
+    changesDir = getChangesDir(testDir);
+    specsDir = getSpecsDir(testDir);
     await fs.mkdir(changesDir, { recursive: true });
     await fs.mkdir(specsDir, { recursive: true });
+    await fs.mkdir(getToolDir(testDir), { recursive: true });
     await fs.writeFile(
-      path.join(testDir, 'openspec', 'project.md'),
+      path.join(getToolDir(testDir), 'project.md'),
       '# Test project\n',
       'utf-8'
     );
@@ -330,7 +332,7 @@ describe('openspec show --diff', () => {
 
     const output = run(['show', 'no-main-spec', '--type', 'change', '--diff']);
     expect(output).toContain('MODIFIED: Billing');
-    expect(output).toContain('No main spec at openspec/specs/billing/spec.md');
+    expect(output).toContain(`No main spec at ${RELATIVE_SPECS_DIR}/billing/spec.md`);
     // The requirement text is still shown, but not dressed up as a diff.
     expect(output).toContain('The system SHALL bill monthly.');
     expect(output).not.toContain('+The system SHALL bill monthly.');
@@ -338,7 +340,7 @@ describe('openspec show --diff', () => {
     const json = JSON.parse(run(['show', 'no-main-spec', '--type', 'change', '--diff', '--json']));
     const modified = json.deltas.find((d: any) => d.operation === 'MODIFIED');
     expect(modified.diff).toBeUndefined();
-    expect(modified.warning).toContain('No main spec at openspec/specs/billing/spec.md');
+    expect(modified.warning).toContain(`No main spec at ${RELATIVE_SPECS_DIR}/billing/spec.md`);
   });
 
   it('diffs a nested capability (specs/<area>/<id>/spec.md)', async () => {

@@ -6,6 +6,8 @@ import { tmpdir } from 'os';
 import { promisify } from 'util';
 import { runCLI, testBinary } from '../helpers/run-cli.js';
 import { cleanupTempPath } from '../helpers/temp-cleanup.js';
+import { RELATIVE_CHANGES_DIR, RELATIVE_CONFIG_FILE, RELATIVE_SPECS_DIR, createFormerLayout, getArchiveDir, getChangesDir, getSpecsDir } from '../helpers/layout.js';
+import { getGlobalDataDir, registerStore } from '../../src/core/index.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -210,9 +212,9 @@ describe('standalone store lifecycle journey', () => {
     });
     expect(payload.created_files).toEqual(
       expect.arrayContaining([
-        'openspec/config.yaml',
-        'openspec/specs/.gitkeep',
-        'openspec/changes/archive/.gitkeep',
+        RELATIVE_CONFIG_FILE,
+        `${RELATIVE_SPECS_DIR}/.gitkeep`,
+        `${RELATIVE_CHANGES_DIR}/archive/.gitkeep`,
         '.openspec-store/store.yaml',
       ])
     );
@@ -228,8 +230,8 @@ describe('standalone store lifecycle journey', () => {
       'HEAD',
     ]);
     expect(committedFiles).toContain('.openspec-store/store.yaml');
-    expect(committedFiles).toContain('openspec/specs/.gitkeep');
-    expect(committedFiles).toContain('openspec/changes/archive/.gitkeep');
+    expect(committedFiles).toContain(`${RELATIVE_SPECS_DIR}/.gitkeep`);
+    expect(committedFiles).toContain(`${RELATIVE_CHANGES_DIR}/archive/.gitkeep`);
 
     const status = await git(storeRoot, machineA, ['status', '--porcelain']);
     expect(status.trim()).toBe('');
@@ -293,11 +295,11 @@ describe('standalone store lifecycle journey', () => {
     );
     expect(instructions.exitCode).toBe(0);
     expect(instructions.stdout).toContain(
-      path.join(canonical(storeRoot), 'openspec', 'changes', changeId, 'proposal.md')
+      path.join(getChangesDir(canonical(storeRoot)), changeId, 'proposal.md')
     );
 
     // The test acts as the agent and writes the artifacts.
-    const changeDir = path.join(storeRoot, 'openspec', 'changes', changeId);
+    const changeDir = path.join(getChangesDir(storeRoot), changeId);
     await writeCompletedChangeArtifacts(changeDir, 'billing');
 
     const validated = await runCLI(
@@ -332,11 +334,11 @@ describe('standalone store lifecycle journey', () => {
     expect(archivePayload.archive.change).toBe(changeId);
     expect(archivePayload.root.store_id).toBe(STORE_ID);
 
-    const specPath = path.join(storeRoot, 'openspec', 'specs', 'billing', 'spec.md');
+    const specPath = path.join(getSpecsDir(storeRoot), 'billing', 'spec.md');
     await expect(fs.readFile(specPath, 'utf-8')).resolves.toContain('billing SHALL work');
 
     const archiveEntries = await fs.readdir(
-      path.join(storeRoot, 'openspec', 'changes', 'archive')
+      getArchiveDir(storeRoot)
     );
     expect(archiveEntries.some((entry) => entry.endsWith(`-${changeId}`))).toBe(true);
   }, JOURNEY_TIMEOUT_MS);
@@ -412,10 +414,10 @@ describe('standalone store lifecycle journey', () => {
     );
     expect(instructions.exitCode).toBe(0);
     expect(instructions.stdout).toContain(
-      path.join(canonical(cloneRoot), 'openspec', 'changes', changeId, 'proposal.md')
+      path.join(getChangesDir(canonical(cloneRoot)), changeId, 'proposal.md')
     );
 
-    const changeDir = path.join(cloneRoot, 'openspec', 'changes', changeId);
+    const changeDir = path.join(getChangesDir(cloneRoot), changeId);
     await writeCompletedChangeArtifacts(changeDir, 'invoicing');
 
     const status = await runCLI(
@@ -446,7 +448,7 @@ describe('standalone store lifecycle journey', () => {
     expect(archived.exitCode).toBe(0);
     expect(JSON.parse(archived.stdout).archive.change).toBe(changeId);
 
-    const specPath = path.join(cloneRoot, 'openspec', 'specs', 'invoicing', 'spec.md');
+    const specPath = path.join(getSpecsDir(cloneRoot), 'invoicing', 'spec.md');
     await expect(fs.readFile(specPath, 'utf-8')).resolves.toContain('invoicing SHALL work');
 
     // Post-resolution failures keep the banner, and the hint keeps the store:
@@ -466,12 +468,13 @@ describe('standalone store lifecycle journey', () => {
       const entries = await listRelativeEntries(root, new Set(['.git']));
 
       for (const entry of entries) {
-        expect(entry).toMatch(/^(\.openspec-store(\/|\/store\.yaml)?|openspec(\/.*)?)$/);
+        // SpecAgile: the layout's three folders (src/core/fork/layout.ts).
+        expect(entry).toMatch(/^(\.openspec-store(\/|\/store\.yaml)?|(specs|changes|specagile)(\/.*)?)$/);
         expect(entry).not.toMatch(/initiative|workspace/i);
       }
 
       expect(entries).toContain('.openspec-store/store.yaml');
-      expect(entries).toContain('openspec/config.yaml');
+      expect(entries).toContain(RELATIVE_CONFIG_FILE);
     }
 
     // Global state holds only registry/config metadata, no planning files.
@@ -526,4 +529,51 @@ describe('standalone store lifecycle journey', () => {
     });
     await expect(fs.access(path.join(target, '.git'))).rejects.toThrow();
   });
+});
+
+// SpecAgile: a store still on the former openspec/ layout is moved by
+// `specagile update` in its folder, like a project (src/core/fork/layout-migration.ts).
+describe('migrating a store with the former layout', () => {
+  let box: string;
+  let env: NodeJS.ProcessEnv;
+
+  beforeAll(async () => {
+    box = canonical(await fs.mkdtemp(path.join(tmpdir(), 'specagile-store-migrate-')));
+    env = {
+      XDG_CONFIG_HOME: path.join(box, 'config'),
+      XDG_DATA_HOME: path.join(box, 'data'),
+      OPENSPEC_TELEMETRY: '0',
+      OPEN_SPEC_INTERACTIVE: '0',
+    };
+  });
+
+  afterAll(() => {
+    cleanupTempPath(box);
+  });
+
+  it('moves the store, keeps .openspec-store/ as it was, and lists its changes', async () => {
+    const team = path.join(box, 'stores', 'team');
+    createFormerLayout(team, {
+      'config.yaml': 'schema: spec-driven\n',
+      'specs/.gitkeep': '',
+      'changes/add-login/proposal.md': '# add-login\n',
+      'changes/archive/.gitkeep': '',
+    });
+    await registerStore({ id: 'team', localPath: team, globalDataDir: getGlobalDataDir({ env }) });
+    const metadata = await snapshotDirectory(path.join(team, '.openspec-store'));
+
+    const before = await runCLI(['list', '--store', 'team'], { cwd: box, env });
+    expect(before.exitCode).not.toBe(0);
+    expect(`${before.stdout}\n${before.stderr}`).toContain('specagile update');
+
+    const update = await runCLI(['update'], { cwd: team, env });
+    expect(update.exitCode, `${update.stdout}\n${update.stderr}`).toBe(0);
+    expect(update.stdout).toContain('Moved openspec/changes/ → changes/');
+
+    expect(await snapshotDirectory(path.join(team, '.openspec-store'))).toEqual(metadata);
+    expect(await fs.readFile(path.join(getChangesDir(team), 'add-login', 'proposal.md'), 'utf-8')).toBe('# add-login\n');
+    const list = await runCLI(['list', '--store', 'team'], { cwd: box, env });
+    expect(list.exitCode, list.stderr).toBe(0);
+    expect(list.stdout).toContain('add-login');
+  }, JOURNEY_TIMEOUT_MS);
 });

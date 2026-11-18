@@ -3,6 +3,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { tmpdir } from 'os';
 import { runCLI } from '../helpers/run-cli.js';
+import { RELATIVE_CHANGES_DIR, RELATIVE_SCHEMAS_DIR } from '../helpers/layout.js';
 
 describe('openspec validate checks task checkbox formatting (#354)', () => {
   let projectDir: string;
@@ -82,40 +83,40 @@ describe('openspec validate checks task checkbox formatting (#354)', () => {
   beforeAll(async () => {
     projectDir = await fs.mkdtemp(path.join(tmpdir(), 'openspec-task-checkboxes-e2e-'));
 
-    await write('openspec/changes/bullet-tasks/specs/tasks/spec.md', validDelta);
+    await write(`${RELATIVE_CHANGES_DIR}/bullet-tasks/specs/tasks/spec.md`, validDelta);
     await write(
-      'openspec/changes/bullet-tasks/tasks.md',
+      `${RELATIVE_CHANGES_DIR}/bullet-tasks/tasks.md`,
       ['# Tasks', '', '## 1. Implementation', '', '- Add the parser', '- Add the tests', ''].join(
         '\n'
       )
     );
 
-    await write('openspec/changes/checkbox-tasks/specs/tasks/spec.md', validDelta);
+    await write(`${RELATIVE_CHANGES_DIR}/checkbox-tasks/specs/tasks/spec.md`, validDelta);
     await write(
-      'openspec/changes/checkbox-tasks/tasks.md',
+      `${RELATIVE_CHANGES_DIR}/checkbox-tasks/tasks.md`,
       ['## 1. Implementation', '', '- [ ] 1.1 Add the parser', '- A supporting note', ''].join('\n')
     );
 
-    await write('openspec/schemas/glob-tasks/schema.yaml', globTasksSchema);
-    await write('openspec/changes/nested-bullets/.openspec.yaml', 'schema: glob-tasks\n');
-    await write('openspec/changes/nested-bullets/specs/tasks/spec.md', validDelta);
-    await write('openspec/changes/nested-bullets/backend/tasks.md', '- build the api\n');
-    await write('openspec/changes/nested-bullets/frontend/tasks.md', '- [ ] 2.1 build the ui\n');
+    await write(`${RELATIVE_SCHEMAS_DIR}/glob-tasks/schema.yaml`, globTasksSchema);
+    await write(`${RELATIVE_CHANGES_DIR}/nested-bullets/.openspec.yaml`, 'schema: glob-tasks\n');
+    await write(`${RELATIVE_CHANGES_DIR}/nested-bullets/specs/tasks/spec.md`, validDelta);
+    await write(`${RELATIVE_CHANGES_DIR}/nested-bullets/backend/tasks.md`, '- build the api\n');
+    await write(`${RELATIVE_CHANGES_DIR}/nested-bullets/frontend/tasks.md`, '- [ ] 2.1 build the ui\n');
 
-    await write('openspec/changes/nested-all-bullets/.openspec.yaml', 'schema: glob-tasks\n');
-    await write('openspec/changes/nested-all-bullets/specs/tasks/spec.md', validDelta);
-    await write('openspec/changes/nested-all-bullets/backend/tasks.md', '- build the api\n');
-    await write('openspec/changes/nested-all-bullets/frontend/tasks.md', '- build the ui\n');
+    await write(`${RELATIVE_CHANGES_DIR}/nested-all-bullets/.openspec.yaml`, 'schema: glob-tasks\n');
+    await write(`${RELATIVE_CHANGES_DIR}/nested-all-bullets/specs/tasks/spec.md`, validDelta);
+    await write(`${RELATIVE_CHANGES_DIR}/nested-all-bullets/backend/tasks.md`, '- build the api\n');
+    await write(`${RELATIVE_CHANGES_DIR}/nested-all-bullets/frontend/tasks.md`, '- build the ui\n');
 
-    await write('openspec/schemas/implicit-tasks/schema.yaml', implicitTasksSchema);
-    await write('openspec/changes/implicit-tracking/.openspec.yaml', 'schema: implicit-tasks\n');
-    await write('openspec/changes/implicit-tracking/specs/tasks/spec.md', validDelta);
-    await write('openspec/changes/implicit-tracking/tasks.md', '- build the api\n');
+    await write(`${RELATIVE_SCHEMAS_DIR}/implicit-tasks/schema.yaml`, implicitTasksSchema);
+    await write(`${RELATIVE_CHANGES_DIR}/implicit-tracking/.openspec.yaml`, 'schema: implicit-tasks\n');
+    await write(`${RELATIVE_CHANGES_DIR}/implicit-tracking/specs/tasks/spec.md`, validDelta);
+    await write(`${RELATIVE_CHANGES_DIR}/implicit-tracking/tasks.md`, '- build the api\n');
 
-    await write('openspec/schemas/no-tasks-artifact/schema.yaml', untrackedTasksSchema);
-    await write('openspec/changes/untracked-tasks/.openspec.yaml', 'schema: no-tasks-artifact\n');
-    await write('openspec/changes/untracked-tasks/specs/tasks/spec.md', validDelta);
-    await write('openspec/changes/untracked-tasks/tasks.md', '- an untracked bullet\n');
+    await write(`${RELATIVE_SCHEMAS_DIR}/no-tasks-artifact/schema.yaml`, untrackedTasksSchema);
+    await write(`${RELATIVE_CHANGES_DIR}/untracked-tasks/.openspec.yaml`, 'schema: no-tasks-artifact\n');
+    await write(`${RELATIVE_CHANGES_DIR}/untracked-tasks/specs/tasks/spec.md`, validDelta);
+    await write(`${RELATIVE_CHANGES_DIR}/untracked-tasks/tasks.md`, '- an untracked bullet\n');
   });
 
   afterAll(async () => {
@@ -239,12 +240,12 @@ describe('openspec validate checks task checkbox formatting (#354)', () => {
         await fs.writeFile(file, content, 'utf-8');
         return file;
       };
-      await writeIn('openspec/schemas/glob-tasks/schema.yaml', globTasksSchema);
-      await writeIn('openspec/changes/half-read/.openspec.yaml', 'schema: glob-tasks\n');
-      await writeIn('openspec/changes/half-read/specs/tasks/spec.md', validDelta);
-      await writeIn('openspec/changes/half-read/backend/tasks.md', '- build the api\n');
+      await writeIn(`${RELATIVE_SCHEMAS_DIR}/glob-tasks/schema.yaml`, globTasksSchema);
+      await writeIn(`${RELATIVE_CHANGES_DIR}/half-read/.openspec.yaml`, 'schema: glob-tasks\n');
+      await writeIn(`${RELATIVE_CHANGES_DIR}/half-read/specs/tasks/spec.md`, validDelta);
+      await writeIn(`${RELATIVE_CHANGES_DIR}/half-read/backend/tasks.md`, '- build the api\n');
       const locked = await writeIn(
-        'openspec/changes/half-read/frontend/tasks.md',
+        `${RELATIVE_CHANGES_DIR}/half-read/frontend/tasks.md`,
         '- [ ] 2.1 build the ui\n'
       );
       await fs.chmod(locked, 0o000);

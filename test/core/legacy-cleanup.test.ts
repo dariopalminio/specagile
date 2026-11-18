@@ -30,6 +30,7 @@ import { resolveCommandSurfaceCapability } from '../../src/core/command-surface.
 import { ALL_WORKFLOWS } from '../../src/core/profiles.js';
 import { COMMAND_IDS } from '../../src/core/shared/tool-detection.js';
 import { releasedCodexPrompt } from '../helpers/released-codex-prompt.js';
+import { RELATIVE_TOOL_DIR, getToolDir } from '../helpers/layout.js';
 
 describe('legacy-cleanup', () => {
   let testDir: string;
@@ -40,7 +41,7 @@ describe('legacy-cleanup', () => {
     testDir = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-legacy-test-'));
     process.env.CODEX_HOME = path.join(testDir, 'codex-home');
     // Create openspec directory structure
-    await fs.mkdir(path.join(testDir, 'openspec'), { recursive: true });
+    await fs.mkdir(getToolDir(testDir), { recursive: true });
   });
 
   afterEach(async () => {
@@ -488,7 +489,7 @@ ${OPENSPEC_MARKERS.end}`);
 
   describe('detectLegacyStructureFiles', () => {
     it('should detect openspec/AGENTS.md', async () => {
-      const agentsPath = path.join(testDir, 'openspec', 'AGENTS.md');
+      const agentsPath = path.join(getToolDir(testDir), 'AGENTS.md');
       await fs.writeFile(agentsPath, '# AGENTS.md content');
 
       const result = await detectLegacyStructureFiles(testDir);
@@ -496,7 +497,7 @@ ${OPENSPEC_MARKERS.end}`);
     });
 
     it('should detect openspec/project.md', async () => {
-      const projectPath = path.join(testDir, 'openspec', 'project.md');
+      const projectPath = path.join(getToolDir(testDir), 'project.md');
       await fs.writeFile(projectPath, '# Project content');
 
       const result = await detectLegacyStructureFiles(testDir);
@@ -552,7 +553,7 @@ ${OPENSPEC_MARKERS.end}`);
     });
 
     it('should return hasLegacyArtifacts: true when openspec/AGENTS.md is found', async () => {
-      await fs.writeFile(path.join(testDir, 'openspec', 'AGENTS.md'), 'content');
+      await fs.writeFile(path.join(getToolDir(testDir), 'AGENTS.md'), 'content');
 
       const result = await detectLegacyArtifacts(testDir);
       expect(result.hasLegacyArtifacts).toBe(true);
@@ -560,7 +561,7 @@ ${OPENSPEC_MARKERS.end}`);
     });
 
     it('should detect project.md for migration hint (it is preserved, not deleted)', async () => {
-      await fs.writeFile(path.join(testDir, 'openspec', 'project.md'), 'content');
+      await fs.writeFile(path.join(getToolDir(testDir), 'project.md'), 'content');
 
       const result = await detectLegacyArtifacts(testDir);
       // project.md triggers hasLegacyArtifacts to show migration hint
@@ -572,8 +573,8 @@ ${OPENSPEC_MARKERS.end}`);
       // Create various legacy artifacts
       await fs.writeFile(path.join(testDir, 'CLAUDE.md'), `${OPENSPEC_MARKERS.start}\nContent\n${OPENSPEC_MARKERS.end}`);
       await fs.mkdir(path.join(testDir, '.claude', 'commands', 'openspec'), { recursive: true });
-      await fs.writeFile(path.join(testDir, 'openspec', 'AGENTS.md'), 'content');
-      await fs.writeFile(path.join(testDir, 'openspec', 'project.md'), 'content');
+      await fs.writeFile(path.join(getToolDir(testDir), 'AGENTS.md'), 'content');
+      await fs.writeFile(path.join(getToolDir(testDir), 'project.md'), 'content');
 
       const result = await detectLegacyArtifacts(testDir);
       expect(result.hasLegacyArtifacts).toBe(true);
@@ -700,27 +701,27 @@ ${OPENSPEC_MARKERS.end}`);
     });
 
     it('should delete openspec/AGENTS.md', async () => {
-      const agentsPath = path.join(testDir, 'openspec', 'AGENTS.md');
+      const agentsPath = path.join(getToolDir(testDir), 'AGENTS.md');
       await fs.writeFile(agentsPath, 'content');
 
       const detection = await detectLegacyArtifacts(testDir);
       const result = await cleanupLegacyArtifacts(testDir, detection);
 
-      expect(result.deletedFiles).toContain('openspec/AGENTS.md');
+      expect(result.deletedFiles).toContain(`${RELATIVE_TOOL_DIR}/AGENTS.md`);
       await expect(fs.access(agentsPath)).rejects.toThrow();
       // openspec directory should still exist
-      await expect(fs.access(path.join(testDir, 'openspec'))).resolves.not.toThrow();
+      await expect(fs.access(getToolDir(testDir))).resolves.not.toThrow();
     });
 
     it('should NOT delete openspec/project.md', async () => {
-      const projectPath = path.join(testDir, 'openspec', 'project.md');
+      const projectPath = path.join(getToolDir(testDir), 'project.md');
       await fs.writeFile(projectPath, 'User project content');
 
       const detection = await detectLegacyArtifacts(testDir);
       const result = await cleanupLegacyArtifacts(testDir, detection);
 
       expect(result.projectMdNeedsMigration).toBe(true);
-      expect(result.deletedFiles).not.toContain('openspec/project.md');
+      expect(result.deletedFiles).not.toContain(`${RELATIVE_TOOL_DIR}/project.md`);
       await expect(fs.access(projectPath)).resolves.not.toThrow();
     });
 
@@ -921,9 +922,9 @@ ${OPENSPEC_MARKERS.end}`);
     });
 
     it('does not find openspec/AGENTS.md when openspec/ is linked', async () => {
-      await fs.rm(path.join(testDir, 'openspec'), { recursive: true });
+      await fs.rm(getToolDir(testDir), { recursive: true });
       await fs.writeFile(path.join(outside, 'AGENTS.md'), 'shared instructions\n');
-      await linkDir(outside, path.join(testDir, 'openspec'));
+      await linkDir(outside, getToolDir(testDir));
 
       const result = await detectLegacyStructureFiles(testDir);
 
@@ -940,8 +941,8 @@ ${OPENSPEC_MARKERS.end}`);
       await linkDir(outside, path.join(testDir, '.clinerules', 'workflows'));
       await fs.mkdir(path.join(testDir, '.claude'), { recursive: true });
       await linkDir(outside, path.join(testDir, '.claude', 'commands'));
-      await fs.rm(path.join(testDir, 'openspec'), { recursive: true });
-      await linkDir(outside, path.join(testDir, 'openspec'));
+      await fs.rm(getToolDir(testDir), { recursive: true });
+      await linkDir(outside, getToolDir(testDir));
       const before = await outsideFiles();
 
       const result = await cleanupLegacyArtifacts(testDir, {
@@ -965,7 +966,7 @@ ${OPENSPEC_MARKERS.end}`);
         expect.arrayContaining([
           '.claude/commands/openspec',
           '.clinerules/workflows/openspec-proposal.md',
-          'openspec/AGENTS.md',
+          `${RELATIVE_TOOL_DIR}/AGENTS.md`,
         ])
       );
     });
@@ -1055,7 +1056,7 @@ ${OPENSPEC_MARKERS.end}`);
 
       const summary = formatCleanupSummary(result);
       expect(summary).toContain('Needs your attention');
-      expect(summary).toContain('openspec/project.md');
+      expect(summary).toContain(`${RELATIVE_TOOL_DIR}/project.md`);
       expect(summary).toContain('config.yaml');
     });
 
@@ -1202,7 +1203,7 @@ ${OPENSPEC_MARKERS.end}`);
 
       const summary = formatDetectionSummary(detection);
       expect(summary).toContain('Files to remove');
-      expect(summary).toContain('• openspec/AGENTS.md');
+      expect(summary).toContain(`• ${RELATIVE_TOOL_DIR}/AGENTS.md`);
       expect(summary).toContain('These files will be deleted entirely. Back up any custom content before proceeding:');
       expect(summary).not.toContain('No user content to preserve');
     });
@@ -1222,7 +1223,7 @@ ${OPENSPEC_MARKERS.end}`);
 
       const summary = formatDetectionSummary(detection);
       expect(summary).toContain('Needs your attention');
-      expect(summary).toContain('• openspec/project.md');
+      expect(summary).toContain(`• ${RELATIVE_TOOL_DIR}/project.md`);
       expect(summary).toContain('won\'t delete this file');
       expect(summary).toContain('config.yaml');
       expect(summary).toContain('Ask your AI assistant');
@@ -1247,7 +1248,7 @@ ${OPENSPEC_MARKERS.end}`);
       expect(summary).toContain('Files to update');
       expect(summary).toContain('CLAUDE.md');
       expect(summary).toContain('Needs your attention');
-      expect(summary).toContain('openspec/project.md');
+      expect(summary).toContain(`${RELATIVE_TOOL_DIR}/project.md`);
     });
 
     it('should group both removals and updates correctly', () => {
@@ -1269,7 +1270,7 @@ ${OPENSPEC_MARKERS.end}`);
       expect(summary).toContain('Files to update');
       // Check removals (only slash commands and openspec/AGENTS.md)
       expect(summary).toContain('• .claude/commands/openspec/');
-      expect(summary).toContain('• openspec/AGENTS.md');
+      expect(summary).toContain(`• ${RELATIVE_TOOL_DIR}/AGENTS.md`);
       // Check updates (all config files)
       expect(summary).toContain('• CLAUDE.md');
       expect(summary).toContain('• CLINE.md');
@@ -1325,7 +1326,7 @@ ${OPENSPEC_MARKERS.end}`);
     it('should return migration hint message', () => {
       const hint = formatProjectMdMigrationHint();
       expect(hint).toContain('Needs your attention');
-      expect(hint).toContain('openspec/project.md');
+      expect(hint).toContain(`${RELATIVE_TOOL_DIR}/project.md`);
       expect(hint).toContain('won\'t delete this file');
       expect(hint).toContain('config.yaml');
       expect(hint).toContain('Ask your AI assistant');
@@ -1333,7 +1334,7 @@ ${OPENSPEC_MARKERS.end}`);
 
     it('should include a pasteable AI-assisted migration request', () => {
       const hint = formatProjectMdMigrationHint();
-      expect(hint).toContain('Review openspec/project.md');
+      expect(hint).toContain(`Review ${RELATIVE_TOOL_DIR}/project.md`);
       expect(hint).toContain('migrate its useful content to');
       expect(hint).toContain('Do not delete project.md');
       expect(hint).toContain('Review config.yaml, then delete project.md when ready');

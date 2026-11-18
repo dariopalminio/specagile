@@ -3,6 +3,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { tmpdir } from 'os';
 import { runCLI } from '../helpers/run-cli.js';
+import { RELATIVE_CHANGES_DIR, RELATIVE_SCHEMAS_DIR } from '../helpers/layout.js';
 
 describe('openspec validate checks task numbering (#1520)', () => {
   let projectDir: string;
@@ -50,11 +51,11 @@ describe('openspec validate checks task numbering (#1520)', () => {
     projectDir = await fs.mkdtemp(path.join(tmpdir(), 'openspec-task-numbering-e2e-'));
 
     await write(
-      'openspec/changes/bad-numbering/specs/tasks/spec.md',
+      `${RELATIVE_CHANGES_DIR}/bad-numbering/specs/tasks/spec.md`,
       validDelta
     );
     await write(
-      'openspec/changes/bad-numbering/tasks.md',
+      `${RELATIVE_CHANGES_DIR}/bad-numbering/tasks.md`,
       [
         '## 10. First release',
         '',
@@ -72,11 +73,11 @@ describe('openspec validate checks task numbering (#1520)', () => {
     );
 
     await write(
-      'openspec/changes/valid-numbering/specs/tasks/spec.md',
+      `${RELATIVE_CHANGES_DIR}/valid-numbering/specs/tasks/spec.md`,
       validDelta
     );
     await write(
-      'openspec/changes/valid-numbering/tasks.md',
+      `${RELATIVE_CHANGES_DIR}/valid-numbering/tasks.md`,
       [
         '# Tasks',
         '- [ ] an unnumbered task before any numbered group',
@@ -92,21 +93,21 @@ describe('openspec validate checks task numbering (#1520)', () => {
       ].join('\n')
     );
 
-    await write('openspec/schemas/glob-tasks/schema.yaml', globTasksSchema);
+    await write(`${RELATIVE_SCHEMAS_DIR}/glob-tasks/schema.yaml`, globTasksSchema);
     await write(
-      'openspec/changes/nested-numbering/.openspec.yaml',
+      `${RELATIVE_CHANGES_DIR}/nested-numbering/.openspec.yaml`,
       'schema: glob-tasks\n'
     );
     await write(
-      'openspec/changes/nested-numbering/specs/tasks/spec.md',
+      `${RELATIVE_CHANGES_DIR}/nested-numbering/specs/tasks/spec.md`,
       validDelta
     );
     await write(
-      'openspec/changes/nested-numbering/backend/tasks.md',
+      `${RELATIVE_CHANGES_DIR}/nested-numbering/backend/tasks.md`,
       '## 2. Backend\n- [ ] 3.1 wrong group\n'
     );
     await write(
-      'openspec/changes/nested-numbering/frontend/tasks.md',
+      `${RELATIVE_CHANGES_DIR}/nested-numbering/frontend/tasks.md`,
       '## 4. Frontend\n- [ ] 4.1 correct group\n'
     );
   });

@@ -5,6 +5,7 @@ import os from 'os';
 import path from 'path';
 import { cliProjectRoot, runCLI } from '../helpers/run-cli.js';
 import { knownProjectsPath, readKnownProjects, rememberProject } from '../../src/core/known-projects.js';
+import { getToolDir } from '../helpers/layout.js';
 
 describe('the list of projects that use OpenSpec', () => {
   let box: string;
@@ -25,7 +26,7 @@ describe('the list of projects that use OpenSpec', () => {
 
   const project = async (name: string): Promise<string> => {
     const dir = path.join(box, name);
-    await fs.mkdir(path.join(dir, 'openspec'), { recursive: true });
+    await fs.mkdir(getToolDir(dir), { recursive: true });
     return dir;
   };
 
@@ -116,7 +117,7 @@ describe('the list of projects that use OpenSpec', () => {
   it('does not take a file named openspec for a project', async () => {
     const dir = path.join(box, 'tool');
     await fs.mkdir(dir);
-    await fs.writeFile(path.join(dir, 'openspec'), 'a binary, say');
+    await fs.writeFile(getToolDir(dir), 'a binary, say');
     rememberProject(dir);
 
     expect(existsSync(knownProjectsPath())).toBe(false);

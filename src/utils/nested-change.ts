@@ -4,6 +4,7 @@ import { artifactOutputExists } from '../core/artifact-graph/outputs.js';
 import { resolveSchema } from '../core/artifact-graph/resolver.js';
 import { METADATA_FILENAME, resolveSchemaForChange } from './change-metadata.js';
 import { hasAnyFileUnder } from './spec-discovery.js';
+import { RELATIVE_CHANGES_DIR, RELATIVE_SPECS_DIR, getRootOfChangesDir } from '../core/fork/layout.js';
 
 /**
  * Files that only ever sit at the root of a change directory. Their presence
@@ -164,8 +165,8 @@ export async function findNestedChangesIn(
   // `validate` already exclude it; `change show` does not.
   if (name === 'archive' || name.startsWith('.')) return undefined;
   const dir = path.join(changesDir, name);
-  // changes/ is always <root>/openspec/changes, for project and store roots.
-  const projectRoot = path.resolve(changesDir, '..', '..');
+  // changes/ is always <root>/changes, for project and store roots.
+  const projectRoot = getRootOfChangesDir(changesDir);
   if (await looksLikeChange(dir, projectRoot)) return undefined;
   if (await hasOwnFile(dir)) return undefined;
   const nested: string[] = [];
@@ -205,13 +206,13 @@ function flatten(nestedId: string): string {
  * read identically wherever a user meets them.
  */
 export function describeNestedChange(finding: NestedChangeFinding): string {
-  const list = finding.nested.map((id) => `openspec/changes/${id}/`).join(', ');
+  const list = finding.nested.map((id) => `${RELATIVE_CHANGES_DIR}/${id}/`).join(', ');
   const example = flatten(finding.nested[0]);
   return (
     `"${finding.name}" ${NESTED_CHANGE_ISSUE_MARKER} ${list}. ` +
-    'A change must be a directory directly under openspec/changes/, so those ' +
+    `A change must be a directory directly under ${RELATIVE_CHANGES_DIR}/, so those ` +
     'nested directories are invisible to OpenSpec while the folder around them ' +
-    'is reported as a change. Nested paths are supported under openspec/specs/ ' +
+    `is reported as a change. Nested paths are supported under ${RELATIVE_SPECS_DIR}/ ` +
     `only. Rename each nested change to a flat name (for example "${example}").`
   );
 }

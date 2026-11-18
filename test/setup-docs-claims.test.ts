@@ -25,7 +25,7 @@ describe('setup documentation', () => {
   it('matches the AI-assisted project.md migration guidance', () => {
     const hint = formatProjectMdMigrationHint();
     const claims = [
-      'Review openspec/project.md and migrate its useful content to',
+      'Review specagile/project.md and migrate its useful content to',
       'Keep context concise',
       'only project-wide',
       'artifact creation, apply, and archive',
@@ -36,7 +36,7 @@ describe('setup documentation', () => {
       'Do not delete project.md',
     ];
 
-    expect(SETUP).toContain('Init does not copy legacy `openspec/project.md`');
+    expect(SETUP).toContain('Init does not copy legacy `specagile/project.md`');
     for (const claim of claims) {
       expect(hint).toContain(claim);
       expect(SETUP).toContain(claim);

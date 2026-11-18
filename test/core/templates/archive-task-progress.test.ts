@@ -9,6 +9,7 @@ import {
 } from '../../../src/core/shared/skill-generation.js';
 import { getGlobalDataDir, registerStore } from '../../../src/core/index.js';
 import { runCLI } from '../../helpers/run-cli.js';
+import { RELATIVE_CHANGES_DIR, RELATIVE_CONFIG_FILE, RELATIVE_SCHEMAS_DIR, RELATIVE_SPECS_DIR } from '../../helpers/layout.js';
 
 // Go through getSkillTemplates/getCommandTemplates, the entry points init and
 // update use. The text is the same for every workflow list.
@@ -46,18 +47,18 @@ describe('archive task discovery uses schema-resolved CLI progress', () => {
       XDG_DATA_HOME: path.join(root, 'data'),
       XDG_CONFIG_HOME: path.join(root, 'config'),
     };
-    await write('openspec/config.yaml', 'schema: custom\n');
-    await fs.mkdir(path.join(root, 'openspec/specs'), { recursive: true });
+    await write(RELATIVE_CONFIG_FILE, 'schema: custom\n');
+    await fs.mkdir(path.join(root, RELATIVE_SPECS_DIR), { recursive: true });
     // Include another change so callers must match the selected name, not
     // take the first list entry or aggregate progress across the whole root.
-    await write('openspec/changes/other/tasks.md', '- [x] Unrelated completed work\n');
+    await write(`${RELATIVE_CHANGES_DIR}/other/tasks.md`, '- [x] Unrelated completed work\n');
     await registerStore({ id: storeId, localPath: root, globalDataDir: getGlobalDataDir({ env }) });
 
     // The caller's nearest root contains the same change name, but its tasks
     // are all done. Omitting --store must therefore produce different progress.
     callerRoot = path.join(root, 'caller');
-    await write('caller/openspec/config.yaml', 'schema: spec-driven\n');
-    await write('caller/openspec/changes/selected/tasks.md', '- [x] Local work is done\n');
+    await write(`caller/${RELATIVE_CONFIG_FILE}`, 'schema: spec-driven\n');
+    await write(`caller/${RELATIVE_CHANGES_DIR}/selected/tasks.md`, '- [x] Local work is done\n');
   });
 
   afterEach(async () => {
@@ -69,7 +70,7 @@ describe('archive task discovery uses schema-resolved CLI progress', () => {
       ['custom output', 'planning/work-items.md', ['planning/work-items.md']],
       ['multiple outputs', 'work/*.md', ['work/backend.md', 'work/frontend.md']],
     ] as const)(`${surface}: counts unfinished tasks in %s`, async (_label, generates, files) => {
-      await write('openspec/schemas/custom/schema.yaml', [
+      await write(`${RELATIVE_SCHEMAS_DIR}/custom/schema.yaml`, [
         'name: custom',
         'version: 1',
         'artifacts:',
@@ -82,9 +83,9 @@ describe('archive task discovery uses schema-resolved CLI progress', () => {
         '  requires: [implementation]',
         `  tracks: "${generates}"`,
       ].join('\n'));
-      await write('openspec/changes/selected/.openspec.yaml', 'schema: custom\n');
+      await write(`${RELATIVE_CHANGES_DIR}/selected/.openspec.yaml`, 'schema: custom\n');
       for (const file of files) {
-        await write(`openspec/changes/selected/${file}`, '- [ x ] Finished\n- [~] Pending\n- [ ] Pending\n');
+        await write(`${RELATIVE_CHANGES_DIR}/selected/${file}`, '- [ x ] Finished\n- [~] Pending\n- [ ] Pending\n');
       }
 
       // Execute the lookup actually taught in the task-checking step. The old
@@ -128,7 +129,7 @@ describe('archive task discovery uses schema-resolved CLI progress', () => {
         completedTasks: files.length,
         status: 'in-progress',
       });
-      await expect(fs.access(path.join(root, 'openspec/changes/selected/tasks.md'))).rejects.toThrow();
+      await expect(fs.access(path.join(root, `${RELATIVE_CHANGES_DIR}/selected/tasks.md`))).rejects.toThrow();
     });
   }
 });

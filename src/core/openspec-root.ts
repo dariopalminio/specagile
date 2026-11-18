@@ -4,16 +4,27 @@ import * as path from 'node:path';
 import { FileSystemUtils } from '../utils/file-system.js';
 import { serializeConfig } from './config-prompts.js';
 import {
+  FORMER_TOOL_DIR_NAME,
+  RELATIVE_ARCHIVE_DIR,
+  RELATIVE_CHANGES_DIR,
+  RELATIVE_CONFIG_FILES,
+  RELATIVE_SPECS_DIR,
+  RELATIVE_TOOL_DIR,
+  detectFormerLayout,
+} from './fork/layout.js';
+import {
   makeStoreDiagnostic,
   type StoreDiagnostic,
 } from './store/errors.js';
 
-export const OPENSPEC_ROOT_DIR = 'openspec';
-export const OPENSPEC_CONFIG_YAML = 'openspec/config.yaml';
-export const OPENSPEC_CONFIG_YML = 'openspec/config.yml';
-export const OPENSPEC_SPECS_DIR = 'openspec/specs';
-export const OPENSPEC_CHANGES_DIR = 'openspec/changes';
-export const OPENSPEC_ARCHIVE_DIR = 'openspec/changes/archive';
+// SpecAgile: the layout comes from src/core/fork/layout.ts. The names stay
+// upstream's; the paths are relative to the root, with `/`.
+export const OPENSPEC_ROOT_DIR = RELATIVE_TOOL_DIR;
+export const OPENSPEC_CONFIG_YAML = RELATIVE_CONFIG_FILES[0];
+export const OPENSPEC_CONFIG_YML = RELATIVE_CONFIG_FILES[1];
+export const OPENSPEC_SPECS_DIR = RELATIVE_SPECS_DIR;
+export const OPENSPEC_CHANGES_DIR = RELATIVE_CHANGES_DIR;
+export const OPENSPEC_ARCHIVE_DIR = RELATIVE_ARCHIVE_DIR;
 export const DEFAULT_OPENSPEC_SCHEMA = 'spec-driven';
 export const DIRECTORY_ANCHOR_FILE_NAME = '.gitkeep';
 
@@ -148,9 +159,20 @@ export async function inspectOpenSpecRoot(storeRoot: string): Promise<OpenSpecRo
   inspection.present = openspecKind === 'directory';
 
   if (openspecKind === 'missing') {
+    // SpecAgile: a store still on the former openspec/ layout is named as
+    // pending migration, with the folder to run the migration in.
+    if (detectFormerLayout(storeRoot)) {
+      inspection.diagnostics.push(makeStoreDiagnostic(
+        'error',
+        'openspec_former_layout',
+        `${path.join(storeRoot, FORMER_TOOL_DIR_NAME)} has the former layout. Run specagile update in ${storeRoot} to move it to ${OPENSPEC_SPECS_DIR}/, ${OPENSPEC_CHANGES_DIR}/ and ${OPENSPEC_ROOT_DIR}/.`,
+        { target: 'openspec.root', fix: `Run specagile update in ${storeRoot}` }
+      ));
+      return inspection;
+    }
     inspection.diagnostics.push(missingDirectoryDiagnostic(
       'openspec_root_missing',
-      'Missing openspec/ directory.',
+      `Missing ${OPENSPEC_ROOT_DIR}/ directory.`,
       'openspec.root'
     ));
     return inspection;
@@ -159,7 +181,7 @@ export async function inspectOpenSpecRoot(storeRoot: string): Promise<OpenSpecRo
   if (openspecKind !== 'directory') {
     inspection.diagnostics.push(missingDirectoryDiagnostic(
       'openspec_root_not_directory',
-      'openspec/ exists but is not a directory.',
+      `${OPENSPEC_ROOT_DIR}/ exists but is not a directory.`,
       'openspec.root'
     ));
     return inspection;
@@ -182,7 +204,7 @@ export async function inspectOpenSpecRoot(storeRoot: string): Promise<OpenSpecRo
     } else {
       inspection.diagnostics.push(missingDirectoryDiagnostic(
         'openspec_config_missing',
-        'Missing openspec/config.yaml or openspec/config.yml.',
+        `Missing ${OPENSPEC_CONFIG_YAML} or ${OPENSPEC_CONFIG_YML}.`,
         'openspec.config'
       ));
     }

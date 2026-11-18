@@ -3,6 +3,7 @@ import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { buildUpdatedSpec, findSpecUpdates } from '../../src/core/specs-apply.js';
+import { getChangesDir, getSpecsDir } from '../helpers/layout.js';
 
 const ORIGINAL_REQUIREMENT = [
   '### Requirement: Existing behavior',
@@ -51,8 +52,8 @@ describe('spec serialization', () => {
 
   beforeEach(async () => {
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-spec-eof-'));
-    changeDir = path.join(tempDir, 'openspec', 'changes', 'serializer-test');
-    mainSpecsDir = path.join(tempDir, 'openspec', 'specs');
+    changeDir = path.join(getChangesDir(tempDir), 'serializer-test');
+    mainSpecsDir = getSpecsDir(tempDir);
     source = path.join(changeDir, 'specs', 'demo', 'spec.md');
     target = path.join(mainSpecsDir, 'demo', 'spec.md');
     await fs.mkdir(path.dirname(source), { recursive: true });

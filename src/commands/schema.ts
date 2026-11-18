@@ -18,6 +18,7 @@ import {
 } from '../core/artifact-graph/schema.js';
 import type { SchemaYaml, Artifact } from '../core/artifact-graph/types.js';
 import { resolveConfigFilePath } from '../core/project-config.js';
+import { getConfigFilePaths } from '../core/fork/layout.js';
 import { FileSystemUtils } from '../utils/file-system.js';
 
 /**
@@ -400,7 +401,7 @@ async function prepareDefaultConfigUpdate(
 ): Promise<PreparedConfigUpdate> {
   const configPath =
     resolveConfigFilePath(projectRoot) ??
-    path.join(projectRoot, 'openspec', 'config.yaml');
+    getConfigFilePaths(projectRoot)[0];
   FileSystemUtils.assertProjectArtifactPath(projectRoot, configPath);
 
   if (fs.existsSync(configPath)) {

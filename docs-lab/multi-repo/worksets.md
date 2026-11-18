@@ -11,7 +11,7 @@ Worksets are the utility OpenSpec provides for this. A workset is a saved, named
 - **What it is**: a named list of folders, saved on your machine only. Nothing is written into the member folders, and nothing is committed.
 - **What opening does**: OpenSpec generates a `.code-workspace` file from the list and launches your editor on it. Every member folder sits in one window.
 - **What you get**: your editor's search, and any agent you run inside that window, can read every member folder. The agent can grep the store's specs and the repo's code in one session.
-- **What it doesn't change**: which `openspec/` folder a command uses. That still follows [Where artifacts get created](stores.md#where-artifacts-get-created-when-using-stores).
+- **What it doesn't change**: which project or store root a command uses. That still follows [Where artifacts get created](stores.md#where-artifacts-get-created-when-using-stores).
 
 ## Set it up
 
@@ -49,7 +49,7 @@ platform  (opens in VS Code)
 
 Say the `add-login` change lives in the `team-plans` store, and the code for it lives in `web-app`. Open the `platform` workset and ask your agent to implement the change. In that one session it can:
 
-- read `team-plans/openspec/changes/add-login/` and the specs next to it
+- read `team-plans/changes/add-login/` and the specs next to it
 - edit the code in `web-app/`
 - run `specagile` commands from inside `web-app`
 

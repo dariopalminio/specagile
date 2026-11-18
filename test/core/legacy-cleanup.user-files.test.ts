@@ -13,6 +13,7 @@ import {
 } from '../../src/core/legacy-cleanup.js';
 import { OPENSPEC_MARKERS } from '../../src/core/config.js';
 import { runCLI } from '../helpers/run-cli.js';
+import { getToolDir } from '../helpers/layout.js';
 
 /**
  * Pre-opsx tools kept their commands in a `<tool>/commands/openspec/` folder,
@@ -41,7 +42,7 @@ describe('legacy command directories and the files users keep in them', () => {
     originalEnv = { ...process.env };
     testDir = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-legacy-user-files-'));
     process.env.CODEX_HOME = path.join(testDir, 'codex-home');
-    await fs.mkdir(path.join(testDir, 'openspec'), { recursive: true });
+    await fs.mkdir(getToolDir(testDir), { recursive: true });
   });
 
   afterEach(async () => {

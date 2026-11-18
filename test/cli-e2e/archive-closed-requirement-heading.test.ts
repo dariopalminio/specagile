@@ -3,6 +3,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
 import { runCLI } from '../helpers/run-cli.js';
+import { getChangesDir, getSpecsDir } from '../helpers/layout.js';
 
 /**
  * End to end: a REMOVED heading written with a CommonMark closing run
@@ -66,7 +67,7 @@ async function seededProject() {
 
   expect((await cli(['init', '--tools', 'claude'])).exitCode).toBe(0);
   expect((await cli(['new', 'change', 'seed'])).exitCode).toBe(0);
-  const seedDir = path.join(project, 'openspec', 'changes', 'seed');
+  const seedDir = path.join(getChangesDir(project), 'seed');
   await fs.mkdir(path.join(seedDir, 'specs', 'billing'), { recursive: true });
   await fs.writeFile(path.join(seedDir, 'proposal.md'), PROPOSAL);
   await fs.writeFile(path.join(seedDir, 'tasks.md'), '## 1. Work\n- [x] 1.1 Done\n');
@@ -74,12 +75,12 @@ async function seededProject() {
   expect((await cli(['archive', 'seed', '--yes'])).exitCode).toBe(0);
 
   expect((await cli(['new', 'change', 'edit'])).exitCode).toBe(0);
-  const editDir = path.join(project, 'openspec', 'changes', 'edit');
+  const editDir = path.join(getChangesDir(project), 'edit');
   await fs.mkdir(path.join(editDir, 'specs', 'billing'), { recursive: true });
   await fs.writeFile(path.join(editDir, 'proposal.md'), PROPOSAL);
   await fs.writeFile(path.join(editDir, 'tasks.md'), '## 1. Work\n- [x] 1.1 Done\n');
 
-  const mainSpec = path.join(project, 'openspec', 'specs', 'billing', 'spec.md');
+  const mainSpec = path.join(getSpecsDir(project), 'billing', 'spec.md');
   return {
     cli,
     writeDelta: (body: string) => fs.writeFile(path.join(editDir, 'specs', 'billing', 'spec.md'), body),

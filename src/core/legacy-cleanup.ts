@@ -13,6 +13,11 @@ import { OPENSPEC_MARKERS, findRetiredTool } from './config.js';
 import { hasReleasedOpenSpecBlock, isReleasedGeneratedContent } from './shared/generated-fingerprint.js';
 import { type WorkflowId } from './profiles.js';
 import { COMMAND_IDS } from './shared/tool-detection.js';
+import { RELATIVE_CONFIG_FILE, relativeToolFile } from './fork/layout.js';
+
+// SpecAgile: OpenSpec 0.x files in the tool folder (src/core/fork/layout.ts).
+const TOOL_AGENTS_MD = relativeToolFile('AGENTS.md');
+const TOOL_PROJECT_MD = relativeToolFile('project.md');
 
 /**
  * Legacy config file names from the old ToolRegistry.
@@ -673,14 +678,14 @@ export async function detectLegacyStructureFiles(
   let hasProjectMd = false;
   let hasRootAgentsWithMarkers = false;
 
-  // Check for openspec/AGENTS.md
-  const openspecAgentsPath = FileSystemUtils.joinPath(projectPath, 'openspec', 'AGENTS.md');
+  // Check for specagile/AGENTS.md
+  const openspecAgentsPath = FileSystemUtils.joinPath(projectPath, TOOL_AGENTS_MD);
   hasOpenspecAgents =
     (await FileSystemUtils.fileExists(openspecAgentsPath)) &&
-    (await reachesWithoutLink(projectPath, 'openspec/AGENTS.md'));
+    (await reachesWithoutLink(projectPath, TOOL_AGENTS_MD));
 
-  // Check for openspec/project.md (for migration messaging, not deleted)
-  const projectMdPath = FileSystemUtils.joinPath(projectPath, 'openspec', 'project.md');
+  // Check for specagile/project.md (for migration messaging, not deleted)
+  const projectMdPath = FileSystemUtils.joinPath(projectPath, TOOL_PROJECT_MD);
   hasProjectMd = await FileSystemUtils.fileExists(projectMdPath);
 
   // Check for root AGENTS.md with OpenSpec markers
@@ -905,17 +910,17 @@ export async function cleanupLegacyArtifacts(
     }
   }
 
-  // Delete openspec/AGENTS.md (this is inside openspec/, it's OpenSpec-managed)
+  // Delete specagile/AGENTS.md (this is inside the tool folder, it's OpenSpec-managed)
   if (detection.hasOpenspecAgents) {
-    const agentsPath = FileSystemUtils.joinPath(projectPath, 'openspec', 'AGENTS.md');
-    if (!(await reachesWithoutLink(projectPath, 'openspec/AGENTS.md'))) {
-      result.keptFiles!.push('openspec/AGENTS.md');
+    const agentsPath = FileSystemUtils.joinPath(projectPath, TOOL_AGENTS_MD);
+    if (!(await reachesWithoutLink(projectPath, TOOL_AGENTS_MD))) {
+      result.keptFiles!.push(TOOL_AGENTS_MD);
     } else if (await FileSystemUtils.fileExists(agentsPath)) {
       try {
         await ops.removeFile(agentsPath);
-        result.deletedFiles.push('openspec/AGENTS.md');
+        result.deletedFiles.push(TOOL_AGENTS_MD);
       } catch (error: any) {
-        result.errors.push(`Failed to delete openspec/AGENTS.md: ${error.message}`);
+        result.errors.push(`Failed to delete ${TOOL_AGENTS_MD}: ${error.message}`);
       }
     }
   }
@@ -1019,9 +1024,9 @@ function buildRemovalsList(detection: LegacyDetectionResult): Array<{ path: stri
     removals.push({ path: prompt.path, explanation });
   }
 
-  // openspec/AGENTS.md (inside openspec/, it's OpenSpec-managed)
+  // specagile/AGENTS.md (inside the tool folder, it's OpenSpec-managed)
   if (detection.hasOpenspecAgents) {
-    removals.push({ path: 'openspec/AGENTS.md', explanation: 'obsolete workflow file' });
+    removals.push({ path: TOOL_AGENTS_MD, explanation: 'obsolete workflow file' });
   }
 
   // Note: Config files (CLAUDE.md, AGENTS.md, etc.) are NEVER in the removals list
@@ -1052,7 +1057,7 @@ export async function legacyCleanupDeletesOnlyReleasedOutput(
   }
   files.push(...detection.slashCommandFiles.map((file) => FileSystemUtils.joinPath(projectPath, file)));
   if (detection.hasOpenspecAgents) {
-    files.push(FileSystemUtils.joinPath(projectPath, 'openspec', 'AGENTS.md'));
+    files.push(FileSystemUtils.joinPath(projectPath, TOOL_AGENTS_MD));
   }
 
   for (const file of files) {
@@ -1365,13 +1370,13 @@ export function pickGlobalLegacyPromptFiles(
 export function formatProjectMdMigrationHint(): string {
   const lines: string[] = [];
   lines.push(chalk.yellow.bold('Needs your attention'));
-  lines.push('  • openspec/project.md');
+  lines.push(`  • ${TOOL_PROJECT_MD}`);
   lines.push(chalk.dim('    We won\'t delete this file. It may contain useful project context.'));
   lines.push('');
   lines.push(chalk.dim('    Ask your AI assistant:'));
   lines.push('');
-  lines.push(chalk.dim('    Review openspec/project.md and migrate its useful content to'));
-  lines.push(chalk.dim('    openspec/config.yaml. Keep context concise: include only project-wide'));
+  lines.push(chalk.dim(`    Review ${TOOL_PROJECT_MD} and migrate its useful content to`));
+  lines.push(chalk.dim(`    ${RELATIVE_CONFIG_FILE}. Keep context concise: include only project-wide`));
   lines.push(chalk.dim('    facts needed during artifact creation, apply, and archive. Move'));
   lines.push(chalk.dim('    artifact-specific guidance into rules for the matching artifacts.'));
   lines.push(chalk.dim('    Move guidance for apply or archive into the matching operations entry.'));

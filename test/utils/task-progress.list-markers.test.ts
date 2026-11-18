@@ -5,6 +5,7 @@ import os from 'os';
 import { countTasksFromContent, parseTaskLines } from '../../src/utils/task-progress.js';
 import { findTaskNumberingIssues } from '../../src/core/validation/task-numbering.js';
 import { runCLI } from '../helpers/run-cli.js';
+import { getChangesDir } from '../helpers/layout.js';
 
 /**
  * A GFM task is a list item, and CommonMark has five list markers: `-`, `*`,
@@ -126,7 +127,7 @@ describe('ordered and plus tasks through the CLI', () => {
 
     expect((await cli(['init', '--tools', 'claude'])).exitCode).toBe(0);
     expect((await cli(['new', 'change', 'add-thing'])).exitCode).toBe(0);
-    const changeDir = path.join(project, 'openspec', 'changes', 'add-thing');
+    const changeDir = path.join(getChangesDir(project), 'add-thing');
     await fs.mkdir(path.join(changeDir, 'specs', 'billing'), { recursive: true });
     await fs.writeFile(
       path.join(changeDir, 'proposal.md'),

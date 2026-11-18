@@ -6,6 +6,7 @@ import * as path from 'node:path';
 import { classifyOpenSpecDir } from '../../src/core/project-config.js';
 import { runCLI, type RunCLIResult } from '../helpers/run-cli.js';
 import { createOpenSpecRoot } from '../helpers/openspec-fixtures.js';
+import { getChangesDir, getSpecsDir, getToolDir } from '../helpers/layout.js';
 
 /**
  * The guide's store layout is `~/openspec/<id>`. With the id `specs` or
@@ -106,8 +107,9 @@ describe('a store named specs or changes at ~/openspec/<id>', () => {
       const result = await runCLI(['new', 'change', 'probe-change', '--json'], { cwd: workDir, env });
 
       expect(result.exitCode).toBe(0);
-      expect(fs.existsSync(path.join(storeRoot, 'openspec', 'changes', 'probe-change'))).toBe(true);
+      expect(fs.existsSync(path.join(getChangesDir(storeRoot), 'probe-change'))).toBe(true);
       expect(fs.existsSync(path.join(home, 'openspec', 'changes', 'probe-change'))).toBe(false);
+      expect(fs.existsSync(path.join(getChangesDir(home), 'probe-change'))).toBe(false);
     },
     60_000
   );
@@ -115,7 +117,7 @@ describe('a store named specs or changes at ~/openspec/<id>', () => {
   it('resolves the store itself as the nearest root from inside it', async () => {
     const storeRoot = await setupDefaultStore('specs');
 
-    expect(await rootFrom(path.join(storeRoot, 'openspec', 'changes'))).toEqual({
+    expect(await rootFrom(getChangesDir(storeRoot))).toEqual({
       path: canonical(storeRoot),
       source: 'nearest',
     });
@@ -130,7 +132,8 @@ describe('a store named specs or changes at ~/openspec/<id>', () => {
 
   it('keeps $HOME a root when its changes/ is real planning, even beside a store named specs', async () => {
     await setupDefaultStore('specs');
-    fs.mkdirSync(path.join(home, 'openspec', 'changes'), { recursive: true });
+    fs.mkdirSync(getToolDir(home), { recursive: true });
+    fs.mkdirSync(getChangesDir(home), { recursive: true });
 
     expect(await rootFrom(workDir)).toEqual({ path: canonical(home), source: 'nearest' });
   }, 60_000);
@@ -164,33 +167,36 @@ describe('classifyOpenSpecDir planning shape', () => {
     fs.rmSync(projectRoot, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   });
 
-  function makeStoreFolder(relativePath: string, id: string): void {
-    const metadataDir = path.join(projectRoot, relativePath, '.openspec-store');
+  // SpecAgile: the root's own specs/ and changes/ (src/core/fork/layout.ts).
+  const planningDir = (dir: string) => (dir === 'specs' ? getSpecsDir(projectRoot) : getChangesDir(projectRoot));
+
+  function makeStoreFolder(dir: string, id: string): void {
+    const metadataDir = path.join(dir, '.openspec-store');
     fs.mkdirSync(metadataDir, { recursive: true });
     fs.writeFileSync(path.join(metadataDir, 'store.yaml'), `version: 1\nid: ${id}\n`);
   }
 
-  it.each(['specs', 'changes'])('counts a plain openspec/%s directory as planning', (dir) => {
-    fs.mkdirSync(path.join(projectRoot, 'openspec', dir), { recursive: true });
+  it.each(['specs', 'changes'])('counts a plain %s/ directory as planning', (dir) => {
+    fs.mkdirSync(planningDir(dir), { recursive: true });
 
     expect(classifyOpenSpecDir(projectRoot).hasPlanningShape).toBe(true);
   });
 
-  it.each(['specs', 'changes'])('does not count openspec/%s when it is a store root', (dir) => {
-    makeStoreFolder(path.join('openspec', dir), dir);
+  it.each(['specs', 'changes'])('does not count %s/ when it is a store root', (dir) => {
+    makeStoreFolder(planningDir(dir), dir);
 
     expect(classifyOpenSpecDir(projectRoot).hasPlanningShape).toBe(false);
   });
 
   it('counts the other directory when only one of them is a store root', () => {
-    makeStoreFolder(path.join('openspec', 'specs'), 'specs');
-    fs.mkdirSync(path.join(projectRoot, 'openspec', 'changes'), { recursive: true });
+    makeStoreFolder(getSpecsDir(projectRoot), 'specs');
+    fs.mkdirSync(getChangesDir(projectRoot), { recursive: true });
 
     expect(classifyOpenSpecDir(projectRoot).hasPlanningShape).toBe(true);
   });
 
   it('still counts a specs directory whose store metadata sits deeper inside it', () => {
-    makeStoreFolder(path.join('openspec', 'specs', 'billing'), 'billing');
+    makeStoreFolder(path.join(getSpecsDir(projectRoot), 'billing'), 'billing');
 
     expect(classifyOpenSpecDir(projectRoot).hasPlanningShape).toBe(true);
   });

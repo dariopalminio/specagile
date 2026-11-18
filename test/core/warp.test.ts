@@ -14,6 +14,7 @@ import { LEGACY_GLOBAL_SLASH_COMMAND_PATHS } from '../../src/core/legacy-cleanup
 import { ALL_WORKFLOWS, CORE_WORKFLOWS } from '../../src/core/profiles.js';
 import { getSkillTemplates } from '../../src/core/shared/skill-generation.js';
 import { getConfiguredTools, getToolSkillStatus } from '../../src/core/shared/tool-detection.js';
+import { RELATIVE_CHANGES_DIR, RELATIVE_SPECS_DIR, RELATIVE_TOOL_DIR } from '../helpers/layout.js';
 
 const mockState = { config: {} as GlobalConfig };
 
@@ -84,7 +85,7 @@ describe('Warp integration', () => {
       }
       // The shared copy names other skills plainly, for every tool reading it.
       expect(await fs.readFile(skillPath('sa-propose'), 'utf8')).toContain('ask me to apply it');
-      expect((await fs.readdir(projectPath)).sort()).toEqual(['.agents', 'openspec']);
+      expect((await fs.readdir(projectPath)).sort()).toEqual(['.agents', ...[RELATIVE_CHANGES_DIR, RELATIVE_SPECS_DIR, RELATIVE_TOOL_DIR]].sort());
       expect(getConfiguredTools(projectPath)).toEqual(['warp']);
       expect(getToolSkillStatus(projectPath, 'warp').configured).toBe(true);
       const output = vi.mocked(console.log).mock.calls.flat().join('\n');

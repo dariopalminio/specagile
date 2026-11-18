@@ -1,9 +1,14 @@
 import { existsSync, readFileSync, statSync } from 'fs';
-import path from 'path';
 import { parse as parseYaml } from 'yaml';
 import { z } from 'zod';
 
 import { getStoreMetadataPath } from './store/foundation.js';
+import {
+  RELATIVE_CONFIG_FILE,
+  getChangesDir,
+  getConfigFilePaths,
+  getSpecsDir,
+} from './fork/layout.js';
 
 export const OPERATION_IDS = ['apply', 'archive'] as const;
 export type OperationId = (typeof OPERATION_IDS)[number];
@@ -69,7 +74,7 @@ export const ProjectConfigSchema = z.object({
   // parses would only drift from the real behavior.
 
   // Optional: the declared default store. Only consulted by root
-  // resolution when this openspec/ directory is config-only (no specs/
+  // resolution when this root's tool folder is config-only (no specs/
   // or changes/); a fallback, never an override.
   store: z
     .string()
@@ -304,7 +309,7 @@ function describeYamlType(value: unknown): string {
 }
 
 /**
- * Read and parse openspec/config.yaml from project root.
+ * Read and parse the project config (specagile/config.yaml) from project root.
  * Uses resilient parsing - validates each field independently using Zod safeParse.
  * Returns null if file doesn't exist.
  * Returns partial config if some fields are invalid (with warnings).
@@ -319,7 +324,7 @@ function describeYamlType(value: unknown): string {
  * invalidation logic) for negligible benefit. Direct reads also ensure config
  * changes are reflected immediately without stale cache issues.
  *
- * @param projectRoot - The root directory of the project (where `openspec/` lives)
+ * @param projectRoot - The root directory of the project (where `specagile/` lives)
  * @returns Parsed config or null if file doesn't exist
  */
 export function readProjectConfig(projectRoot: string): ProjectConfig | null {
@@ -333,7 +338,7 @@ export function readProjectConfig(projectRoot: string): ProjectConfig | null {
     const raw = parseYaml(content);
 
     if (!raw || typeof raw !== 'object') {
-      console.warn(`openspec/config.yaml is not a valid YAML object`);
+      console.warn(`${RELATIVE_CONFIG_FILE} is not a valid YAML object`);
       return null;
     }
 
@@ -498,7 +503,7 @@ export function readConfigParseError(
 }
 
 function configPathForWarnings(projectRoot: string): string {
-  return resolveConfigFilePath(projectRoot) ?? path.join(projectRoot, 'openspec', 'config.yaml');
+  return resolveConfigFilePath(projectRoot) ?? getConfigFilePaths(projectRoot)[0];
 }
 
 /**
@@ -577,7 +582,7 @@ export function suggestSchemas(
   const builtIn = availableSchemas.filter((s) => s.isBuiltIn).map((s) => s.name);
   const projectLocal = availableSchemas.filter((s) => !s.isBuiltIn).map((s) => s.name);
 
-  let message = `Schema '${invalidSchemaName}' not found in openspec/config.yaml\n\n`;
+  let message = `Schema '${invalidSchemaName}' not found in ${RELATIVE_CONFIG_FILE}\n\n`;
 
   if (suggestions.length > 0) {
     message += `Did you mean one of these?\n`;
@@ -598,7 +603,7 @@ export function suggestSchemas(
     message += `  Project-local: (none found)\n`;
   }
 
-  message += `\nFix: Edit openspec/config.yaml and change 'schema: ${invalidSchemaName}' to a valid schema name`;
+  message += `\nFix: Edit ${RELATIVE_CONFIG_FILE} and change 'schema: ${invalidSchemaName}' to a valid schema name`;
 
   return message;
 }
@@ -654,12 +659,7 @@ export function readStorePointer(projectRoot: string): StorePointerRead {
 
 /** Shared .yaml/.yml probe used by readProjectConfig and readStorePointer. */
 export function resolveConfigFilePath(projectRoot: string): string | null {
-  const yamlPath = path.join(projectRoot, 'openspec', 'config.yaml');
-  if (existsSync(yamlPath)) {
-    return yamlPath;
-  }
-  const ymlPath = path.join(projectRoot, 'openspec', 'config.yml');
-  return existsSync(ymlPath) ? ymlPath : null;
+  return getConfigFilePaths(projectRoot).find((candidate) => existsSync(candidate)) ?? null;
 }
 
 /** Human rendering of a malformed pointer reason, shared by every surface. */
@@ -671,7 +671,7 @@ export function storePointerProblem(reason: 'unparseable' | 'non_string'): strin
 
 export interface OpenSpecDirClassification {
   /**
-   * True when openspec/specs or openspec/changes exists as a directory
+   * True when the root's specs/ or changes/ exists as a directory
    * that is not itself a store root.
    */
   hasPlanningShape: boolean;
@@ -689,10 +689,9 @@ export interface OpenSpecDirClassification {
  * would make $HOME the phantom root the qualifying walk exists to prevent.
  */
 export function classifyOpenSpecDir(projectRoot: string): OpenSpecDirClassification {
-  const openspecDir = path.join(projectRoot, 'openspec');
   const hasPlanningShape =
-    isPlanningDirectorySync(path.join(openspecDir, 'specs')) ||
-    isPlanningDirectorySync(path.join(openspecDir, 'changes'));
+    isPlanningDirectorySync(getSpecsDir(projectRoot)) ||
+    isPlanningDirectorySync(getChangesDir(projectRoot));
   return { hasPlanningShape, pointer: readStorePointer(projectRoot) };
 }
 

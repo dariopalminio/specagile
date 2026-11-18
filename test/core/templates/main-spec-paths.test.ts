@@ -7,6 +7,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { loadSchema } from '../../../src/core/artifact-graph/schema.js';
 import { withUpstreamIdentity } from '../../helpers/fork-identity.js';
 import { resolveCurrentPlanningHomeSync } from '../../../src/core/planning-home.js';
+import { getChangesDir, getSpecsDir } from '../../helpers/layout.js';
 
 // #1702: the `specs` instruction sent main-spec reads and edits to
 // `openspec/specs/<capability-path>/spec.md`, a cwd-relative path. When the
@@ -83,15 +84,20 @@ describe('main spec paths in the specs instruction (#1702)', () => {
       tempDirs.push(tempDir);
 
       const capability = 'identity/user-auth';
-      const specDir = path.join(tempDir, 'openspec', 'specs', ...capability.split('/'));
+      const specDir = path.join(getSpecsDir(tempDir), ...capability.split('/'));
       fs.mkdirSync(specDir, { recursive: true });
-      fs.mkdirSync(path.join(tempDir, 'openspec', 'changes'), { recursive: true });
+      fs.mkdirSync(getChangesDir(tempDir), { recursive: true });
       fs.writeFileSync(path.join(specDir, 'spec.md'), '# spec\n');
 
       const planningHome = resolveCurrentPlanningHomeSync({ startPath: tempDir });
       expect(planningHome.root, 'planningHome has no root field').toBeTypeOf('string');
 
-      const [operation] = mainSpecOperations(instructionFor('specs'));
+      // SpecAgile: the instruction as shipped, whose layout is the one on disk.
+      const shipped = defaultSchema.artifacts.find((entry) => entry.id === 'specs')?.instruction ?? '';
+      const [operation] = shipped
+        .split('\n')
+        .filter((line) => /<planningHome\.root>\/\S*<capability-path>\/spec\.md/.test(line))
+        .filter((line) => /\b(edit|Locate)\b/.test(line));
       const suffix = operation.match(/<planningHome\.root>\/(\S*?spec\.md)/)?.[1];
       expect(suffix, `no main-spec path found in: ${operation.trim()}`).toBeDefined();
 
