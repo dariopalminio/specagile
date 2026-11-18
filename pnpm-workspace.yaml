@@ -45,3 +45,16 @@ overrides:
   # all pin ^10.x); never in the published CLI. Remove once those ranges allow
   # >=11.0.1 (check: pnpm why minimatch).
   minimatch@<11.0.1: '>=11.0.1'
+
+# Advisories `pnpm audit` skips: ones with no patched release, so no override can
+# clear them. Each entry says why it is acceptable and when to remove it.
+auditConfig:
+  ignoreGhsas:
+    # GHSA-fc5q-39xc-vjpf — picomatch <=4.0.7 ReDoS on single-branch repeated
+    # extglobs such as `+(*)`. No patched release (4.0.7 is the latest). Reached
+    # in the published CLI only through artifact `generates` globs
+    # (src/core/artifact-graph/outputs.ts, directly and via tinyglobby), which
+    # come from schema files in the user's own project: at worst a local command
+    # hangs. Remove once picomatch >4.0.7 is out and the lockfile has it
+    # (check: pnpm why picomatch).
+    - GHSA-fc5q-39xc-vjpf
