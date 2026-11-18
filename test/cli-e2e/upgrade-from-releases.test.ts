@@ -1,12 +1,13 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { execFileSync, spawnSync } from 'child_process';
 import { createHash } from 'crypto';
-import { promises as fs, existsSync, readdirSync, readFileSync, readlinkSync } from 'fs';
+import { promises as fs, existsSync, lstatSync, readdirSync, readFileSync, readlinkSync } from 'fs';
 import os from 'os';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { currentGeneratablePaths, findStaleReleasedFiles } from '../../src/core/released-output-sweep.js';
 import { LEGACY_TOOL_ROOTS } from '../../src/core/migration.js';
+import { CURRENT_SKILL_NAMES, FORMER_SKILL_NAMES, SKILL_NAME_BY_WORKFLOW } from '../../src/core/fork/identity.js';
 
 /**
  * Upgrades real projects made by released OpenSpec versions straight to this
@@ -205,6 +206,9 @@ describe.skipIf(!enabled)('upgrading projects from released versions', () => {
     const shared = '.agents/skills';
     const edited = path.join(box.project, shared, 'openspec-propose/SKILL.md');
     await fs.appendFile(edited, '\nLocal edit');
+    const editedText = await fs.readFile(edited, 'utf8');
+    // 2.0 gives Claude a link to the shared copy, or a copy where links can't be made.
+    const claudeLinked = lstatSync(path.join(box.project, '.claude/skills/openspec-propose')).isSymbolicLink();
     const protectedFiles = {
       'openspec/config.yaml': 'schema: spec-driven\ncontext: Team context\n',
       'openspec/specs/team/spec.md': '# Team spec\n',
@@ -221,13 +225,27 @@ describe.skipIf(!enabled)('upgrading projects from released versions', () => {
     expect(initialized.status, initialized.output).toBe(0);
     const updated = run(currentBin, ['update'], box);
     expect(updated.status, updated.output).toBe(0);
+    // SpecAgile: 2.0 wrote openspec-* skills and this build writes sa-* ones.
+    // The update installs what a fresh install has; of the former skills it
+    // removes the unchanged ones and keeps the edited one as the user left it
+    // (src/core/fork/former-skills.ts).
+    const named = (names: readonly string[], dir: string, project = box.project) =>
+      readdirSync(path.join(project, dir)).filter((name) => names.includes(name)).sort();
     for (const dir of [shared, '.claude/skills']) {
-      const wanted = readdirSync(path.join(fresh.project, dir)).filter(name => name.startsWith('openspec-')).sort();
-      expect(readdirSync(path.join(box.project, dir)).filter(name => name.startsWith('openspec-')).sort()).toEqual(wanted);
+      const wanted = named(CURRENT_SKILL_NAMES, dir, fresh.project);
+      expect(wanted.length).toBeGreaterThan(0);
+      expect(named(CURRENT_SKILL_NAMES, dir)).toEqual(wanted);
       for (const name of wanted) {
         const rel = path.join(dir, name, 'SKILL.md');
         expect(readFileSync(path.join(box.project, rel), 'utf8')).toBe(readFileSync(path.join(fresh.project, rel), 'utf8'));
       }
+    }
+    expect(named(FORMER_SKILL_NAMES, shared)).toEqual(['openspec-propose']);
+    expect(readFileSync(edited, 'utf8')).toBe(editedText);
+    // Claude's link to the kept copy stays with it; an unchanged copy goes.
+    expect(named(FORMER_SKILL_NAMES, '.claude/skills')).toEqual(claudeLinked ? ['openspec-propose'] : []);
+    if (claudeLinked) {
+      expect(readFileSync(path.join(box.project, '.claude/skills/openspec-propose/SKILL.md'), 'utf8')).toBe(editedText);
     }
     for (const [rel, data] of Object.entries(protectedFiles)) expect(readFileSync(path.join(box.project, rel), 'utf8')).toBe(data);
     expect(readFileSync(path.join(box.project, shared, '.openspec-target'), 'utf8')).toBe('claude own-files\ncursor\n');
@@ -332,7 +350,7 @@ describe.skipIf(!enabled)('upgrading projects from released versions', () => {
     const moved = switchToGlobal();
     expect(moved.status, moved.output).toBe(0);
     expect(listFiles(commands)).toEqual(['team.md']);
-    expect(existsSync(path.join(box.home, '.gemini/config/skills/openspec-propose/SKILL.md'))).toBe(true);
+    expect(existsSync(path.join(box.home, '.gemini/config/skills', SKILL_NAME_BY_WORKFLOW.propose, 'SKILL.md'))).toBe(true);
     expect(existsSync(path.join(box.project, '.agents/skills'))).toBe(false);
 
     const before = snapshot(box.project);

@@ -493,6 +493,24 @@ describe('openspec update --dry-run', () => {
     expect(await fs.readFile(path.join(real, 'SKILL.md'), 'utf-8')).toBe('kept\n');
   });
 
+  it('plans the skill written where a selected skill\'s link pointed elsewhere as new', async () => {
+    // The skill stays selected, so the update puts it back in place of the
+    // link: a new link, or on Windows a new copy. The file the old link
+    // reached is left alone, so the plan cannot call the write an update.
+    const skills = path.join(testDir, '.claude', 'skills');
+    const real = path.join(testDir, 'elsewhere', 'sa-archive');
+    await fs.mkdir(real, { recursive: true });
+    await fs.writeFile(path.join(real, 'SKILL.md'), 'kept\n');
+    await fs.rm(path.join(skills, 'sa-archive'), { recursive: true, force: true });
+    await fs.symlink(real, path.join(skills, 'sa-archive'), 'junction');
+
+    const changes = await expectPlanMatchesRealUpdate();
+
+    expect(changes.map((change) => change.path)).toContain('.claude/skills/sa-archive');
+    expect(changes).not.toContainEqual(expect.objectContaining({ path: '.claude/skills/sa-archive/SKILL.md', action: 'update' }));
+    expect(await fs.readFile(path.join(real, 'SKILL.md'), 'utf-8')).toBe('kept\n');
+  });
+
   it('never prompts, and says the preview is partial, when legacy artifacts exist', async () => {
     // A pre-opsx Cursor command file (see LEGACY_SLASH_COMMAND_PATHS).
     await fs.mkdir(path.join(testDir, '.cursor', 'commands'), { recursive: true });

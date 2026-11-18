@@ -9,6 +9,10 @@ import { InitCommand } from '../../src/core/init.js';
 import { UpdateCommand } from '../../src/core/update.js';
 import { CORE_WORKFLOWS, type WorkflowId } from '../../src/core/profiles.js';
 import { FORMER_SKILL_NAME_BY_WORKFLOW, SKILL_NAME_BY_WORKFLOW } from '../../src/core/fork/identity.js';
+import { migrateFormerSkills } from '../../src/core/fork/former-skills.js';
+import { AI_TOOLS } from '../../src/core/config.js';
+import { realFileOps } from '../../src/core/update-plan.js';
+import { DISK_VIEW } from '../../src/core/file-view.js';
 import { generateSkillContent, getSkillTemplates } from '../../src/core/shared/skill-generation.js';
 import { transformToSharedSkillReferences } from '../../src/utils/command-references.js';
 import type { GlobalConfig } from '../../src/core/global-config.js';
@@ -304,5 +308,35 @@ describe('migration of skills under their former openspec-* names', () => {
     expect(existsSync(shared('openspec-propose'))).toBe(false);
     expect(existsSync(claude('openspec-propose'))).toBe(false);
     expect(existsSync(claude('sa-propose', 'SKILL.md'))).toBe(true);
+  });
+
+  it('looks under a tool\'s former root only when asked, as a switch to the global skills does', async () => {
+    // A 1.x Antigravity project keeps its skills in .agent/skills. Elsewhere
+    // the legacy-root migration handles them; a move to the global skills
+    // must take them out, or the next update would set the project up again.
+    const legacy = (...parts: string[]) => path.join(testDir, '.agent', 'skills', ...parts);
+    const edited = `${upstreamSharedText('explore')}\nOur team step.\n`;
+    await write(legacy('openspec-propose', 'SKILL.md'), upstreamSharedText('propose'));
+    await write(legacy('openspec-explore', 'SKILL.md'), edited);
+    const migrate = (legacyRoots: boolean) =>
+      migrateFormerSkills({
+        projectPath: testDir,
+        tools: AI_TOOLS.filter((tool) => tool.value === 'antigravity'),
+        version: VERSION,
+        ops: realFileOps,
+        view: DISK_VIEW,
+        writesToDisk: true,
+        legacyRoots,
+      });
+
+    expect(await migrate(false)).toEqual({ removed: [], kept: [] });
+    expect(existsSync(legacy('openspec-propose', 'SKILL.md'))).toBe(true);
+
+    expect(await migrate(true)).toEqual({
+      removed: ['.agent/skills/openspec-propose'],
+      kept: ['.agent/skills/openspec-explore'],
+    });
+    expect(existsSync(legacy('openspec-propose'))).toBe(false);
+    expect(readFileSync(legacy('openspec-explore', 'SKILL.md'), 'utf-8')).toBe(edited);
   });
 });
