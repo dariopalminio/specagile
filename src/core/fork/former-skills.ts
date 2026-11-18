@@ -53,6 +53,12 @@ export interface FormerSkillMigrationInput {
   view: FileView;
   /** Whether this run writes to disk (false for a dry run). */
   writesToDisk: boolean;
+  /**
+   * Also look in each tool's former roots (`.agent/skills`, `.codex/skills`).
+   * Only a switch to the global skills asks: elsewhere the legacy-root
+   * migration (src/core/migration.ts) has already handled them.
+   */
+  legacyRoots?: boolean;
 }
 
 export interface FormerSkillMigrationResult {
@@ -246,6 +252,32 @@ export async function migrateFormerSkills(input: FormerSkillMigrationInput): Pro
       const verdict = classifyFormerSkill(spot, texts, view);
       if (verdict === 'ours') await removeSkillFile(spot, tool.value);
       else if (verdict === 'user') kept.add(display(spot));
+    }
+  }
+
+  // 2b. Copies an earlier release wrote under a tool's former root.
+  if (input.legacyRoots) {
+    for (const tool of tools) {
+      for (const root of tool.legacySkillsDirs ?? []) {
+        const legacyDir = path.join(projectPath, root, 'skills');
+        if (visited.includes(path.resolve(legacyDir))) continue;
+        visited.push(path.resolve(legacyDir));
+        // A whole folder linked somewhere else is not the project's.
+        if (!isWithin(projectPath, legacyDir) || view.linkTarget?.(legacyDir) !== undefined) continue;
+        for (const workflow of WORKFLOWS) {
+          const spot = path.join(legacyDir, FORMER_SKILL_NAME_BY_WORKFLOW[workflow]);
+          // A link here is the user's.
+          if (view.linkTarget?.(spot) !== undefined || !view.exists(spot)) continue;
+          if (!view.isDirectory(spot)) {
+            kept.add(display(spot));
+            continue;
+          }
+          const texts = currentSkillTexts(SKILL_NAME_BY_WORKFLOW[workflow], version, tool.value);
+          const verdict = classifyFormerSkill(spot, texts, view);
+          if (verdict === 'ours') await removeSkillFile(spot, tool.value);
+          else if (verdict === 'user') kept.add(display(spot));
+        }
+      }
     }
   }
 

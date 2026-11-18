@@ -543,11 +543,27 @@ export class InitCommand {
       workflowsFor: () => [],
       view: DISK_VIEW,
     };
+    // SpecAgile: skills under their former `openspec-*` names leave too, from
+    // every folder an earlier release used, or the next update would find them
+    // and set the project up again. One the user changed stops the switch.
+    const formerSkills = (writesToDisk: boolean) =>
+      migrateFormerSkills({
+        projectPath,
+        tools: input.tools,
+        version: OPENSPEC_VERSION,
+        ops: writesToDisk ? realFileOps : new UpdatePlanRecorder(projectPath),
+        view: DISK_VIEW,
+        writesToDisk,
+        legacyRoots: true,
+      });
     // A dry pass first: what would stay behind because the user changed it.
     const plan = await installSharedSkills({ ...input, ops: new UpdatePlanRecorder(projectPath), writesToDisk: false });
     for (const error of plan.toolFailures.values()) throw error;
     const commands = commandTools.map(id => classifyCommandFiles(projectPath, id, [], DISK_VIEW, true));
-    const kept = commands.flatMap(files => [...files.kept, ...files.unchecked]).map(FileSystemUtils.toPosixPath);
+    const kept = [
+      ...commands.flatMap(files => [...files.kept, ...files.unchecked]).map(FileSystemUtils.toPosixPath),
+      ...(await formerSkills(false)).kept,
+    ];
     if (kept.length) {
       throw new Error(
         `These files have your own changes, so the project keeps its copy: ${kept.join(', ')}. ` +
@@ -560,6 +576,7 @@ export class InitCommand {
       await realFileOps.removeFile(FileSystemUtils.resolveProjectArtifactPath(projectPath, file), 'openspec');
     }
     await pruneEmptyParents(projectPath, [...paths].map(FileSystemUtils.toPosixPath));
+    await formerSkills(true);
     const cleanup = await installSharedSkills({ ...input, ops: realFileOps, writesToDisk: true });
     for (const error of cleanup.toolFailures.values()) throw error;
     // The skills are gone from the repo, so a saved "keep them here" no longer holds.

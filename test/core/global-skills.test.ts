@@ -7,7 +7,10 @@ import os from 'os';
 import path from 'path';
 import { cliProjectRoot, runCLI } from '../helpers/run-cli.js';
 import { CommandAdapterRegistry, generateCommands } from '../../src/core/command-generation/index.js';
-import { getCommandContents } from '../../src/core/shared/skill-generation.js';
+import { generateSkillContent, getCommandContents, getSkillTemplates } from '../../src/core/shared/skill-generation.js';
+import { transformToSharedSkillReferences } from '../../src/utils/command-references.js';
+import { FORMER_SKILL_NAME_BY_WORKFLOW } from '../../src/core/fork/identity.js';
+import { withUpstreamIdentity } from '../helpers/fork-identity.js';
 import { stripVolatileFrontmatter } from '../../scripts/skillssh-shared.mjs';
 
 // Every case runs the real CLI in a fresh process with its own throwaway home:
@@ -519,6 +522,40 @@ describe('skills installed for this machine', { timeout: 60_000 }, () => {
       expect(result.stderr).toContain(command.path.split(path.sep).join('/'));
       expect(existsSync(path.join(dir, '.agents', 'skills', 'sa-propose', 'SKILL.md'))).toBe(true);
       expect(await globalSkills()).toEqual([]);
+    });
+
+    // SpecAgile: a 1.x Antigravity project keeps its skills in .agent/skills,
+    // under their former openspec-* names. Left there, they would have the
+    // next update set the project up again.
+    it('removes the skills an earlier release left under their former names, and stops on an edited one', async () => {
+      const dir = await project('app');
+      await fs.mkdir(path.join(dir, 'openspec'));
+      const legacy = (workflow: 'propose' | 'explore') =>
+        path.join(dir, '.agent', 'skills', FORMER_SKILL_NAME_BY_WORKFLOW[workflow], 'SKILL.md');
+      for (const workflow of ['propose', 'explore'] as const) {
+        const entry = getSkillTemplates().find((candidate) => candidate.workflowId === workflow)!;
+        await fs.mkdir(path.dirname(legacy(workflow)), { recursive: true });
+        await fs.writeFile(
+          legacy(workflow),
+          withUpstreamIdentity(generateSkillContent(entry.template, version, transformToSharedSkillReferences))
+        );
+      }
+      await fs.appendFile(legacy('explore'), '\nmy own step\n');
+
+      const stopped = await cli(dir, 'init', '--scope', 'global', '--tools', 'antigravity');
+
+      expect(stopped.exitCode).toBe(1);
+      expect(stopped.stderr).toContain('.agent/skills/openspec-explore');
+      expect(existsSync(legacy('propose'))).toBe(true);
+      expect(await globalSkills()).toEqual([]);
+
+      await fs.rm(path.dirname(legacy('explore')), { recursive: true });
+      const moved = await cli(dir, 'init', '--scope', 'global', '--tools', 'antigravity');
+
+      expect(moved.exitCode).toBe(0);
+      expect(await entries(dir)).toEqual(['openspec']);
+      expect((await cli(dir, 'update')).exitCode).toBe(0);
+      expect(await entries(dir)).toEqual(['openspec']);
     });
   });
 });
