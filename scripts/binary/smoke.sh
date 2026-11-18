@@ -31,7 +31,7 @@ version=$("$bin" --version)
 
 "$bin" schemas --json | grep -q '"source": "package"' || fail "built-in schema not found"
 "$bin" init --scope project --tools claude > /dev/null
-[ -f .claude/skills/openspec-propose/SKILL.md ] || fail "Claude cannot read the tagged propose skill"
+[ -f .claude/skills/sa-propose/SKILL.md ] || fail "Claude cannot read the tagged propose skill"
 [ -f openspec/config.yaml ] || fail "init did not write openspec/config.yaml"
 "$bin" new change demo > /dev/null
 "$bin" status --change demo --json | grep -q '"schemaName": "spec-driven"' || fail "status did not resolve the schema"
