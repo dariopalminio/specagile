@@ -303,7 +303,7 @@ export class UpdatePlanRecorder implements UpdateFileOps {
   getPlan(): UpdatePlan {
     const byPath = new Map<string, UpdatePlanChange>();
     for (const [filePath, tool] of this.touched) {
-      const before = originalEntry(filePath);
+      const before = this.removesLinkAbove(filePath) ? undefined : originalEntry(filePath);
       const after = this.links.has(filePath)
         ? `symlink:${this.linkText(filePath)}`
         : this.stagedEntry(filePath);
@@ -322,6 +322,24 @@ export class UpdatePlanRecorder implements UpdateFileOps {
     }
     const changes = [...byPath.values()].sort((a, b) => a.path.localeCompare(b.path));
     return { changes, notes: [...this.notes], failures: [...this.failures] };
+  }
+
+  /**
+   * Whether the plan removes a link that `target` is reached through now. What
+   * is at `target` today belongs to the folder the link points at, which the
+   * removal leaves alone (on Windows the installer replaces a junction with a
+   * copy), so anything the plan puts at `target` is new.
+   */
+  private removesLinkAbove(target: string): boolean {
+    for (let current = path.dirname(target); path.dirname(current) !== current; current = path.dirname(current)) {
+      if (this.staged.get(current) !== null || this.links.has(current)) continue;
+      try {
+        if (fs.lstatSync(current).isSymbolicLink()) return true;
+      } catch {
+        // Not on disk: nothing is reached through it.
+      }
+    }
+    return false;
   }
 
   private stage(target: string, entry: string | null, tool: string): void {

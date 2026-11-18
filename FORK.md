@@ -175,6 +175,7 @@ These can conflict when upstream changes the same lines:
 - **Shell completions** (`src/core/completions/`): the registry does not list `install`; the scripts register and call `CLI_NAME`, the installers write `specagile` files (`_specagile`, `specagile.fish`, `SpecAgileCompletion.ps1`, …) and mark their block in shell config with `# SPECAGILE:START`/`# SPECAGILE:END`, so an OpenSpec completion installed beside them is left alone. Internal function names (`_openspec_*`) are unchanged.
 - **Tests**: names in the tests that pin what this version installs; `scripts/parity-hash-shared.mjs` accepts `sa-*` keys. Upstream tests that pin a template's wording on generated text compare it through `withUpstreamIdentity` (`test/helpers/fork-identity.ts`), so their assertions stay as upstream wrote them.
 - **Docs**: `README.md`, `docs-lab/` and `skills/README.md` (the page of the folder the skills are installed from).
+- **Not identity, same risk**: `src/core/update-plan.ts` (`removesLinkAbove`). A file the plan writes where it removed a link is planned as added, not updated, as on Windows, where the installer replaces a junction with a copy. Upstream has the same bug; the fork's extra skills are what made `test/core/update-dry-run.property.test.ts` hit it on Windows.
 
 ### Texts that keep `openspec` on purpose
 
