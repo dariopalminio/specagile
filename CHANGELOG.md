@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 3.0.0
+
 ### Breaking Changes
 
 - **Specs and changes move to the project root.** SpecAgile no longer keeps a project's planning in `openspec/`. Living specs are in `specs/`, changes in `changes/` (archived ones in `changes/archive/`), and SpecAgile's own files (`config.yaml`, `schemas/`, …) in `specagile/`. `specagile init` and `specagile store setup` create this layout, and the CLI messages, the `sa-*` skills and the instructions of the `spec-driven` schema name the new paths. Inside a change nothing differs: its deltas are still in `specs/<capability-path>/spec.md` and its metadata in `.openspec.yaml`. See [Move to the SpecAgile layout](docs-lab/help/move-to-the-specagile-layout.md).
