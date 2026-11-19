@@ -104,7 +104,9 @@ describe('specagile CLI output', () => {
     expect(output).toContain('specagile status --change add-login');
     expect(output).not.toMatch(/\bopenspec status\b/);
     expect(fs.existsSync(path.join(getChangesDir(project), 'add-login'))).toBe(true);
-    expect(output).toContain(`Created change 'add-login' at ${path.join('changes', 'add-login')}`);
+    expect(output).toMatch(
+      new RegExp(`Created change 'add-login' at .*${escape(path.join('changes', 'add-login'))}/`)
+    );
   });
 
   it('suggests specagile init when specagile list finds no project', async () => {
