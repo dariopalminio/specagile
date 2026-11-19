@@ -7,6 +7,7 @@ import { getGlobalDataDir, registerStore } from '../../src/core/index.js';
 import { runCLI } from '../helpers/run-cli.js';
 import { createOpenSpecRoot, writeSpec } from '../helpers/openspec-fixtures.js';
 import { cleanupTempPath } from '../helpers/temp-cleanup.js';
+import { getArchiveDir, getChangesDir, getConfigFile, getToolDir } from '../helpers/layout.js';
 
 const JOURNEY_TIMEOUT_MS = 30_000;
 
@@ -55,8 +56,9 @@ describe('capstone persona journeys (6.1)', () => {
     // The app repo has its OWN root and declares the reference.
     const appRepo = path.join(tempDir, 'billing-service');
     createOpenSpecRoot(appRepo);
+    fs.mkdirSync(getToolDir(appRepo), { recursive: true });
     fs.writeFileSync(
-      path.join(appRepo, 'openspec', 'config.yaml'),
+      getConfigFile(appRepo),
       'schema: spec-driven\nreferences:\n  - product-requirements\n'
     );
 
@@ -86,19 +88,14 @@ describe('capstone persona journeys (6.1)', () => {
       { cwd: appRepo, env }
     );
     expect(created.exitCode).toBe(0);
-    const changeDir = path.join(
-      appRepo,
-      'openspec',
-      'changes',
-      'implement-invoice-immutability'
-    );
+    const changeDir = path.join(getChangesDir(appRepo), 'implement-invoice-immutability');
     expect(fs.existsSync(changeDir)).toBe(true);
     expect(
-      fs.existsSync(path.join(storeRoot, 'openspec', 'changes', 'implement-invoice-immutability'))
+      fs.existsSync(path.join(getChangesDir(storeRoot), 'implement-invoice-immutability'))
     ).toBe(false);
 
     // The store stayed read-only context throughout.
-    const storeChanges = fs.readdirSync(path.join(storeRoot, 'openspec', 'changes'));
+    const storeChanges = fs.readdirSync(getChangesDir(storeRoot));
     expect(storeChanges.filter((name) => name !== 'archive' && name !== '.gitkeep')).toEqual([]);
   }, JOURNEY_TIMEOUT_MS);
 
@@ -109,9 +106,9 @@ describe('capstone persona journeys (6.1)', () => {
 
     // A code repo with NO local root, only the fallback declaration.
     const codeRepo = path.join(tempDir, 'api-server');
-    fs.mkdirSync(path.join(codeRepo, 'openspec'), { recursive: true });
+    fs.mkdirSync(getToolDir(codeRepo), { recursive: true });
     fs.writeFileSync(
-      path.join(codeRepo, 'openspec', 'config.yaml'),
+      getConfigFile(codeRepo),
       'store: team-planning\n'
     );
 
@@ -121,7 +118,7 @@ describe('capstone persona journeys (6.1)', () => {
       { cwd: codeRepo, env }
     );
     expect(created.exitCode).toBe(0);
-    const changeDir = path.join(storeRoot, 'openspec', 'changes', 'add-rate-limits');
+    const changeDir = path.join(getChangesDir(storeRoot), 'add-rate-limits');
     expect(fs.existsSync(changeDir)).toBe(true);
 
     const status = await runCLI(['status', '--change', 'add-rate-limits', '--json'], {
@@ -171,11 +168,11 @@ describe('capstone persona journeys (6.1)', () => {
     );
     expect(archived.exitCode).toBe(0);
     expect(fs.existsSync(changeDir)).toBe(false);
-    const archiveDir = path.join(storeRoot, 'openspec', 'changes', 'archive');
+    const archiveDir = getArchiveDir(storeRoot);
     const archivedNames = fs.readdirSync(archiveDir);
     expect(archivedNames.some((name) => name.endsWith('add-rate-limits'))).toBe(true);
 
     // The code repo never grew planning state.
-    expect(fs.readdirSync(path.join(codeRepo, 'openspec'))).toEqual(['config.yaml']);
+    expect(fs.readdirSync(getToolDir(codeRepo))).toEqual(['config.yaml']);
   }, JOURNEY_TIMEOUT_MS);
 });

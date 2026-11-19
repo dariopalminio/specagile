@@ -5,6 +5,7 @@ import * as path from 'node:path';
 
 import { readChangeMetadata } from '../../src/utils/change-metadata.js';
 import { runCLI, type RunCLIResult } from '../helpers/run-cli.js';
+import { getChangesDir, getToolDir } from '../helpers/layout.js';
 
 /**
  * Initiative-link creation was removed from normal change flows in the
@@ -27,7 +28,8 @@ describe('legacy repo-local change initiative metadata', () => {
       OPEN_SPEC_INTERACTIVE: '0',
       OPENSPEC_TELEMETRY: '0',
     };
-    fs.mkdirSync(path.join(tempDir, 'openspec', 'changes'), { recursive: true });
+    fs.mkdirSync(getToolDir(tempDir), { recursive: true });
+    fs.mkdirSync(getChangesDir(tempDir), { recursive: true });
   });
 
   afterEach(() => {
@@ -45,7 +47,7 @@ describe('legacy repo-local change initiative metadata', () => {
   }
 
   function changeDir(id: string): string {
-    return path.join(tempDir, 'openspec', 'changes', id);
+    return path.join(getChangesDir(tempDir), id);
   }
 
   function createLegacyLinkedChange(id: string): string {

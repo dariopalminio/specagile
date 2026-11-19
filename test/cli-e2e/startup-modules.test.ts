@@ -5,6 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { cliProjectRoot, ensureCliBuilt } from '../helpers/run-cli.js';
+import { getChangesDir, getSpecsDir, getToolDir } from '../helpers/layout.js';
 
 // Every CLI call pays for the modules it loads before the command runs, and
 // callers such as editors and agents run the CLI many times. A command loads
@@ -58,8 +59,9 @@ function loadedModules(args: string[], withProject = false): {
   const workDir = mkdtempSync(path.join(os.tmpdir(), 'openspec-startup-'));
   workDirs.push(workDir);
   if (withProject) {
-    mkdirSync(path.join(workDir, 'openspec', 'changes'), { recursive: true });
-    mkdirSync(path.join(workDir, 'openspec', 'specs'), { recursive: true });
+    mkdirSync(getToolDir(workDir), { recursive: true });
+    mkdirSync(getChangesDir(workDir), { recursive: true });
+    mkdirSync(getSpecsDir(workDir), { recursive: true });
   }
   const logFile = path.join(workDir, 'modules.log');
   const result = spawnSync(process.execPath, ['--import', hookUrl, binPath, ...args], {

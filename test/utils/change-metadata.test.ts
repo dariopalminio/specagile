@@ -14,6 +14,7 @@ import {
   formatUnknownChangeMetadataKeysMessage,
 } from '../../src/utils/change-metadata.js';
 import { ChangeMetadataSchema } from '../../src/core/change-metadata/index.js';
+import { getChangesDir, getConfigFile, getToolDir } from '../helpers/layout.js';
 
 describe('ChangeMetadataSchema', () => {
   describe('valid metadata', () => {
@@ -233,7 +234,7 @@ describe('writeChangeMetadata', () => {
 
   beforeEach(async () => {
     testDir = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-test-'));
-    changeDir = path.join(testDir, 'openspec', 'changes', 'test-change');
+    changeDir = path.join(getChangesDir(testDir), 'test-change');
     await fs.mkdir(changeDir, { recursive: true });
   });
 
@@ -270,7 +271,7 @@ describe('readChangeMetadata', () => {
 
   beforeEach(async () => {
     testDir = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-test-'));
-    changeDir = path.join(testDir, 'openspec', 'changes', 'test-change');
+    changeDir = path.join(getChangesDir(testDir), 'test-change');
     await fs.mkdir(changeDir, { recursive: true });
   });
 
@@ -347,7 +348,7 @@ describe('resolveSchemaForChange', () => {
 
   beforeEach(async () => {
     testDir = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-test-'));
-    changeDir = path.join(testDir, 'openspec', 'changes', 'test-change');
+    changeDir = path.join(getChangesDir(testDir), 'test-change');
     await fs.mkdir(changeDir, { recursive: true });
   });
 
@@ -387,10 +388,10 @@ describe('resolveSchemaForChange', () => {
 
   it('should use project config schema when no metadata exists', async () => {
     // Create project config
-    const configDir = path.join(testDir, 'openspec');
+    const configDir = getToolDir(testDir);
     await fs.mkdir(configDir, { recursive: true });
     await fs.writeFile(
-      path.join(configDir, 'config.yaml'),
+      getConfigFile(testDir),
       'schema: custom-schema\n',
       'utf-8'
     );
@@ -401,10 +402,10 @@ describe('resolveSchemaForChange', () => {
 
   it('should prefer change metadata over project config', async () => {
     // Create project config
-    const configDir = path.join(testDir, 'openspec');
+    const configDir = getToolDir(testDir);
     await fs.mkdir(configDir, { recursive: true });
     await fs.writeFile(
-      path.join(configDir, 'config.yaml'),
+      getConfigFile(testDir),
       'schema: custom-schema\n',
       'utf-8'
     );
@@ -419,10 +420,10 @@ describe('resolveSchemaForChange', () => {
 
   it('should prefer explicit schema over all config sources', async () => {
     // Create project config
-    const configDir = path.join(testDir, 'openspec');
+    const configDir = getToolDir(testDir);
     await fs.mkdir(configDir, { recursive: true });
     await fs.writeFile(
-      path.join(configDir, 'config.yaml'),
+      getConfigFile(testDir),
       'schema: custom-schema\n',
       'utf-8'
     );
@@ -438,10 +439,10 @@ describe('resolveSchemaForChange', () => {
 
   it('should test full precedence order: CLI > metadata > config > default', async () => {
     // Setup all levels
-    const configDir = path.join(testDir, 'openspec');
+    const configDir = getToolDir(testDir);
     await fs.mkdir(configDir, { recursive: true });
     await fs.writeFile(
-      path.join(configDir, 'config.yaml'),
+      getConfigFile(testDir),
       'schema: custom-schema\n',
       'utf-8'
     );
@@ -458,7 +459,7 @@ describe('resolveSchemaForChange', () => {
     expect(resolveSchemaForChange(changeDir)).toBe('custom-schema'); // Config wins
 
     // Remove config, default should win
-    await fs.unlink(path.join(configDir, 'config.yaml'));
+    await fs.unlink(getConfigFile(testDir));
     expect(resolveSchemaForChange(changeDir)).toBe('spec-driven'); // Default wins
   });
 });
@@ -480,7 +481,7 @@ describe('boolean marker reasons', () => {
 
   beforeEach(async () => {
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-marker-reason-'));
-    await fs.mkdir(path.join(tempDir, 'openspec', 'changes', 'c'), { recursive: true });
+    await fs.mkdir(path.join(getChangesDir(tempDir), 'c'), { recursive: true });
   });
 
   afterEach(async () => {
@@ -491,7 +492,7 @@ describe('boolean marker reasons', () => {
   // straight to a terminal. A schema name carrying an ESC could redraw the
   // screen; a CR could forge a line of its own.
   it('strips control characters from a reason that quotes authored content', async () => {
-    const changeDir = path.join(tempDir, 'openspec', 'changes', 'c');
+    const changeDir = path.join(getChangesDir(tempDir), 'c');
     await fs.writeFile(
       path.join(changeDir, '.openspec.yaml'),
       'schema: "ghost\u001b[31m-schema"\nretire_capabilities: true\n',

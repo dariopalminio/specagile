@@ -49,6 +49,7 @@
     "regen:parity-hashes": "node scripts/regen-parity-hashes.mjs",
     "dev": "tsc --watch",
     "dev:cli": "pnpm build && node bin/specagile.js",
+    "test:smoke:binary:windows-x64": "corepack pnpm exec vitest run test/fork/cli-name.test.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",

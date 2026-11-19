@@ -66,7 +66,7 @@ describe('specify skill template', () => {
       const boundary = section(withAll, '**Specification boundary**', '**Steps**');
       expect(boundary).toContain('It never creates design.md or tasks.md (the technical plan)');
       expect(boundary).toContain('never edits project code');
-      expect(boundary).toContain('never edits the main specs under `openspec/specs/`');
+      expect(boundary).toContain('never edits the main specs under `specs/`');
 
       const guardrails = withAll.slice(withAll.indexOf('**Guardrails**'));
       expect(guardrails).toContain('Do NOT create design.md, tasks.md, or any other artifact of the planning set');

@@ -1,10 +1,10 @@
 # Project configuration (config.yaml)
 
-> Every field of openspec/config.yaml: the schema, context, and rules this project plans with.
+> Every field of specagile/config.yaml: the schema, context, and rules this project plans with.
 
 ## Location
 
-Each OpenSpec project keeps its config file at `openspec/config.yaml`, in the project root.
+Each OpenSpec project keeps its config file at `specagile/config.yaml`, in the project root.
 
 ## Fields
 
@@ -14,7 +14,7 @@ Each OpenSpec project keeps its config file at `openspec/config.yaml`, in the pr
 | `context` | string | No | Injected into every artifact, apply, and archive |
 | `rules` | map: artifact ID → list of strings | No | Extra rules added to one artifact's built-in guidance |
 | `operations` | map: operation → guidance list | No | Advisory guidance for apply and archive work |
-| `store` | string | No | Fallback OpenSpec root when this openspec/ is config-only |
+| `store` | string | No | Fallback OpenSpec root when this project has only its config (no `specs/` or `changes/`) |
 | `references` | list | No | Stores whose specs are indexed into instructions |
 | `skillsScope` | string: `project` | No | The team keeps OpenSpec's skills in this repo |
 
@@ -57,7 +57,7 @@ Only `apply` and `archive` are read.
 
 ### store
 
-A store id used as the OpenSpec root, consulted only when this openspec/ directory is config-only (no specs/ or changes/). It is a fallback, never an override. The full ladder is [Root resolution](../../multi-repo/stores.md#where-artifacts-get-created-when-using-stores).
+A store id used as the OpenSpec root, consulted only when this project has only its config (no `specs/` or `changes/` at the root). It is a fallback, never an override. The full ladder is [Root resolution](../../multi-repo/stores.md#where-artifacts-get-created-when-using-stores).
 
 ### references
 
@@ -103,4 +103,4 @@ operations:
 
 ## Legacy names
 
-`openspec/config.yml` is read as an alias when `config.yaml` does not exist. When both files exist, `config.yaml` wins and `config.yml` is ignored. `specagile init` creates `config.yaml`.
+`specagile/config.yml` is read as an alias when `config.yaml` does not exist. When both files exist, `config.yaml` wins and `config.yml` is ignored. `specagile init` creates `config.yaml`.

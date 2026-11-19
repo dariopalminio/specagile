@@ -15,6 +15,7 @@ import {
 } from '../utils/nested-change.js';
 import { getTaskProgressForChange } from '../utils/task-progress.js';
 import { FileSystemUtils } from '../utils/file-system.js';
+import { getChangesDir, getRootOfChangesDir, getSpecsDir, relativeSpecFile } from '../core/fork/layout.js';
 import { assertDiscoveredSpecFile } from '../utils/spec-path-containment.js';
 import { discoverSpecFiles } from '../utils/spec-discovery.js';
 import {
@@ -74,13 +75,13 @@ export class ChangeCommand {
   }
 
   private getChangesPath(): string {
-    return path.join(this.rootPath ?? process.cwd(), 'openspec', 'changes');
+    return getChangesDir(this.rootPath ?? process.cwd());
   }
 
   // Main specs resolve against the same root as changes, so `--diff` reads the
   // selected store's specs rather than whatever sits under the cwd.
   private getSpecsPath(): string {
-    return path.join(this.rootPath ?? process.cwd(), 'openspec', 'specs');
+    return getSpecsDir(this.rootPath ?? process.cwd());
   }
 
   /**
@@ -283,7 +284,7 @@ export class ChangeCommand {
           // missing main spec is an authoring error, not a new capability.
           // Rendering it as all-additions would hide what archive will reject.
           entry.warning =
-            `No main spec at openspec/specs/${capability}/spec.md, ` +
+            `No main spec at ${relativeSpecFile(capability)}, ` +
             `so MODIFIED requirement "${block.name}" has nothing to diff against`;
         }
 
@@ -423,7 +424,7 @@ export class ChangeCommand {
    * - JSON: array of { id, title, deltaCount, taskStatus }, sorted by id
    */
   async list(options?: { json?: boolean; long?: boolean }): Promise<void> {
-    const changesPath = path.join(process.cwd(), 'openspec', 'changes');
+    const changesPath = getChangesDir(process.cwd());
     
     // Same directory-based resolution as `openspec list`, the command this
     // deprecated alias points users at. Every output path below already
@@ -508,7 +509,7 @@ export class ChangeCommand {
   }
 
   async validate(changeName?: string, options?: { strict?: boolean; json?: boolean; noInteractive?: boolean }): Promise<void> {
-    const changesPath = path.join(process.cwd(), 'openspec', 'changes');
+    const changesPath = getChangesDir(process.cwd());
     
     if (!changeName) {
       const canPrompt = isInteractive(options);
@@ -546,8 +547,8 @@ export class ChangeCommand {
     const report = await validator.validateChangeDeltaSpecs(changeDir, {
       // Derived from changesPath so the main specs come from the same root the
       // change itself was resolved against.
-      mainSpecsDir: path.join(path.dirname(changesPath), 'specs'),
-      projectRoot: path.dirname(path.dirname(changesPath)),
+      mainSpecsDir: getSpecsDir(getRootOfChangesDir(changesPath)),
+      projectRoot: getRootOfChangesDir(changesPath),
     });
     
     if (options?.json) {

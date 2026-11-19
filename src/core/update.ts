@@ -18,7 +18,15 @@ import {
   migrateFormerSkills,
   type FormerSkillMigrationResult,
 } from './fork/former-skills.js';
-import { AI_TOOLS, OPENSPEC_DIR_NAME } from './config.js';
+import { AI_TOOLS } from './config.js';
+import { RELATIVE_CONFIG_FILE, detectFormerLayout, getToolDir } from './fork/layout.js';
+import {
+  DISK_LAYOUT_OPS,
+  LayoutMigrationError,
+  describeLayoutMigration,
+  migrateFormerLayout,
+  planLayoutOps,
+} from './fork/layout-migration.js';
 import {
   getToolSkillStatus,
   getToolVersionStatus,
@@ -218,13 +226,18 @@ export class UpdateCommand {
     if (!this.dryRun) rememberProject(resolvedProjectPath);
     this.settledWorkflows = undefined;
     this.removedGlobalSkills = undefined;
+    this.layoutMigrationRan = false;
 
     // With the global skills installed, update works from anywhere; a project is optional.
     // The home folder holds the global skills, so it is never updated as a project of its own.
+    // SpecAgile: a project with the former openspec/ layout is one too; update moves it.
     const hasProject =
-      (await FileSystemUtils.directoryExists(path.join(resolvedProjectPath, OPENSPEC_DIR_NAME))) &&
+      ((await FileSystemUtils.directoryExists(getToolDir(resolvedProjectPath))) ||
+        detectFormerLayout(resolvedProjectPath)) &&
       !(this.hasGlobalSkills && isHomeFolder(resolvedProjectPath));
     if (hasProject && !this.dryRun && isInteractive() && !this.force) {
+      // The questions below read the project's config: move the layout first.
+      await this.migrateLayout(resolvedProjectPath);
       const { select, confirm } = await import('@inquirer/prompts');
       const { InitCommand } = await import('./init.js');
       const hasProjectSkills = projectHasOwnSkills(resolvedProjectPath);
@@ -243,7 +256,7 @@ export class UpdateCommand {
           console.log(
             saved
               ? `Commit ${FileSystemUtils.toPosixPath(path.relative(resolvedProjectPath, saved))} to keep this choice for the team.`
-              : 'Could not save this choice in openspec/config.yaml. Add "skillsScope: project" to it by hand to stop being asked.'
+              : `Could not save this choice in ${RELATIVE_CONFIG_FILE}. Add "skillsScope: project" to it by hand to stop being asked.`
           );
         } else {
           const cloud = await isCopilotCloudEnabled(resolvedProjectPath);
@@ -348,7 +361,7 @@ export class UpdateCommand {
 
   private async updateProject(projectPath: string): Promise<void> {
     const resolvedProjectPath = path.resolve(projectPath);
-    const openspecPath = path.join(resolvedProjectPath, OPENSPEC_DIR_NAME);
+    const openspecPath = getToolDir(resolvedProjectPath);
     this.legacyCleanupSkipped = false;
 
     if (this.dryRun) {
@@ -356,8 +369,14 @@ export class UpdateCommand {
       this.ops = this.recorder;
     }
 
+    // SpecAgile: 0. Move the former openspec/ layout before anything else:
+    //    every step below reads the layout. A dry run plans the move, and a
+    //    blocked one is the plan's failure.
+    const layout = await this.migrateLayout(resolvedProjectPath);
+    if (layout === 'blocked') return;
+
     // 1. Check openspec directory exists
-    if (!await FileSystemUtils.directoryExists(openspecPath)) {
+    if (!this.view.isDirectory(openspecPath) && layout !== 'migrated') {
       throw new Error(`No OpenSpec directory found. Run 'specagile init' first.`);
     }
 
@@ -813,6 +832,44 @@ export class UpdateCommand {
    * left is then removed in this run either: the user has not agreed to it.
    */
   private legacyCleanupSkipped = false;
+
+  /** SpecAgile: whether this run already moved (or planned) the former layout. */
+  private layoutMigrationRan = false;
+
+  /**
+   * SpecAgile: moves the former openspec/ layout to the one of
+   * src/core/fork/layout.ts, once per run, and reports it like the other
+   * migrations. A dry run plans it on the recorder; a blocked migration fails
+   * the real update and is recorded as the plan's failure.
+   */
+  private async migrateLayout(projectPath: string): Promise<'none' | 'unused' | 'migrated' | 'blocked'> {
+    if (this.layoutMigrationRan) return 'none';
+    this.layoutMigrationRan = true;
+    try {
+      const result = await migrateFormerLayout(projectPath, this.recorder ? planLayoutOps(this.recorder) : DISK_LAYOUT_OPS);
+      if (result.status === 'unused') {
+        if (this.recorder) this.recorder.addNote('layout-migration', result.warning);
+        else this.log(chalk.yellow(result.warning));
+      } else if (result.status === 'migrated') {
+        if (this.recorder) {
+          this.recorder.addNote(
+            'layout-migration',
+            `Update would move the former layout: ${result.moves.map((move) => `${move.from} → ${move.to}`).join(', ')}.`
+          );
+        } else {
+          for (const line of describeLayoutMigration(result)) this.log(chalk.dim(line));
+          if (result.warning) this.log(chalk.yellow(result.warning));
+        }
+      }
+      return result.status;
+    } catch (error) {
+      if (this.recorder && error instanceof LayoutMigrationError) {
+        this.recorder.addFailure('specagile', error.message);
+        return 'blocked';
+      }
+      throw error;
+    }
+  }
 
   private get view(): FileView {
     return this.recorder?.view ?? DISK_VIEW;

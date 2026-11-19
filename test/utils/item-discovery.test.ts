@@ -3,6 +3,7 @@ import { promises as fs } from 'fs';
 import os from 'os';
 import path from 'path';
 import { getActiveChangeIds, getArchivedChangeIds } from '../../src/utils/item-discovery.js';
+import { getChangesDir } from '../helpers/layout.js';
 
 describe('item discovery', () => {
   let root: string;
@@ -10,7 +11,7 @@ describe('item discovery', () => {
 
   beforeEach(async () => {
     root = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-item-discovery-'));
-    changesDir = path.join(root, 'openspec', 'changes');
+    changesDir = getChangesDir(root);
     await fs.mkdir(changesDir, { recursive: true });
   });
 

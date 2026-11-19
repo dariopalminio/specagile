@@ -7,6 +7,7 @@ import { getGlobalDataDir, registerStore } from '../../src/core/index.js';
 import { runCLI } from '../helpers/run-cli.js';
 import { createHealthyOpenSpecRoot } from '../helpers/store-git.js';
 import { cleanupTempPath } from '../helpers/temp-cleanup.js';
+import { getChangesDir, getToolDir } from '../helpers/layout.js';
 
 const SURVIVING_COMMANDS_TIMEOUT_MS = 30_000;
 
@@ -147,7 +148,8 @@ describe('legacy command groups are removed', () => {
   it('tolerates legacy initiative metadata without re-emitting it', async () => {
     const projectDir = path.join(tempDir, 'legacy-project');
     createHealthyOpenSpecRoot(projectDir);
-    const changeDir = path.join(projectDir, 'openspec', 'changes', 'legacy-change');
+    const changeDir = path.join(getChangesDir(projectDir), 'legacy-change');
+    fs.mkdirSync(getToolDir(projectDir), { recursive: true });
     fs.mkdirSync(changeDir, { recursive: true });
     fs.writeFileSync(
       path.join(changeDir, '.openspec.yaml'),
@@ -171,7 +173,8 @@ describe('legacy command groups are removed', () => {
     const projectDir = path.join(tempDir, 'view-project');
     createHealthyOpenSpecRoot(projectDir);
     writeWorkspaceViewFixture(projectDir);
-    const changeDir = path.join(projectDir, 'openspec', 'changes', 'mode-check');
+    const changeDir = path.join(getChangesDir(projectDir), 'mode-check');
+    fs.mkdirSync(getToolDir(projectDir), { recursive: true });
     fs.mkdirSync(changeDir, { recursive: true });
     fs.writeFileSync(path.join(changeDir, '.openspec.yaml'), 'schema: spec-driven\n');
 

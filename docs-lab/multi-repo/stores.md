@@ -2,16 +2,16 @@
 
 > Plan changes that span repositories: one store, many repos.
 
-OpenSpec normally lives inside one repo: an `openspec/` folder next to the code it plans. A store moves that folder into a repository of its own, and several code repos can share it.
+OpenSpec normally lives inside one repo: `specs/`, `changes/` and `specagile/` next to the code it plans. A store moves those folders into a repository of its own, and several code repos can share it.
 
 After a one-time setup on each machine, commands like `status`, `new change`, and `archive` can work in the store from any directory.
 
 ```
          team-plans  (a store: OpenSpec in its own repo)
          ├── .openspec-store/store.yaml   the store's name
-         └── openspec/
-             ├── specs/
-             └── changes/
+         ├── specs/
+         ├── changes/
+         └── specagile/config.yaml
                    ▲
                    │ set up once on each machine,
                    │ shared by pushing and cloning like any repo
@@ -31,7 +31,7 @@ Two common reasons to use a store:
 
   ```
         shop-plans  (store)
-        └── openspec/changes/add-discounts/    one plan for the feature
+        └── changes/add-discounts/    one plan for the feature
                   ▲
         ┌─────────┴─────────┐
         │                   │
@@ -43,7 +43,7 @@ Two common reasons to use a store:
 
   ```
           product-specs  (store)
-          └── openspec/specs/checkout/spec.md    the expected behavior
+          └── specs/checkout/spec.md    the expected behavior
                     ▲
       ┌─────────────┼─────────────┐
       │             │             │
@@ -131,17 +131,17 @@ OpenSpec has three setups. The rest of this page uses these names:
 
 - **repo-local**: OpenSpec inside your repo, no store. The default.
 - **store-only**: your repo keeps no specs or changes of its own. Everything lives in the store.
-- **store-optional**: your project has its own `openspec/` folder and also reaches a store when you ask.
+- **store-optional**: your project has its own `specs/` and `changes/` and also reaches a store when you ask.
 
 ### The default: OpenSpec inside your repo (`repo-local`)
 
-`specagile init` puts an `openspec/` folder next to your code, and that repo's specs and changes live there. No store is involved. This is the setup [Set up your project](../start/setup.md) teaches, and most projects never need another.
+`specagile init` puts `specs/`, `changes/` and `specagile/` next to your code, and that repo's specs and changes live there. No store is involved. This is the setup [Set up your project](../start/setup.md) teaches, and most projects never need another.
 
 ```
 web-app  (code repo)
-└── openspec/
-    ├── specs/
-    └── changes/
+├── specs/
+├── changes/
+└── specagile/config.yaml
 ```
 
 ### OpenSpec outside your repo, in a store (`store-only`)
@@ -152,32 +152,31 @@ Common when one team builds all the repos and plans in one place. The [examples 
 
 ```
 team-plans  (store)
-└── openspec/
-    ├── specs/       the repo's specs live here
-    └── changes/     its changes too
+├── specs/       the repo's specs live here
+└── changes/     its changes too
           ▲
           │ store: team-plans   (the connecting line)
 web-app  (code repo)
-└── openspec/
+└── specagile/
     └── config.yaml    nothing else
 ```
 
 ### OpenSpec in your repo and in a store (`store-optional`)
 
-The repo stays repo-local for its own work, while the store holds the shared specs and changes. Inside the repo, OpenSpec uses your project's `openspec/` folder, and reaches the store only when you pass `--store`.
+The repo stays repo-local for its own work, while the store holds the shared specs and changes. Inside the repo, OpenSpec uses your project's own `specs/` and `changes/`, and reaches the store only when you pass `--store`.
 
 Common when a repo used OpenSpec before the store existed, or when a mostly independent repo only occasionally touches shared work.
 
 ```
 team-plans  (store)
-└── openspec/          the shared specs and changes
+├── specs/             the shared specs
+└── changes/           and changes
           ▲
           │ only when you pass --store team-plans
-web-app  (code repo)
-└── openspec/          this repo's own
-    ├── config.yaml
-    ├── specs/
-    └── changes/
+web-app  (code repo)   this repo's own:
+├── specs/
+├── changes/
+└── specagile/config.yaml
 ```
 
 A repo can start repo-local and move its specs and changes into the store later. [Move a repo's specs and changes into the store](#move-a-repos-specs-and-changes-into-the-store) shows how.
@@ -187,12 +186,12 @@ A repo can start repo-local and move its specs and changes into the store later.
 When you use a store, OpenSpec also has to decide where the artifacts get created. It depends on your setup:
 
 - **store-only** (your project only writes to the store): every artifact is created in the store. The `store:` line below records that.
-- **store-optional** (your project has its own `openspec/` folder and also uses a store): artifacts are created in your project, unless you name the store in your request or pass `--store` for that change. Your agent then carries the flag through the rest of the workflow.
+- **store-optional** (your project has its own `specs/` and `changes/` and also uses a store): artifacts are created in your project, unless you name the store in your request or pass `--store` for that change. Your agent then carries the flag through the rest of the workflow.
 
-OpenSpec writes artifacts to one of two places: your project's `openspec/` folder, or the store's. It picks in this order, and the first option that applies wins:
+OpenSpec writes artifacts to one of two places: your project, or the store. It picks in this order, and the first option that applies wins:
 
 1. **`--store <id>` on a command.** Always wins, from any directory.
-2. **Your project's `openspec/` folder.** If your project has its own `specs/` or `changes/` folders, OpenSpec uses them.
+2. **Your project.** If your project has `specagile/` and its own `specs/` or `changes/` folders, OpenSpec uses them.
 3. **The `store:` line in your project.** How a store-only project records its store.
 4. **`defaultStore` on your machine.** The fallback when none of the above applies.
 
@@ -202,10 +201,10 @@ When OpenSpec selects a store, it prints `Using OpenSpec root: ...` before the c
 
 ### The `store:` line (store-only projects)
 
-Add one line to your project's `openspec/config.yaml`:
+Add one line to your project's `specagile/config.yaml`:
 
 ```yaml
-# web-app/openspec/config.yaml
+# web-app/specagile/config.yaml
 store: team-plans
 ```
 
@@ -235,8 +234,8 @@ specagile init --scope project --tools claude
 ```
 
 - **Integration files**: written in the code repo. Without `--scope project`, a new setup puts the skills on your machine instead and the repo gets none.
-- **`openspec/config.yaml`**: preserved byte-for-byte, including the `store:` line.
-- **`openspec/specs/` and `openspec/changes/`**: not created in the code repo.
+- **`specagile/config.yaml`**: preserved byte-for-byte, including the `store:` line.
+- **`specs/` and `changes/`**: not created in the code repo.
 
 OpenSpec refuses this command from a subdirectory of the code repo. Run it from the repository root.
 
@@ -244,7 +243,7 @@ OpenSpec also refuses `--language` here because the language belongs in the exte
 
 ### `defaultStore` on your machine
 
-Set it once if every project you work in uses the same store. OpenSpec falls back to it when it finds no flag, no local `openspec/` folder, and no `store:` line:
+Set it once if every project you work in uses the same store. OpenSpec falls back to it when it finds no flag, no local `specagile/` folder, and no `store:` line:
 
 ```bash
 # use team-plans whenever nothing else names a store
@@ -260,8 +259,8 @@ specagile config unset defaultStore
 
 To take a repo from repo-local to store-only:
 
-1. Move everything in the repo's `openspec/specs/` and `openspec/changes/` into the same folders in the store.
-2. Delete the now-empty folders, so the repo's `openspec/` folder holds only `config.yaml`.
+1. Move everything in the repo's `specs/` and `changes/` into the same folders in the store.
+2. Delete the now-empty folders, so the repo keeps only `specagile/config.yaml`.
 3. Add the `store:` line to that `config.yaml`.
 
 `specagile status` inside the repo now starts with `Using OpenSpec root: team-plans`.
@@ -279,14 +278,14 @@ specagile new change add-login
 
 ```yaml
 Using OpenSpec root: team-plans (/Users/you/openspec/team-plans)
-Created change 'add-login' at /Users/you/openspec/team-plans/openspec/changes/add-login/
+Created change 'add-login' at /Users/you/openspec/team-plans/changes/add-login/
 Schema: spec-driven
 Next: specagile status --change add-login --store team-plans
 ```
 
 - **Where it went**: into the store repo, not next to your code.
 - **Sharing it**: the change exists only in your checkout until you commit and push the store repo. Teammates see it when they pull. The same goes for every artifact the workflows write.
-- **Paths in the docs**: wherever the docs show an `openspec/` path, in a store setup that folder is the store's.
+- **Paths in the docs**: wherever the docs show a `specs/` or `changes/` path, in a store setup that folder is the store's.
 
 When artifacts get created somewhere you didn't expect, `specagile doctor` checks your setup without changing anything and prints a fix for each finding:
 
@@ -313,10 +312,10 @@ To open the store and a repo in one editor window, so your agent can read both, 
 
 ## Read specs from another store
 
-Your repo can keep its own `openspec/` folder and still let your agent read another store's specs. Declare that store under `references:` in the repo's `openspec/config.yaml`:
+Your repo can keep its own `specs/` and `changes/` and still let your agent read another store's specs. Declare that store under `references:` in the repo's `specagile/config.yaml`:
 
 ```yaml
-# api-server/openspec/config.yaml
+# api-server/specagile/config.yaml
 references:
   - team-plans
 ```

@@ -2,11 +2,12 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { execFileSync } from 'child_process';
+import { getSpecsDir } from '../helpers/layout.js';
 
 describe('spec validate (interactive behavior)', () => {
   const projectRoot = process.cwd();
   const testDir = path.join(projectRoot, 'test-spec-validate-tmp');
-  const specsDir = path.join(testDir, 'openspec', 'specs');
+  const specsDir = getSpecsDir(testDir);
   const bin = path.join(projectRoot, 'bin', 'specagile.js');
 
 

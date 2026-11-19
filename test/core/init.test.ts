@@ -11,6 +11,7 @@ import { ALL_WORKFLOWS } from '../../src/core/profiles.js';
 import { getCommandContents } from '../../src/core/shared/skill-generation.js';
 import { CommandAdapterRegistry, generateCommands } from '../../src/core/command-generation/index.js';
 import { releasedCodexPrompt } from '../helpers/released-codex-prompt.js';
+import { RELATIVE_CHANGES_DIR, RELATIVE_CONFIG_FILE, RELATIVE_SPECS_DIR, RELATIVE_TOOL_DIR, createFormerLayout, getArchiveDir, getChangesDir, getConfigFile, getConfigYmlFile, getSpecsDir, getToolDir } from '../helpers/layout.js';
 
 const { confirmMock, selectMock, installGlobalSkillsMock, showWelcomeScreenMock, searchableMultiSelectMock } = vi.hoisted(() => ({
   confirmMock: vi.fn(),
@@ -75,17 +76,51 @@ describe('InitCommand', () => {
     vi.restoreAllMocks();
   });
 
+  // SpecAgile: init on a project with the former openspec/ layout moves it
+  // first (src/core/fork/layout-migration.ts).
+  describe('a project with the former layout', () => {
+    it('is moved, and init goes on with the layout in force', async () => {
+      createFormerLayout(testDir, {
+        'config.yaml': 'schema: spec-driven\ncontext: Our stack\n',
+        'specs/auth/spec.md': '# auth\n',
+        'changes/add-login/proposal.md': '# add-login\n',
+      });
+
+      await new InitCommand({ tools: 'claude', force: true }).execute(testDir);
+
+      expect(await fs.readFile(getConfigFile(testDir), 'utf-8')).toBe('schema: spec-driven\ncontext: Our stack\n');
+      expect(await fs.readFile(path.join(getSpecsDir(testDir), 'auth', 'spec.md'), 'utf-8')).toBe('# auth\n');
+      expect(await fs.readFile(path.join(getChangesDir(testDir), 'add-login', 'proposal.md'), 'utf-8')).toBe('# add-login\n');
+      expect(await FileSystemUtils.directoryExists(getArchiveDir(testDir))).toBe(true);
+      expect(await FileSystemUtils.directoryExists(path.join(testDir, 'openspec'))).toBe(false);
+      expect(await FileSystemUtils.fileExists(path.join(testDir, '.claude', 'skills', 'sa-propose', 'SKILL.md'))).toBe(true);
+    });
+
+    it('moves a config that declares a store, so the pointer guard reads specagile/config.yaml', async () => {
+      createFormerLayout(testDir, { 'config.yaml': 'store: team\n' });
+
+      // No store is registered here: the guard resolves the pointer it read and stops.
+      await expect(new InitCommand({ tools: 'claude', force: true }).execute(testDir)).rejects.toThrow(
+        path.join('specagile', 'config.yaml')
+      );
+
+      expect(await fs.readFile(getConfigFile(testDir), 'utf-8')).toBe('store: team\n');
+      expect(await FileSystemUtils.directoryExists(path.join(testDir, 'openspec'))).toBe(false);
+      expect(await FileSystemUtils.directoryExists(getChangesDir(testDir))).toBe(false);
+    });
+  });
+
   describe('execute with --tools flag', () => {
     it('should create OpenSpec directory structure', async () => {
       const initCommand = new InitCommand({ tools: 'claude', force: true });
 
       await initCommand.execute(testDir);
 
-      const openspecPath = path.join(testDir, 'openspec');
+      const openspecPath = getToolDir(testDir);
       expect(await directoryExists(openspecPath)).toBe(true);
-      expect(await directoryExists(path.join(openspecPath, 'specs'))).toBe(true);
-      expect(await directoryExists(path.join(openspecPath, 'changes'))).toBe(true);
-      expect(await directoryExists(path.join(openspecPath, 'changes', 'archive'))).toBe(true);
+      expect(await directoryExists(getSpecsDir(testDir))).toBe(true);
+      expect(await directoryExists(getChangesDir(testDir))).toBe(true);
+      expect(await directoryExists(getArchiveDir(testDir))).toBe(true);
     });
 
     it('should create .gitkeep files in empty directories', async () => {
@@ -93,34 +128,34 @@ describe('InitCommand', () => {
 
       await initCommand.execute(testDir);
 
-      const openspecPath = path.join(testDir, 'openspec');
-      expect(await fileExists(path.join(openspecPath, 'specs', '.gitkeep'))).toBe(true);
+      const openspecPath = getToolDir(testDir);
+      expect(await fileExists(path.join(getSpecsDir(testDir), '.gitkeep'))).toBe(true);
       // The archive anchor also keeps its parent changes/ directory in Git.
-      expect(await fileExists(path.join(openspecPath, 'changes', '.gitkeep'))).toBe(false);
-      expect(await fileExists(path.join(openspecPath, 'changes', 'archive', '.gitkeep'))).toBe(true);
+      expect(await fileExists(path.join(getChangesDir(testDir), '.gitkeep'))).toBe(false);
+      expect(await fileExists(path.join(getArchiveDir(testDir), '.gitkeep'))).toBe(true);
     });
 
     it('should restore missing directories and anchors in extend mode', async () => {
       const initCommand1 = new InitCommand({ tools: 'claude', force: true });
       await initCommand1.execute(testDir);
 
-      const openspecPath = path.join(testDir, 'openspec');
+      const openspecPath = getToolDir(testDir);
 
       // Older projects may lose these empty directories when cloned.
-      await fs.rm(path.join(openspecPath, 'specs'), { recursive: true });
-      await fs.rm(path.join(openspecPath, 'changes'), { recursive: true });
+      await fs.rm(getSpecsDir(testDir), { recursive: true });
+      await fs.rm(getChangesDir(testDir), { recursive: true });
 
       // Re-run init (triggers extend mode since openspec dir already exists)
       const initCommand2 = new InitCommand({ tools: 'claude', force: true });
       await initCommand2.execute(testDir);
 
-      expect(await fileExists(path.join(openspecPath, 'specs', '.gitkeep'))).toBe(true);
-      expect(await fileExists(path.join(openspecPath, 'changes', '.gitkeep'))).toBe(false);
-      expect(await fileExists(path.join(openspecPath, 'changes', 'archive', '.gitkeep'))).toBe(true);
+      expect(await fileExists(path.join(getSpecsDir(testDir), '.gitkeep'))).toBe(true);
+      expect(await fileExists(path.join(getChangesDir(testDir), '.gitkeep'))).toBe(false);
+      expect(await fileExists(path.join(getArchiveDir(testDir), '.gitkeep'))).toBe(true);
     });
 
     it('should preserve existing directory anchor contents when re-running init', async () => {
-      const marker = path.join(testDir, 'openspec', 'specs', '.gitkeep');
+      const marker = path.join(getSpecsDir(testDir), '.gitkeep');
       await fs.mkdir(path.dirname(marker), { recursive: true });
       await fs.writeFile(marker, 'Keep this directory in Git.\n');
 
@@ -130,8 +165,8 @@ describe('InitCommand', () => {
     });
 
     it('should not add anchors to populated directories', async () => {
-      const specsPath = path.join(testDir, 'openspec', 'specs');
-      const archivePath = path.join(testDir, 'openspec', 'changes', 'archive');
+      const specsPath = getSpecsDir(testDir);
+      const archivePath = getArchiveDir(testDir);
       await fs.mkdir(specsPath, { recursive: true });
       await fs.mkdir(archivePath, { recursive: true });
       await fs.writeFile(path.join(specsPath, '.custom'), 'keep me');
@@ -148,7 +183,7 @@ describe('InitCommand', () => {
       async (dangling) => {
         const target = path.join(configTempDir, 'outside-target');
         if (!dangling) await fs.writeFile(target, 'do not overwrite');
-        const marker = path.join(testDir, 'openspec', 'specs', '.gitkeep');
+        const marker = path.join(getSpecsDir(testDir), '.gitkeep');
         await fs.mkdir(path.dirname(marker), { recursive: true });
         await fs.symlink(target, marker);
 
@@ -168,7 +203,7 @@ describe('InitCommand', () => {
 
       await initCommand.execute(testDir);
 
-      const configPath = path.join(testDir, 'openspec', 'config.yaml');
+      const configPath = getConfigFile(testDir);
       expect(await fileExists(configPath)).toBe(true);
 
       const content = await fs.readFile(configPath, 'utf-8');
@@ -176,8 +211,8 @@ describe('InitCommand', () => {
     });
 
     it('should guide project.md migration without copying or deleting it', async () => {
-      const openspecPath = path.join(testDir, 'openspec');
-      const projectMdPath = path.join(openspecPath, 'project.md');
+      const openspecPath = getToolDir(testDir);
+      const projectMdPath = path.join(getToolDir(testDir), 'project.md');
       await fs.mkdir(openspecPath, { recursive: true });
       await fs.writeFile(projectMdPath, '# Migrate me later\n');
 
@@ -200,7 +235,7 @@ describe('InitCommand', () => {
 
       await initCommand.execute(testDir);
 
-      const configPath = path.join(testDir, 'openspec', 'config.yaml');
+      const configPath = getConfigFile(testDir);
       const content = await fs.readFile(configPath, 'utf-8');
       expect(content).toContain('context: |');
       expect(content).toContain('  Language: Portuguese (pt-BR)');
@@ -213,10 +248,11 @@ describe('InitCommand', () => {
     });
 
     it('should not overwrite an existing config when --language is used', async () => {
-      const openspecPath = path.join(testDir, 'openspec');
-      await fs.mkdir(path.join(openspecPath, 'changes', 'archive'), { recursive: true });
-      await fs.mkdir(path.join(openspecPath, 'specs'), { recursive: true });
-      const configPath = path.join(openspecPath, 'config.yaml');
+      const openspecPath = getToolDir(testDir);
+      await fs.mkdir(openspecPath, { recursive: true });
+      await fs.mkdir(getArchiveDir(testDir), { recursive: true });
+      await fs.mkdir(getSpecsDir(testDir), { recursive: true });
+      const configPath = getConfigFile(testDir);
       const originalConfig = 'schema: spec-driven\ncontext: |\n  Keep this context exactly.\n';
       await fs.writeFile(configPath, originalConfig, 'utf-8');
 
@@ -229,10 +265,11 @@ describe('InitCommand', () => {
     });
 
     it('should protect an existing config.yml when --language is used', async () => {
-      const openspecPath = path.join(testDir, 'openspec');
-      await fs.mkdir(path.join(openspecPath, 'changes', 'archive'), { recursive: true });
-      await fs.mkdir(path.join(openspecPath, 'specs'), { recursive: true });
-      const configPath = path.join(openspecPath, 'config.yml');
+      const openspecPath = getToolDir(testDir);
+      await fs.mkdir(openspecPath, { recursive: true });
+      await fs.mkdir(getArchiveDir(testDir), { recursive: true });
+      await fs.mkdir(getSpecsDir(testDir), { recursive: true });
+      const configPath = getConfigYmlFile(testDir);
       const originalConfig = 'schema: spec-driven\ncontext: Keep this YAML context.\n';
       await fs.writeFile(configPath, originalConfig, 'utf-8');
 
@@ -274,38 +311,35 @@ describe('InitCommand', () => {
       for (const language of invalidLanguages) {
         expect(() => new InitCommand({ tools: 'none', language })).toThrow();
       }
-      expect(await fileExists(path.join(testDir, 'openspec'))).toBe(false);
+      expect(await fileExists(getToolDir(testDir))).toBe(false);
     });
 
     it('should reject an unwritable language config before creating other files', async () => {
-      const configPath = path.join(
-        FileSystemUtils.canonicalizeExistingPath(testDir),
-        'openspec',
-        'config.yaml'
-      );
+      const configPath = getConfigFile(FileSystemUtils.canonicalizeExistingPath(testDir));
       vi.spyOn(FileSystemUtils, 'canWriteFile').mockResolvedValue(false);
       const initCommand = new InitCommand({ tools: 'claude', force: true, language: 'French' });
 
       await expect(initCommand.execute(testDir)).rejects.toThrow(
-        'Cannot create openspec/config.yaml for --language',
+        `Cannot create ${RELATIVE_CONFIG_FILE} for --language`,
       );
       expect(FileSystemUtils.canWriteFile).toHaveBeenCalledWith(configPath);
-      expect(await fileExists(path.join(testDir, 'openspec'))).toBe(false);
+      expect(await fileExists(getToolDir(testDir))).toBe(false);
       expect(await fileExists(path.join(testDir, '.claude'))).toBe(false);
     });
 
     it.skipIf(process.platform === 'win32')(
       'should reject a dangling language config symlink before creating other files',
       async () => {
-        const openspecPath = path.join(testDir, 'openspec');
-        await fs.mkdir(path.join(openspecPath, 'changes', 'archive'), { recursive: true });
-        await fs.mkdir(path.join(openspecPath, 'specs'), { recursive: true });
-        const configPath = path.join(openspecPath, 'config.yaml');
+        const openspecPath = getToolDir(testDir);
+        await fs.mkdir(openspecPath, { recursive: true });
+        await fs.mkdir(getArchiveDir(testDir), { recursive: true });
+        await fs.mkdir(getSpecsDir(testDir), { recursive: true });
+        const configPath = getConfigFile(testDir);
         await fs.symlink(path.join(testDir, 'missing-config.yaml'), configPath);
         const initCommand = new InitCommand({ tools: 'claude', force: true, language: 'French' });
 
         await expect(initCommand.execute(testDir)).rejects.toThrow(
-          'Cannot create openspec/config.yaml for --language',
+          `Cannot create ${RELATIVE_CONFIG_FILE} for --language`,
         );
         expect((await fs.lstat(configPath)).isSymbolicLink()).toBe(true);
         expect(await fileExists(path.join(testDir, '.claude'))).toBe(false);
@@ -318,7 +352,7 @@ describe('InitCommand', () => {
       const initCommand = new InitCommand({ tools: 'none', force: true, language: 'French' });
 
       await expect(initCommand.execute(testDir)).rejects.toThrow(
-        'Failed to create openspec/config.yaml for --language: disk full',
+        `Failed to create ${RELATIVE_CONFIG_FILE} for --language: disk full`,
       );
     });
 
@@ -327,7 +361,7 @@ describe('InitCommand', () => {
       const initCommand = new InitCommand({ tools: 'none', force: true });
 
       await expect(initCommand.execute(testDir)).resolves.toBeUndefined();
-      expect(await fileExists(path.join(testDir, 'openspec', 'config.yaml'))).toBe(false);
+      expect(await fileExists(getConfigFile(testDir))).toBe(false);
     });
 
     it('should create core profile skills for Claude Code by default', async () => {
@@ -1343,7 +1377,7 @@ describe('InitCommand', () => {
       async (delivery) => {
         // `init --force` over a 1.x project reconciles the same way `update`
         // does: generated commands go, a hand-edited one stays and is listed.
-        await fs.mkdir(path.join(testDir, 'openspec'), { recursive: true });
+        await fs.mkdir(getToolDir(testDir), { recursive: true });
         await writeGeneratedCommands(testDir, 'claude', ['propose', 'apply']);
         const proposeCmd = path.join(testDir, '.claude', 'commands', 'opsx', 'propose.md');
         const applyCmd = path.join(testDir, '.claude', 'commands', 'opsx', 'apply.md');
@@ -1456,7 +1490,7 @@ describe('InitCommand', () => {
       await initCommand.execute(testDir);
 
       // Should create OpenSpec structure but no skills
-      const openspecPath = path.join(testDir, 'openspec');
+      const openspecPath = getToolDir(testDir);
       expect(await directoryExists(openspecPath)).toBe(true);
 
       // No tool-specific directories should be created
@@ -1493,9 +1527,9 @@ describe('InitCommand', () => {
 
     it('should not create config.yaml if it already exists', async () => {
       // Pre-create config.yaml
-      const openspecDir = path.join(testDir, 'openspec');
+      const openspecDir = getToolDir(testDir);
       await fs.mkdir(openspecDir, { recursive: true });
-      const configPath = path.join(openspecDir, 'config.yaml');
+      const configPath = getConfigFile(testDir);
       const existingContent = 'schema: custom-schema\n';
       await fs.writeFile(configPath, existingContent);
 
@@ -1512,7 +1546,7 @@ describe('InitCommand', () => {
 
       await initCommand.execute(newDir);
 
-      const openspecPath = path.join(newDir, 'openspec');
+      const openspecPath = getToolDir(newDir);
       expect(await directoryExists(openspecPath)).toBe(true);
     });
 
@@ -1774,7 +1808,7 @@ describe('InitCommand', () => {
         fs.stat(path.join(testDir, '.github', 'agents', 'openspec.agent.md'))
       ).rejects.toMatchObject({ code: 'ENOENT' });
       // An undecided run leaves config untouched (no githubCopilot key).
-      const config = await fs.readFile(path.join(testDir, 'openspec', 'config.yaml'), 'utf8');
+      const config = await fs.readFile(getConfigFile(testDir), 'utf8');
       expect(config).not.toContain('githubCopilot');
     });
 
@@ -1789,7 +1823,7 @@ describe('InitCommand', () => {
       await expect(
         fs.readFile(path.join(testDir, '.github', 'workflows', 'copilot-setup-steps.yml'), 'utf8')
       ).resolves.toContain('copilot-setup-steps:');
-      const config = await fs.readFile(path.join(testDir, 'openspec', 'config.yaml'), 'utf8');
+      const config = await fs.readFile(getConfigFile(testDir), 'utf8');
       expect(config).toContain('githubCopilot:');
       expect(config).toContain('cloudAgent: true');
     });
@@ -1805,7 +1839,7 @@ describe('InitCommand', () => {
       await expect(
         fs.stat(path.join(testDir, '.github', 'workflows', 'copilot-setup-steps.yml'))
       ).rejects.toMatchObject({ code: 'ENOENT' });
-      const config = await fs.readFile(path.join(testDir, 'openspec', 'config.yaml'), 'utf8');
+      const config = await fs.readFile(getConfigFile(testDir), 'utf8');
       expect(config).toContain('cloudAgent: false');
     });
   });
@@ -2033,7 +2067,7 @@ describe('InitCommand - profile and detection features', () => {
 
   it('should preselect configured tools but not directory-detected tools in extend mode', async () => {
     // Simulate existing OpenSpec project (extend mode).
-    await fs.mkdir(path.join(testDir, 'openspec'), { recursive: true });
+    await fs.mkdir(getToolDir(testDir), { recursive: true });
 
     // Configured with OpenSpec
     const claudeSkillDir = path.join(testDir, '.claude', 'skills', 'sa-explore');
@@ -2130,7 +2164,7 @@ describe('InitCommand - profile and detection features', () => {
     expect(
       await fileExists(path.join(testDir, '.github', 'workflows', 'copilot-setup-steps.yml'))
     ).toBe(true);
-    const config = await fs.readFile(path.join(testDir, 'openspec', 'config.yaml'), 'utf8');
+    const config = await fs.readFile(getConfigFile(testDir), 'utf8');
     expect(config).toContain('cloudAgent: true');
     expect(confirmMock).toHaveBeenCalledWith(
       expect.objectContaining({ message: expect.stringContaining('copilot-setup-steps.yml') })
@@ -2154,7 +2188,7 @@ describe('InitCommand - profile and detection features', () => {
       await fileExists(path.join(testDir, '.agents', 'skills', 'sa-explore', 'SKILL.md'))
     ).toBe(true);
     expect(await directoryExists(path.join(testDir, '.github', 'prompts'))).toBe(false);
-    const config = await fs.readFile(path.join(testDir, 'openspec', 'config.yaml'), 'utf8');
+    const config = await fs.readFile(getConfigFile(testDir), 'utf8');
     expect(config).toContain('cloudAgent: false');
   });
 
@@ -2170,7 +2204,7 @@ describe('InitCommand - profile and detection features', () => {
 
     expect(installGlobalSkillsMock).toHaveBeenCalledTimes(1);
     expect(installGlobalSkillsMock).toHaveBeenCalledWith(expect.objectContaining({ toolIds: ['claude'] }));
-    expect((await fs.readdir(testDir)).sort()).toEqual(['openspec']);
+    expect((await fs.readdir(testDir)).sort()).toEqual([RELATIVE_CHANGES_DIR, RELATIVE_SPECS_DIR, RELATIVE_TOOL_DIR].sort());
     expect(selectMock).not.toHaveBeenCalled();
   });
 
@@ -2231,7 +2265,7 @@ describe('InitCommand - profile and detection features', () => {
     await new InitCommand({ tools: 'github-copilot', force: true, copilotCloud: false }).execute(testDir);
 
     expect(await fileExists(setupStepsPath)).toBe(false);
-    const config = await fs.readFile(path.join(testDir, 'openspec', 'config.yaml'), 'utf8');
+    const config = await fs.readFile(getConfigFile(testDir), 'utf8');
     expect(config).toContain('cloudAgent: false');
   });
 
@@ -2294,7 +2328,7 @@ describe('InitCommand - profile and detection features', () => {
   });
 
   it('should migrate commands-only extend mode to custom profile without injecting propose', async () => {
-    await fs.mkdir(path.join(testDir, 'openspec'), { recursive: true });
+    await fs.mkdir(getToolDir(testDir), { recursive: true });
     await fs.mkdir(path.join(testDir, '.claude', 'commands', 'opsx'), { recursive: true });
     await fs.writeFile(path.join(testDir, '.claude', 'commands', 'opsx', 'explore.md'), '# explore\n');
 

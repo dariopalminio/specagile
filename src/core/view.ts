@@ -1,17 +1,17 @@
 import * as fs from 'fs';
-import * as path from 'path';
 import chalk from 'chalk';
 import { getTaskProgressForChange, formatTaskStatus } from '../utils/task-progress.js';
 import { MarkdownParser } from './parsers/markdown-parser.js';
 import { discoverSpecFiles } from '../utils/spec-discovery.js';
 import { loadChangeContext, formatChangeStatus, type ChangeStatus } from './artifact-graph/index.js';
+import { RELATIVE_TOOL_DIR, getChangesDir, getSpecsDir, getToolDir } from './fork/layout.js';
 
 export class ViewCommand {
   async execute(targetPath: string = '.'): Promise<void> {
-    const openspecDir = path.join(targetPath, 'openspec');
+    const openspecDir = getToolDir(targetPath);
     
     if (!fs.existsSync(openspecDir)) {
-      console.error(chalk.red('No openspec directory found'));
+      console.error(chalk.red(`No ${RELATIVE_TOOL_DIR} directory found`));
       process.exit(1);
     }
 
@@ -19,8 +19,8 @@ export class ViewCommand {
     console.log('═'.repeat(60));
 
     // Get changes and specs data
-    const changesData = await this.getChangesData(openspecDir);
-    const specsData = await this.getSpecsData(openspecDir);
+    const changesData = await this.getChangesData(targetPath);
+    const specsData = await this.getSpecsData(targetPath);
 
     // Display summary metrics
     this.displaySummary(changesData, specsData);
@@ -88,13 +88,12 @@ export class ViewCommand {
     console.log(chalk.dim(`\nUse ${chalk.white('specagile list --changes')} or ${chalk.white('specagile list --specs')} for detailed views`));
   }
 
-  private async getChangesData(openspecDir: string): Promise<{
+  private async getChangesData(projectRoot: string): Promise<{
     draft: Array<{ name: string }>;
     active: Array<{ name: string; progress: { total: number; completed: number }; workflowStatus?: ChangeStatus }>;
     completed: Array<{ name: string }>;
   }> {
-    const changesDir = path.join(openspecDir, 'changes');
-    const projectRoot = path.dirname(openspecDir);
+    const changesDir = getChangesDir(projectRoot);
 
     if (!fs.existsSync(changesDir)) {
       return { draft: [], active: [], completed: [] };
@@ -108,7 +107,7 @@ export class ViewCommand {
 
     for (const entry of entries) {
       if (entry.isDirectory() && entry.name !== 'archive') {
-        const progress = await getTaskProgressForChange(changesDir, entry.name, path.dirname(openspecDir));
+        const progress = await getTaskProgressForChange(changesDir, entry.name, projectRoot);
 
         if (progress.total === 0) {
           // No tasks defined yet - still in planning/draft phase
@@ -149,8 +148,8 @@ export class ViewCommand {
     return { draft, active, completed };
   }
 
-  private async getSpecsData(openspecDir: string): Promise<Array<{ name: string; requirementCount: number }>> {
-    const specsDir = path.join(openspecDir, 'specs');
+  private async getSpecsData(projectRoot: string): Promise<Array<{ name: string; requirementCount: number }>> {
+    const specsDir = getSpecsDir(projectRoot);
     
     if (!fs.existsSync(specsDir)) {
       return [];

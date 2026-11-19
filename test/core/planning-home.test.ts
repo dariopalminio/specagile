@@ -10,6 +10,7 @@ import {
   getChangeDir,
   resolveCurrentPlanningHomeSync,
 } from '../../src/core/planning-home.js';
+import { getChangesDir, getToolDir } from '../helpers/layout.js';
 
 describe('planning home paths', () => {
   const tempDirs: string[] = [];
@@ -24,8 +25,9 @@ describe('planning home paths', () => {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openspec-planning-home-'));
     tempDirs.push(tempDir);
     const repoRoot = path.join(tempDir, 'foreign-tool-repo');
-    const changesDir = path.join(repoRoot, 'openspec', 'changes');
+    const changesDir = getChangesDir(repoRoot);
 
+    fs.mkdirSync(getToolDir(repoRoot), { recursive: true });
     fs.mkdirSync(changesDir, { recursive: true });
     fs.writeFileSync(
       path.join(repoRoot, 'workspace.yaml'),

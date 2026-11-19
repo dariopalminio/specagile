@@ -1,4 +1,5 @@
 import { buildCodeFenceMask } from './code-fence.js';
+import { RELATIVE_CHANGES_DIR } from '../fork/layout.js';
 import {
   normalizeRequirementName,
   REQUIREMENTS_SECTION_HEADER_REGEX as REQUIREMENTS_SECTION_HEADER,
@@ -48,7 +49,7 @@ export function findMainSpecStructureIssues(content: string): MainSpecStructureI
         header: trimmed,
         message:
           `Main spec contains delta header "${trimmed}". ` +
-          'Delta headers are only valid inside openspec/changes/<name>/specs/<capability-path>/spec.md ' +
+          `Delta headers are only valid inside ${RELATIVE_CHANGES_DIR}/<name>/specs/<capability-path>/spec.md ` +
           'and truncate the parsed ## Requirements section.',
       });
       continue;

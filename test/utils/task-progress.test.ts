@@ -10,6 +10,7 @@ import {
   parseTaskLines,
 } from '../../src/utils/task-progress.js';
 import { resolveArtifactOutputs } from '../../src/core/artifact-graph/index.js';
+import { getChangesDir, getProjectSchemasDir } from '../helpers/layout.js';
 
 /**
  * #1202 — task progress is resolved through the tracked-tasks artifact's
@@ -43,7 +44,7 @@ describe('getTaskProgressForChange (#1202 tracked-tasks resolution)', () => {
 
   beforeEach(async () => {
     projectRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-taskprogress-'));
-    changesDir = path.join(projectRoot, 'openspec', 'changes');
+    changesDir = getChangesDir(projectRoot);
     await fs.mkdir(changesDir, { recursive: true });
   });
 
@@ -52,7 +53,7 @@ describe('getTaskProgressForChange (#1202 tracked-tasks resolution)', () => {
   });
 
   async function writeGlobSchema(): Promise<void> {
-    const schemaDir = path.join(projectRoot, 'openspec', 'schemas', 'glob-tasks');
+    const schemaDir = path.join(getProjectSchemasDir(projectRoot), 'glob-tasks');
     await fs.mkdir(schemaDir, { recursive: true });
     await fs.writeFile(path.join(schemaDir, 'schema.yaml'), GLOB_SCHEMA, 'utf-8');
   }
@@ -137,7 +138,7 @@ describe('getTaskProgressForChange (#1202 tracked-tasks resolution)', () => {
   });
 
   it('identifies the tracked artifact by apply.tracks even when it is not named "tasks"', async () => {
-    const schemaDir = path.join(projectRoot, 'openspec', 'schemas', 'custom-track');
+    const schemaDir = path.join(getProjectSchemasDir(projectRoot), 'custom-track');
     await fs.mkdir(schemaDir, { recursive: true });
     await fs.writeFile(
       path.join(schemaDir, 'schema.yaml'),
@@ -583,7 +584,7 @@ describe('getTaskProgressDetailForChange (#205 unreadable reporting)', () => {
 
   beforeEach(async () => {
     root = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-taskdetail-'));
-    changesDir = path.join(root, 'openspec', 'changes');
+    changesDir = getChangesDir(root);
     await fs.mkdir(changesDir, { recursive: true });
   });
 

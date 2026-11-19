@@ -3,14 +3,15 @@ import { promises as fs } from 'fs';
 import os from 'os';
 import path from 'path';
 import { forgetProjectSkills, keepsProjectSkills, rememberProjectSkills } from '../../src/core/project-skills-scope.js';
+import { getConfigFile, getToolDir } from '../helpers/layout.js';
 
 describe("a project's choice to keep its skills in the repository", () => {
   let dir: string;
-  const config = () => path.join(dir, 'openspec', 'config.yaml');
+  const config = () => getConfigFile(dir);
 
   beforeEach(async () => {
     dir = await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-skills-scope-')));
-    await fs.mkdir(path.join(dir, 'openspec'), { recursive: true });
+    await fs.mkdir(getToolDir(dir), { recursive: true });
   });
 
   afterEach(async () => {

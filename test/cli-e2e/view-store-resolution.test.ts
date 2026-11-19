@@ -4,6 +4,7 @@ import path from 'path';
 import { tmpdir } from 'os';
 import { runCLI } from '../helpers/run-cli.js';
 import { cleanupTempPath } from '../helpers/temp-cleanup.js';
+import { getArchiveDir, getChangesDir, getConfigFile, getProjectSchemasDir, getSpecsDir, getToolDir } from '../helpers/layout.js';
 
 /**
  * `openspec view` used to hard-code '.' as its target, so a project whose
@@ -86,27 +87,28 @@ beforeAll(async () => {
   );
   expect(setup.exitCode, setup.stderr).toBe(0);
 
-  const specDir = path.join(storeRoot, 'openspec', 'specs', 'billing');
+  const specDir = path.join(getSpecsDir(storeRoot), 'billing');
   await fs.mkdir(specDir, { recursive: true });
   await fs.writeFile(path.join(specDir, 'spec.md'), SPEC);
 
-  const archiveDir = path.join(storeRoot, 'openspec', 'changes', 'archive', '2026-08-27-store-history');
+  const archiveDir = path.join(getArchiveDir(storeRoot), '2026-08-27-store-history');
   await fs.mkdir(archiveDir, { recursive: true });
   await fs.writeFile(path.join(archiveDir, 'tasks.md'), '- [x] Shipped\n');
 
-  const schemaDir = path.join(storeRoot, 'openspec', 'schemas', SCHEMA_NAME);
+  const schemaDir = path.join(getProjectSchemasDir(storeRoot), SCHEMA_NAME);
   await fs.mkdir(path.join(schemaDir, 'templates'), { recursive: true });
   await fs.writeFile(path.join(schemaDir, 'schema.yaml'), STORE_SCHEMA);
   for (const template of ['proposal.md', 'spec.md', 'design.md', 'tasks.md']) {
     await fs.writeFile(path.join(schemaDir, 'templates', template), '# Billing\n');
   }
+  await fs.mkdir(getToolDir(storeRoot), { recursive: true });
   await fs.writeFile(
-    path.join(storeRoot, 'openspec', 'config.yaml'),
+    getConfigFile(storeRoot),
     `schema: ${SCHEMA_NAME}\n`
   );
 
   for (const changeName of ['billing-update', 'billing-refactor']) {
-    const changeDir = path.join(storeRoot, 'openspec', 'changes', changeName);
+    const changeDir = path.join(getChangesDir(storeRoot), changeName);
     await fs.mkdir(path.join(changeDir, 'planning'), { recursive: true });
     await fs.mkdir(path.join(changeDir, 'execution'), { recursive: true });
     await fs.writeFile(path.join(changeDir, 'planning', 'proposal.md'), '# Update billing\n');
@@ -124,9 +126,9 @@ beforeAll(async () => {
     // billing-update deliberately inherits the store's schema from config.yaml.
   }
 
-  await fs.mkdir(path.join(pointerProject, 'openspec'), { recursive: true });
+  await fs.mkdir(getToolDir(pointerProject), { recursive: true });
   await fs.writeFile(
-    path.join(pointerProject, 'openspec', 'config.yaml'),
+    getConfigFile(pointerProject),
     `store: ${STORE_ID}\nschema: spec-driven\n`
   );
 }, TIMEOUT_MS);
@@ -239,9 +241,9 @@ describe('openspec view root resolution', () => {
       // view has to fall back to the cwd rather than refusing outright.
       // Isolated home: no store is registered, which is the common case.
       const legacy = path.join(base, 'legacy');
-      await fs.mkdir(path.join(legacy, 'openspec'), { recursive: true });
+      await fs.mkdir(getToolDir(legacy), { recursive: true });
       await fs.writeFile(
-        path.join(legacy, 'openspec', 'project.md'),
+        path.join(getToolDir(legacy), 'project.md'),
         '# Project\n'
       );
 
@@ -275,9 +277,9 @@ describe('openspec view root resolution', () => {
       // view is no longer the odd command out: where a registered store makes
       // list demand --store, view now gives the same actionable error.
       const legacy = path.join(base, 'legacy-with-store');
-      await fs.mkdir(path.join(legacy, 'openspec'), { recursive: true });
+      await fs.mkdir(getToolDir(legacy), { recursive: true });
       await fs.writeFile(
-        path.join(legacy, 'openspec', 'project.md'),
+        path.join(getToolDir(legacy), 'project.md'),
         '# Project\n'
       );
 

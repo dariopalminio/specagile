@@ -55,7 +55,7 @@ AI:  Let me look at your styling setup...
 You: Yes, let's do it.
 
 You: /sa-propose add-dark-mode
-AI:  Created openspec/changes/add-dark-mode/
+AI:  Created changes/add-dark-mode/
      ✓ proposal.md — why we're doing this, what's changing
      ✓ specs/       — requirements and scenarios
      ✓ design.md    — technical approach
@@ -71,7 +71,7 @@ AI:  Implementing tasks...
      All tasks complete!
 
 You: /sa-archive
-AI:  Archived to openspec/changes/archive/2025-01-23-add-dark-mode/
+AI:  Archived to changes/archive/2025-01-23-add-dark-mode/
      Specs updated. Ready for the next feature.
 ```
 
@@ -111,7 +111,7 @@ OpenSpec is built with OpenSpec — browse this repo's live [specs](openspec/spe
 
 Solo, OpenSpec keeps you and your AI honest on a single repo. On a team, the hard part moves: a feature spans the API server, the web app, and a shared library; requirements are owned by one team and consumed by others; planning starts before any code exists.
 
-**[Stores](https://openspec.dev/docs/stores)** are the answer — planning in a repo of its own. The same `openspec/` shape you already know (specs and changes), shared by `git push` like anything else. One source of truth your whole team and every coding agent can read, across every repo.
+**[Stores](https://openspec.dev/docs/stores)** are the answer — planning in a repo of its own. The same shape you already know (`specs/` and `changes/`), shared by `git push` like anything else. One source of truth your whole team and every coding agent can read, across every repo.
 
 - **Cross-repo features** — one change, one plan, even when the code lands in three repos.
 - **Shared requirements** — a platform team owns the specs; product teams reference them read-only, right where their coding agent can read them. No drifting wiki.
@@ -159,7 +159,7 @@ All of these are in the default profile. If you want the expanded workflow (`sa-
 
 These are skills. Most tools invoke them as `/sa-propose` and Codex as `$sa-propose`, or you can ask for the work in plain words. `specagile init` prints the right form for the tools you picked — see [Supported Tools](docs-lab/reference/supported-tools.md). Coming from 1.x and its `/opsx:*` commands? See [Upgrade to 2.0](docs-lab/help/upgrade-to-2.md).
 
-**Coming from OpenSpec?** In a project set up with `openspec init`, run `specagile update`. It installs the `sa-*` skills and removes the `openspec-*` skills OpenSpec wrote, as long as they are unchanged; a skill you edited stays where it is and is listed in the output. The project's `openspec/` folder is used as it is. After that, use `specagile` in that project: running `openspec update` there writes the `openspec-*` skills again.
+**Coming from OpenSpec?** In a project set up with `openspec init`, run `specagile update`. It installs the `sa-*` skills and removes the `openspec-*` skills OpenSpec wrote, as long as they are unchanged; a skill you edited stays where it is and is listed in the output. It also moves the project's `openspec/` folder to the SpecAgile layout, with `specs/`, `changes/` and `specagile/` at the root; commit the move (see [Move to the SpecAgile layout](docs-lab/help/move-to-the-specagile-layout.md)). After that, use `specagile` in that project: OpenSpec no longer finds its planning there.
 
 > [!NOTE]
 > Not sure if your tool is supported? [View the full list](https://openspec.dev/docs/supported-tools) – we support 30+ tools and growing.

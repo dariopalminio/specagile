@@ -21,6 +21,7 @@ import type {
 } from '../commands/workflow/index.js';
 import { COMMON_FLAGS } from '../core/completions/shared-flags.js';
 import { CLI_NAME, PACKAGE_NAME } from '../core/fork/identity.js';
+import { getToolDir } from '../core/fork/layout.js';
 
 // Startup cost: every command's implementation, and the packages it uses,
 // loads with `await import()` inside its action. This module and
@@ -475,7 +476,7 @@ program
         failurePayload: options?.specs ? { specs: [], root: null } : { changes: [], root: null },
         // Preserve the cwd fallback for pre-config.yaml projects. The resolver
         // still lets a registered/default store take precedence over it.
-        allowImplicitRoot: existsSync(path.join(process.cwd(), 'openspec', 'project.md')),
+        allowImplicitRoot: existsSync(path.join(getToolDir(process.cwd()), 'project.md')),
       });
       if (!root) {
         return;
@@ -508,8 +509,8 @@ program
   .action(async (options?: { store?: string; storePath?: string }) => {
     try {
       // Implicit cwd fallback stays enabled so `view` keeps accepting the same
-      // directories as `list`/`status` — notably pre-config.yaml `openspec/`
-      // dirs. ViewCommand still reports a missing openspec/ directory itself.
+      // directories as `list`/`status` — notably pre-config.yaml `specagile/`
+      // dirs. ViewCommand still reports a missing specagile/ directory itself.
       const [{ resolveRootForCommand }, { ViewCommand }] = await Promise.all([
         import('../core/root-selection.js'),
         import('../core/view.js'),

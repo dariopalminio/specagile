@@ -1,5 +1,16 @@
 # @fission-ai/openspec
 
+## Unreleased
+
+### Breaking Changes
+
+- **Specs and changes move to the project root.** SpecAgile no longer keeps a project's planning in `openspec/`. Living specs are in `specs/`, changes in `changes/` (archived ones in `changes/archive/`), and SpecAgile's own files (`config.yaml`, `schemas/`, …) in `specagile/`. `specagile init` and `specagile store setup` create this layout, and the CLI messages, the `sa-*` skills and the instructions of the `spec-driven` schema name the new paths. Inside a change nothing differs: its deltas are still in `specs/<capability-path>/spec.md` and its metadata in `.openspec.yaml`. See [Move to the SpecAgile layout](docs-lab/help/move-to-the-specagile-layout.md).
+- **Run `specagile update` once in each project and each store, then commit the move.** Update moves `openspec/specs/` to `specs/`, `openspec/changes/` to `changes/` and everything else in `openspec/` to `specagile/`, without changing any file, then removes the empty `openspec/`. Git records the moves as renames, so the history of each spec follows it. `specagile init` on a project that is already set up moves it the same way, and `specagile update --dry-run` lists each move without making it. This applies to projects set up by an earlier SpecAgile or by OpenSpec. Until a project is moved, the other commands (`list`, `status`, `validate`, `archive`, …) stop and ask you to run `specagile update`; with `--store <id>` and in `specagile store doctor`, they say which store needs it.
+- **Teams: update SpecAgile on every machine before anyone commits the move.** An earlier SpecAgile doesn't find a moved project, and neither does OpenSpec: a repo where part of the team runs `openspec` can no longer share its planning with SpecAgile.
+- **The move is all or nothing.** If `specs/`, `changes/` or `specagile/` already exists at the root with something in it, even a `.gitkeep`, nothing moves and the message names the folder. A repo that keeps its tests in `specs/` is the common case: rename that folder, then run `specagile update` again. On Windows, when another program holds a file open, update retries, and if the file stays open it puts back whatever it had moved and names the file.
+- **A `specs/` folder alone is not a project.** A folder is a SpecAgile project when it has `specagile/` with a config file, or `specagile/` next to `specs/` or `changes/`. In a project that already has the new layout, an `openspec/` folder that is still there is left alone: SpecAgile doesn't read, move or delete it, and `specagile update` says it isn't used.
+- Unchanged: the change metadata file (`.openspec.yaml`), `.openspec-store/`, the global config directory and the suggested store location (`~/openspec/<id>`).
+
 ## 2.1.2
 
 ### Patch Changes

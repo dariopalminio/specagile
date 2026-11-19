@@ -3,6 +3,7 @@ import { promises as fs } from 'fs';
 import os from 'os';
 import path from 'path';
 import { runCLI } from '../helpers/run-cli.js';
+import { RELATIVE_TOOL_DIR, getChangesDir, getConfigFile, getConfigYmlFile, getSpecsDir, getToolDir } from '../helpers/layout.js';
 
 // A config.yaml that is not valid YAML is ignored everywhere with a warning,
 // so `validate` must be the gate that fails on it (#1892).
@@ -12,9 +13,10 @@ describe('validate with an unparseable config.yaml', () => {
 
   beforeEach(async () => {
     testDir = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-validate-config-'));
-    const specDir = path.join(testDir, 'openspec', 'specs', 'alpha');
+    const specDir = path.join(getSpecsDir(testDir), 'alpha');
     await fs.mkdir(specDir, { recursive: true });
-    await fs.mkdir(path.join(testDir, 'openspec', 'changes'), { recursive: true });
+    await fs.mkdir(getChangesDir(testDir), { recursive: true });
+    await fs.mkdir(getToolDir(testDir), { recursive: true });
     await fs.writeFile(
       path.join(specDir, 'spec.md'),
       [
@@ -31,7 +33,7 @@ describe('validate with an unparseable config.yaml', () => {
         '- **THEN** alpha responds',
       ].join('\n')
     );
-    configPath = path.join(testDir, 'openspec', 'config.yaml');
+    configPath = getConfigFile(testDir);
     // The reproduction from #1892: an unterminated quote in a rules item.
     await fs.writeFile(
       configPath,
@@ -49,17 +51,17 @@ describe('validate with an unparseable config.yaml', () => {
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain('Error: Could not parse');
     expect(result.stderr).toContain('Fix: Fix the YAML syntax in');
-    expect(result.stderr).toContain(path.join('openspec', 'config.yaml'));
+    expect(result.stderr).toContain(path.join(RELATIVE_TOOL_DIR, 'config.yaml'));
   });
 
   it('fails the same way when the config is spelled config.yml', async () => {
-    const ymlPath = path.join(testDir, 'openspec', 'config.yml');
+    const ymlPath = getConfigYmlFile(testDir);
     await fs.rename(configPath, ymlPath);
 
     const result = await runCLI(['validate', '--all'], { cwd: testDir });
 
     expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain(path.join('openspec', 'config.yml'));
+    expect(result.stderr).toContain(path.join(RELATIVE_TOOL_DIR, 'config.yml'));
   });
 
   it('leaves other commands warning and carrying on', async () => {
@@ -77,7 +79,7 @@ describe('validate with an unparseable config.yaml', () => {
     expect(output.status).toHaveLength(1);
     expect(output.status[0]).toMatchObject({ severity: 'error', code: 'unparseable_config' });
     expect(output.status[0].message).toContain('Could not parse');
-    expect(output.status[0].message).toContain(path.join('openspec', 'config.yaml'));
+    expect(output.status[0].message).toContain(path.join(RELATIVE_TOOL_DIR, 'config.yaml'));
   });
 
   it('reports a config path that cannot be read as a read failure, not bad YAML', async () => {
@@ -88,7 +90,7 @@ describe('validate with an unparseable config.yaml', () => {
 
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain('Error: Could not read');
-    expect(result.stderr).toContain(path.join('openspec', 'config.yaml'));
+    expect(result.stderr).toContain(path.join(RELATIVE_TOOL_DIR, 'config.yaml'));
     expect(result.stderr).not.toContain('Could not parse');
     expect(result.stderr).not.toContain('YAML syntax');
 

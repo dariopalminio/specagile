@@ -6,6 +6,7 @@ import {
   assertDiscoveredSpecFile,
   assertSpecFileWithin,
 } from '../../src/utils/spec-path-containment.js';
+import { RELATIVE_CHANGES_DIR, RELATIVE_SPECS_DIR, getArchiveDir, getChangesDir, getSpecsDir, getToolDir } from '../helpers/layout.js';
 
 const itWithSymlinks = it.skipIf(process.platform === 'win32');
 
@@ -23,7 +24,9 @@ describe('spec.md containment', () => {
   beforeEach(async () => {
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-spec-containment-'));
     projectDir = path.join(tempDir, 'repo');
-    specsRoot = path.join(projectDir, 'openspec', 'specs');
+    specsRoot = getSpecsDir(projectDir);
+    // SpecAgile: specagile/ is what makes repo/ the project (src/core/fork/layout.ts).
+    await fs.mkdir(getToolDir(projectDir), { recursive: true });
     await fs.mkdir(path.join(specsRoot, 'login'), { recursive: true });
   });
 
@@ -113,7 +116,7 @@ describe('spec.md containment', () => {
     }
 
     itWithSymlinks('reaches the project from a change\'s delta specs', async () => {
-      const deltaSpecs = path.join(projectDir, 'openspec', 'changes', 'c1', 'specs');
+      const deltaSpecs = path.join(getChangesDir(projectDir), 'c1', 'specs');
       const linkPath = await linkedSpecUnder(
         deltaSpecs,
         path.join(projectDir, 'docs', 'shared-delta.md')
@@ -123,14 +126,7 @@ describe('spec.md containment', () => {
     });
 
     itWithSymlinks('reaches the project from an archived change\'s delta specs', async () => {
-      const deltaSpecs = path.join(
-        projectDir,
-        'openspec',
-        'changes',
-        'archive',
-        '2026-01-01-c1',
-        'specs'
-      );
+      const deltaSpecs = path.join(getArchiveDir(projectDir), '2026-01-01-c1', 'specs');
       const linkPath = await linkedSpecUnder(
         deltaSpecs,
         path.join(projectDir, 'docs', 'shared-delta.md')
@@ -143,8 +139,8 @@ describe('spec.md containment', () => {
       'does not widen for a directory that merely shares the name `openspec`',
       async () => {
         // A store kept at `<somewhere>/openspec/my-store` must not hand out
-        // `<somewhere>` as its boundary: only `openspec/specs` and
-        // `openspec/changes` are planning roots.
+        // `<somewhere>` as its boundary: without a specagile/ folder there is
+        // no project to name.
         const storeSpecs = path.join(tempDir, 'openspec', 'my-store', 'specs');
         const linkPath = await linkedSpecUnder(
           storeSpecs,
@@ -156,6 +152,45 @@ describe('spec.md containment', () => {
         );
       }
     );
+  });
+
+  // SpecAgile: the project is the first ancestor, reached through specs/ or
+  // changes/, that has a specagile/ folder (src/utils/spec-path-containment.ts).
+  describe('the project boundary in the SpecAgile layout', () => {
+    async function linkedSpec(specs: string, target: string): Promise<string> {
+      await fs.mkdir(path.join(specs, 'login'), { recursive: true });
+      await fs.mkdir(path.dirname(target), { recursive: true });
+      await fs.writeFile(target, '# login\n');
+      const linkPath = path.join(specs, 'login', 'spec.md');
+      await fs.symlink(path.relative(path.join(specs, 'login'), target), linkPath);
+      return linkPath;
+    }
+
+    itWithSymlinks('accepts a link that stays inside the project', async () => {
+      const linkPath = await linkedSpec(path.join(projectDir, 'specs'), path.join(projectDir, 'docs', 'login.md'));
+
+      expect(() => assertDiscoveredSpecFile(path.join(projectDir, 'specs'), linkPath)).not.toThrow();
+    });
+
+    itWithSymlinks('rejects a link that leaves the project', async () => {
+      const linkPath = await linkedSpec(path.join(projectDir, 'specs'), path.join(tempDir, 'outside', 'login.md'));
+
+      expect(() => assertDiscoveredSpecFile(path.join(projectDir, 'specs'), linkPath)).toThrow(
+        'Path is outside the allowed directory'
+      );
+    });
+
+    itWithSymlinks('takes a store kept at <tmp>/openspec/team as the boundary', async () => {
+      const storeRoot = path.join(tempDir, 'openspec', 'team');
+      await fs.mkdir(path.join(storeRoot, 'specagile'), { recursive: true });
+      const storeSpecs = path.join(storeRoot, 'specs');
+      const inside = await linkedSpec(storeSpecs, path.join(storeRoot, 'docs', 'login.md'));
+      expect(() => assertDiscoveredSpecFile(storeSpecs, inside)).not.toThrow();
+
+      await fs.rm(path.join(storeSpecs, 'login'), { recursive: true });
+      const outside = await linkedSpec(storeSpecs, path.join(tempDir, 'openspec', 'elsewhere.md'));
+      expect(() => assertDiscoveredSpecFile(storeSpecs, outside)).toThrow('Path is outside the allowed directory');
+    });
   });
 
   itWithSymlinks(

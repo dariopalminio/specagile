@@ -32,6 +32,7 @@ import {
 import { discoverSpecFiles } from '../utils/spec-discovery.js';
 import { FileSystemUtils } from '../utils/file-system.js';
 import { assertSpecFileWithin } from '../utils/spec-path-containment.js';
+import { getRootOfSpecsDir, relativeSpecFile } from './fork/layout.js';
 import { matchLineEnding } from '../utils/line-endings.js';
 
 // -----------------------------------------------------------------------------
@@ -130,13 +131,13 @@ export async function findSpecUpdates(changeDir: string, mainSpecsDir: string): 
   for (const { id, specFile } of discovered) {
     const targetFile = path.join(mainSpecsDir, ...id.split('/'), 'spec.md');
     const source = resolveTrustedSpecPath(changeSpecsDir, specFile);
-    // Main specs always live at `<project root>/openspec/specs`, so the
-    // project root is the grandparent - a linked capability directory may not
-    // leave it.
+    // Main specs always live at `<project root>/specs` (src/core/fork/layout.ts),
+    // so the project root follows from it - a linked capability directory may
+    // not leave it.
     const target = resolveTrustedSpecPath(
       mainSpecsDir,
       targetFile,
-      path.dirname(path.dirname(mainSpecsDir))
+      getRootOfSpecsDir(mainSpecsDir)
     );
 
     // Check if target exists
@@ -1161,7 +1162,7 @@ export async function retireSpec(
     await pruneEmptyDirs(path.dirname(update.target), mainSpecsDir);
   }
 
-  const nominal = options.displayPath ?? `openspec/specs/${update.id}/spec.md`;
+  const nominal = options.displayPath ?? relativeSpecFile(update.id);
   if (!options.silent) {
     console.log(`Retiring ${nominal}: all requirements removed.`);
   }
@@ -1303,7 +1304,7 @@ export async function writeUpdatedSpec(
   if (options.silent) return;
 
   const specName = update.id;
-  console.log(`Applying changes to ${options.displayPath ?? `openspec/specs/${specName}/spec.md`}:`);
+  console.log(`Applying changes to ${options.displayPath ?? relativeSpecFile(specName)}:`);
   if (counts.added) console.log(`  + ${counts.added} added`);
   if (counts.modified) console.log(`  ~ ${counts.modified} modified`);
   if (counts.removed) console.log(`  - ${counts.removed} removed`);

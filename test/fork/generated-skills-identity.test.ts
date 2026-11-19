@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import { describe, expect, it } from 'vitest';
 import { parse as parseYaml } from 'yaml';
 
@@ -51,6 +53,8 @@ const escapeForRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\
 const FORMER_CLI_INVOCATION = new RegExp(
   `(?<![\\w/.@-])openspec (${CLI_WORDS.map(escapeForRegExp).join('|')})(?![\\w-])`
 );
+// `openspec/` as a folder: not `.openspec-store/` or `~/openspec/<id>` (a store's suggested place).
+const FORMER_LAYOUT_PATH = /(?<![\w.~-])openspec\//;
 const FORMER_NAME = new RegExp(
   `(?<![\\w.-])(${FORMER_NAMES.map(escapeForRegExp).join('|')})(?![\\w-])`
 );
@@ -77,6 +81,8 @@ describe.each(TARGETS)('skills generated for $label', ({ transformer, specifyRef
 
       expect(content.match(FORMER_NAME)?.[0], 'names a former skill').toBeUndefined();
       expect(content.match(FORMER_CLI_INVOCATION)?.[0], 'invokes the former CLI').toBeUndefined();
+      // SpecAgile: the layout of src/core/fork/layout.ts; internal names stay.
+      expect(content.match(FORMER_LAYOUT_PATH)?.[0], 'names a path under openspec/').toBeUndefined();
     }
   );
 
@@ -91,13 +97,20 @@ describe.each(TARGETS)('skills generated for $label', ({ transformer, specifyRef
 });
 
 describe('propose skill commands', () => {
-  it('runs specagile and keeps the project paths', () => {
+  it('runs specagile and reads the config at specagile/config.yaml', () => {
     const propose = getSkillTemplates().find((entry) => entry.workflowId === 'propose')!;
     const content = generateSkillContent(propose.template, '9.9.9-test', transformToSharedSkillReferences);
     expect(content).toContain('specagile new change');
     expect(content).toContain('specagile status');
     expect(content).toContain('specagile instructions');
-    expect(content).toContain('openspec/config.yaml');
+    expect(content).toContain('<root.path>/specagile/config.yaml');
+    expect(content).not.toContain('openspec/');
+  });
+
+  it('sync places each living spec at <planningHome.root>/specs/', () => {
+    const sync = getSkillTemplates().find((entry) => entry.workflowId === 'sync')!;
+    const content = generateSkillContent(sync.template, '9.9.9-test', transformToSharedSkillReferences);
+    expect(content).toContain('<planningHome.root>/specs/<capability-path>/spec.md');
   });
 
   it('names the "specagile implement" trigger phrase for the implement skill', () => {
@@ -118,5 +131,32 @@ describe('propose skill commands', () => {
       generateSkillContent(entry.template, '9.9.9-test', codex.transformer)
     );
     expect(texts.some((text) => text.includes('$sa-archive'))).toBe(true);
+  });
+});
+
+// SpecAgile: the static distribution that `init` and `update` fetch.
+describe('the skills/ distribution', () => {
+  const skillsRoot = path.resolve(__dirname, '..', '..', 'skills');
+
+  function* filesUnder(dir: string): Generator<string> {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) yield* filesUnder(full);
+      else yield full;
+    }
+  }
+
+  it('names no path under openspec/', () => {
+    const found: string[] = [];
+    for (const file of filesUnder(skillsRoot)) {
+      const rel = path.relative(skillsRoot, file).split(path.sep).join('/');
+      fs.readFileSync(file, 'utf-8')
+        .split(/\r?\n/)
+        .forEach((line, index) => {
+          const match = line.match(FORMER_LAYOUT_PATH);
+          if (match) found.push(`skills/${rel}:${index + 1}`);
+        });
+    }
+    expect(found).toEqual([]);
   });
 });

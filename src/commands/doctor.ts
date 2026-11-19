@@ -15,6 +15,7 @@ import {
   resolveConfigFilePath,
 } from '../core/project-config.js';
 import { findRepoPlanningRootSync } from '../core/planning-home.js';
+import { getConfigFilePaths } from '../core/fork/layout.js';
 import { gatherRelationshipData } from './shared-gather.js';
 import {
   inspectRelationships,
@@ -22,7 +23,6 @@ import {
   type RelationshipHealth,
 } from '../core/relationship-health.js';
 import { emitFailure, printJson } from './shared-output.js';
-import * as path from 'node:path';
 
 const FAILURE_PAYLOAD = { root: null, store: null, references: [] };
 
@@ -95,7 +95,7 @@ async function gatherHealth(
       if (fields.length > 0) {
         const filePath =
           resolveConfigFilePath(pointerRoot) ??
-          path.join(pointerRoot, 'openspec', 'config.yaml');
+          getConfigFilePaths(pointerRoot)[0];
         input.inertPointerDeclarations = { filePath, fields };
       }
     }

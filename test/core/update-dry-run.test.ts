@@ -6,7 +6,7 @@ import { UpdateCommand } from '../../src/core/update.js';
 import { InitCommand } from '../../src/core/init.js';
 import { ALL_WORKFLOWS } from '../../src/core/profiles.js';
 import { getGlobalConfigPath, type GlobalConfig } from '../../src/core/global-config.js';
-import type { UpdatePlanChange } from '../../src/core/update-plan.js';
+import { formatUpdatePlan, type UpdatePlanChange } from '../../src/core/update-plan.js';
 import { CommandAdapterRegistry, generateCommands } from '../../src/core/command-generation/index.js';
 import { getCommandContents } from '../../src/core/shared/skill-generation.js';
 import {
@@ -14,6 +14,7 @@ import {
   persistCopilotCloudOptIn,
 } from '../../src/core/github-copilot/cloud-agent.js';
 import { releasedCodexPrompt } from '../helpers/released-codex-prompt.js';
+import { RELATIVE_TOOL_DIR, getToolDir } from '../helpers/layout.js';
 
 const { confirmMock } = vi.hoisted(() => ({ confirmMock: vi.fn() }));
 
@@ -187,6 +188,52 @@ describe('openspec update --dry-run', () => {
     return plan;
   }
 
+  // SpecAgile: the former openspec/ layout (src/core/fork/layout-migration.ts).
+  describe('a project with the former layout', () => {
+    /** The initialized project, as SpecAgile 2.1 kept it: everything in openspec/. */
+    async function toFormerLayout(): Promise<void> {
+      const former = path.join(testDir, 'openspec');
+      await fs.mkdir(former);
+      await fs.rename(path.join(testDir, 'specs'), path.join(former, 'specs'));
+      await fs.rename(path.join(testDir, 'changes'), path.join(former, 'changes'));
+      await fs.mkdir(path.join(former, 'changes', 'add-login'));
+      await fs.writeFile(path.join(former, 'changes', 'add-login', 'proposal.md'), '# add-login\n');
+      for (const entry of await fs.readdir(getToolDir(testDir))) {
+        await fs.rename(path.join(getToolDir(testDir), entry), path.join(former, entry));
+      }
+      await fs.rmdir(getToolDir(testDir));
+    }
+
+    it('plans the move exactly as the real update makes it', async () => {
+      await toFormerLayout();
+
+      const plan = await expectFullPlanMatchesRealUpdate();
+
+      expect(plan.changes).toContainEqual(expect.objectContaining({ path: 'openspec/changes/add-login/proposal.md', action: 'delete' }));
+      expect(plan.changes).toContainEqual(expect.objectContaining({ path: 'changes/add-login/proposal.md', action: 'add' }));
+      const note = plan.notes.find((entry) => entry.code === 'layout-migration');
+      expect(note?.message).toContain('openspec/specs/ → specs/');
+      expect(note?.message).toContain('openspec/changes/ → changes/');
+      expect(formatUpdatePlan(plan)).toContain('Update would move the former layout');
+    });
+
+    it('reports a specs/ folder in the way as the plan failure, and changes nothing', async () => {
+      await toFormerLayout();
+      await fs.mkdir(path.join(testDir, 'specs'));
+      await fs.writeFile(path.join(testDir, 'specs', 'login.test.ts'), 'test\n');
+      const before = await snapshotTree(testDir);
+
+      const plan = await new UpdateCommand({ dryRun: true }).plan(testDir);
+
+      expect(await snapshotTree(testDir)).toEqual(before);
+      expect(plan.changes).toEqual([]);
+      expect(plan.failures).toEqual([
+        expect.objectContaining({ tool: 'specagile', error: expect.stringContaining('specs/ already exists with content') }),
+      ]);
+      expect(formatUpdatePlan(plan)).toContain('Would fail: specagile (Cannot move openspec/');
+    });
+  });
+
   // #2089: the deprecation notice is progress output, so a dry run, which
   // prints only its plan, keeps it out.
   it('prints no command deprecation notice while planning', async () => {
@@ -357,7 +404,7 @@ describe('openspec update --dry-run', () => {
       legacyBlock
     );
     await fs.writeFile(path.join(testDir, 'CLAUDE.md'), `# Project\n\n${legacyBlock}`);
-    await fs.writeFile(path.join(testDir, 'openspec', 'AGENTS.md'), 'legacy agents\n');
+    await fs.writeFile(path.join(getToolDir(testDir), 'AGENTS.md'), 'legacy agents\n');
 
     const changes = await expectPlanMatchesRealUpdate({ force: true });
 
@@ -377,7 +424,7 @@ describe('openspec update --dry-run', () => {
     });
     expect(changes).toContainEqual({ path: 'CLAUDE.md', action: 'update', tool: 'openspec' });
     expect(changes).toContainEqual({
-      path: 'openspec/AGENTS.md',
+      path: `${RELATIVE_TOOL_DIR}/AGENTS.md`,
       action: 'delete',
       tool: 'openspec',
     });

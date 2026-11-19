@@ -17,6 +17,7 @@ import { saveGlobalConfig } from '../../src/core/global-config.js';
 import { envWithoutGitRepoLocation } from '../../src/core/store/git.js';
 import { createFakeTool } from '../helpers/fake-tool.js';
 import { withPrependedPathEnv } from '../helpers/path-env.js';
+import { RELATIVE_CONFIG_FILE, getArchiveDir, getChangesDir, getConfigFile, getConfigYmlFile, getSpecsDir, getToolDir } from '../helpers/layout.js';
 
 describe('resolveOpenSpecRoot', () => {
   let tempDir: string;
@@ -67,9 +68,10 @@ describe('resolveOpenSpecRoot', () => {
   }
 
   function createOpenSpecRoot(rootDir: string): void {
-    fs.mkdirSync(path.join(rootDir, 'openspec', 'specs'), { recursive: true });
-    fs.mkdirSync(path.join(rootDir, 'openspec', 'changes', 'archive'), { recursive: true });
-    fs.writeFileSync(path.join(rootDir, 'openspec', 'config.yaml'), 'schema: spec-driven\n');
+    fs.mkdirSync(getSpecsDir(rootDir), { recursive: true });
+    fs.mkdirSync(getArchiveDir(rootDir), { recursive: true });
+    fs.mkdirSync(getToolDir(rootDir), { recursive: true });
+    fs.writeFileSync(getConfigFile(rootDir), 'schema: spec-driven\n');
   }
 
   async function registerStore(
@@ -132,9 +134,9 @@ describe('resolveOpenSpecRoot', () => {
     expect(root.source).toBe('store');
     expect(root.storeId).toBe('team-context');
     expect(root.path).toBe(storeRoot);
-    expect(root.changesDir).toBe(path.join(storeRoot, 'openspec', 'changes'));
-    expect(root.specsDir).toBe(path.join(storeRoot, 'openspec', 'specs'));
-    expect(root.archiveDir).toBe(path.join(storeRoot, 'openspec', 'changes', 'archive'));
+    expect(root.changesDir).toBe(getChangesDir(storeRoot));
+    expect(root.specsDir).toBe(getSpecsDir(storeRoot));
+    expect(root.archiveDir).toBe(getArchiveDir(storeRoot));
     expect(root.defaultSchema).toBe('spec-driven');
   });
 
@@ -176,7 +178,7 @@ describe('resolveOpenSpecRoot', () => {
     );
     expect(error.diagnostic.fix).toContain('store doctor');
     // No scaffolding or repair happened.
-    expect(fs.existsSync(path.join(storeRoot, 'openspec'))).toBe(false);
+    expect(fs.existsSync(getToolDir(storeRoot))).toBe(false);
   });
 
   it('rejects a store whose metadata id does not match the registry id', async () => {
@@ -236,7 +238,7 @@ describe('resolveOpenSpecRoot', () => {
 
     expect(root.source).toBe('nearest');
     expect(root.path).toBe(repoRoot);
-    expect(root.changesDir).toBe(path.join(repoRoot, 'openspec', 'changes'));
+    expect(root.changesDir).toBe(getChangesDir(repoRoot));
     expect(root.defaultSchema).toBe('spec-driven');
   });
 
@@ -266,7 +268,7 @@ describe('resolveOpenSpecRoot', () => {
     expect(error.message).toContain('--store <id>');
     expect(error.message).toContain('specagile init');
     // No scaffolding happened.
-    expect(fs.existsSync(path.join(appRepo, 'openspec'))).toBe(false);
+    expect(fs.existsSync(getToolDir(appRepo))).toBe(false);
   });
 
   it('allows an implicit root only when requested', async () => {
@@ -305,8 +307,8 @@ describe('resolveOpenSpecRoot', () => {
   describe('declared store fallback (3.2)', () => {
     function createPointerDir(relativePath: string, configBody: string): string {
       const dir = mkdir(relativePath);
-      fs.mkdirSync(path.join(dir, 'openspec'), { recursive: true });
-      fs.writeFileSync(path.join(dir, 'openspec', 'config.yaml'), configBody);
+      fs.mkdirSync(getToolDir(dir), { recursive: true });
+      fs.writeFileSync(getConfigFile(dir), configBody);
       return dir;
     }
 
@@ -320,8 +322,8 @@ describe('resolveOpenSpecRoot', () => {
       expect(root.storeId).toBe('team-context');
       expect(root.path).toBe(storeRoot);
       // The pointer dir is untouched.
-      expect(fs.existsSync(path.join(pointerDir, 'openspec', 'specs'))).toBe(false);
-      expect(fs.existsSync(path.join(pointerDir, 'openspec', 'changes'))).toBe(false);
+      expect(fs.existsSync(getSpecsDir(pointerDir))).toBe(false);
+      expect(fs.existsSync(getChangesDir(pointerDir))).toBe(false);
     });
 
     it('lets explicit --store beat the pointer with source store', async () => {
@@ -343,8 +345,9 @@ describe('resolveOpenSpecRoot', () => {
       await registerStore('team-context');
       const repo = mkdir('real-repo');
       createOpenSpecRoot(repo);
+      fs.mkdirSync(getToolDir(repo), { recursive: true });
       fs.writeFileSync(
-        path.join(repo, 'openspec', 'config.yaml'),
+        getConfigFile(repo),
         'schema: spec-driven\nstore: team-context\n'
       );
 
@@ -388,9 +391,9 @@ describe('resolveOpenSpecRoot', () => {
         resolveOpenSpecRoot({ startPath: nonString, globalDataDir }),
         'invalid_store_pointer'
       );
-      expect(error.message).toContain(path.join(nonString, 'openspec', 'config.yaml'));
+      expect(error.message).toContain(getConfigFile(nonString));
       expect(error.message).toContain('the store key must be a single store id string');
-      expect(fs.existsSync(path.join(nonString, 'openspec', 'changes'))).toBe(false);
+      expect(fs.existsSync(getChangesDir(nonString))).toBe(false);
 
       const unparseable = createPointerDir('bad-yaml', 'store: [unclosed');
       const yamlError = await expectRootSelectionError(
@@ -429,14 +432,14 @@ describe('resolveOpenSpecRoot', () => {
       await registerStore('team-context');
       cases.push([
         'unknown_store',
-        path.join(unknownDir, 'openspec', 'config.yaml'),
+        getConfigFile(unknownDir),
         () => resolveOpenSpecRoot({ startPath: unknownDir, globalDataDir }),
       ]);
 
       const invalidDir = createPointerDir('invalid-pointer', 'store: "BAD ID"\n');
       cases.push([
         'invalid_store_id',
-        path.join(invalidDir, 'openspec', 'config.yaml'),
+        getConfigFile(invalidDir),
         () => resolveOpenSpecRoot({ startPath: invalidDir, globalDataDir }),
       ]);
 
@@ -444,7 +447,7 @@ describe('resolveOpenSpecRoot', () => {
       const unhealthyDir = createPointerDir('unhealthy-pointer', 'store: hollow-context\n');
       cases.push([
         'unhealthy_store_root',
-        path.join(unhealthyDir, 'openspec', 'config.yaml'),
+        getConfigFile(unhealthyDir),
         () => resolveOpenSpecRoot({ startPath: unhealthyDir, globalDataDir }),
       ]);
 
@@ -452,7 +455,7 @@ describe('resolveOpenSpecRoot', () => {
       const mismatchDir = createPointerDir('mismatch-pointer', 'store: mismatched-context\n');
       cases.push([
         'store_identity_mismatch',
-        path.join(mismatchDir, 'openspec', 'config.yaml'),
+        getConfigFile(mismatchDir),
         () => resolveOpenSpecRoot({ startPath: mismatchDir, globalDataDir }),
       ]);
 
@@ -475,8 +478,9 @@ describe('resolveOpenSpecRoot', () => {
 
     it('resolves one hop only - a store with its own pointer is the destination', async () => {
       const storeRoot = await registerStore('team-context');
+      fs.mkdirSync(getToolDir(storeRoot), { recursive: true });
       fs.writeFileSync(
-        path.join(storeRoot, 'openspec', 'config.yaml'),
+        getConfigFile(storeRoot),
         'schema: spec-driven\nstore: somewhere-else\n'
       );
       const pointerDir = createPointerDir('app-repo', 'store: team-context\n');
@@ -495,14 +499,14 @@ describe('resolveOpenSpecRoot', () => {
 
     it('names a .yml origin when that file was read', async () => {
       const dir = mkdir('yml-pointer');
-      fs.mkdirSync(path.join(dir, 'openspec'), { recursive: true });
-      fs.writeFileSync(path.join(dir, 'openspec', 'config.yml'), 'store: ghost\n');
+      fs.mkdirSync(getToolDir(dir), { recursive: true });
+      fs.writeFileSync(getConfigYmlFile(dir), 'store: ghost\n');
 
       const error = await expectRootSelectionError(
         resolveOpenSpecRoot({ startPath: dir, globalDataDir }),
         'no_registered_stores'
       );
-      expect(error.message).toContain(path.join(dir, 'openspec', 'config.yml'));
+      expect(error.message).toContain(getConfigYmlFile(dir));
     });
 
     // The generated workflows' project check (#1645) reads `root: null` as
@@ -598,9 +602,9 @@ describe('resolveOpenSpecRoot', () => {
       await registerStore('other-plans');
       setDefaultStore('other-plans');
       const pointerDir = mkdir('app-repo');
-      fs.mkdirSync(path.join(pointerDir, 'openspec'), { recursive: true });
+      fs.mkdirSync(getToolDir(pointerDir), { recursive: true });
       fs.writeFileSync(
-        path.join(pointerDir, 'openspec', 'config.yaml'),
+        getConfigFile(pointerDir),
         'store: team-plans\n'
       );
 
@@ -704,7 +708,7 @@ describe('resolveOpenSpecRoot', () => {
     function expectSuggests(error: RootSelectionError, id: string): void {
       expect(error.message).toContain(`matches the registered store "${id}"`);
       expect(error.message).toContain(`--store ${id}`);
-      expect(error.message).toContain(`"store: ${id}" to openspec/config.yaml`);
+      expect(error.message).toContain(`"store: ${id}" to ${RELATIVE_CONFIG_FILE}`);
       expect(error.diagnostic.fix).toContain(`--store ${id}`);
     }
 
@@ -738,8 +742,8 @@ describe('resolveOpenSpecRoot', () => {
         'code/my-project',
         'https://github.com/team/my-project.git'
       );
-      fs.mkdirSync(path.join(repo, 'openspec'), { recursive: true });
-      fs.writeFileSync(path.join(repo, 'openspec', 'config.yaml'), 'store: my-project\n');
+      fs.mkdirSync(getToolDir(repo), { recursive: true });
+      fs.writeFileSync(getConfigFile(repo), 'store: my-project\n');
 
       const root = await resolveOpenSpecRoot({ startPath: repo, globalDataDir });
 
@@ -865,4 +869,115 @@ describe('resolveOpenSpecRoot', () => {
     );
   });
 
+});
+
+// SpecAgile: the layout of src/core/fork/layout.ts. A root is a folder with
+// specagile/ (with its config, or beside specs/ or changes/); the former
+// openspec/ layout is only detected, to ask for `specagile update`.
+describe('the root is recognized by specagile/', () => {
+  let box: string;
+  let globalDataDir: string;
+  let savedXdgConfigHome: string | undefined;
+
+  beforeEach(() => {
+    box = fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(), 'specagile-root-')));
+    globalDataDir = path.join(box, 'global-data');
+    savedXdgConfigHome = process.env.XDG_CONFIG_HOME;
+    process.env.XDG_CONFIG_HOME = path.join(box, 'xdg-config');
+  });
+
+  afterEach(() => {
+    if (savedXdgConfigHome === undefined) delete process.env.XDG_CONFIG_HOME;
+    else process.env.XDG_CONFIG_HOME = savedXdgConfigHome;
+    fs.rmSync(box, { recursive: true, force: true });
+  });
+
+  function dir(...segments: string[]): string {
+    const target = path.join(box, ...segments);
+    fs.mkdirSync(target, { recursive: true });
+    return target;
+  }
+
+  async function failure(startPath: string): Promise<RootSelectionError> {
+    const error = await resolveOpenSpecRoot({ startPath, globalDataDir, allowImplicitRoot: false }).catch(
+      (caught: unknown) => caught
+    );
+    expect(error).toBeInstanceOf(RootSelectionError);
+    return error as RootSelectionError;
+  }
+
+  it('resolves the project from a subfolder, by its specagile/ folder', async () => {
+    const project = dir('project');
+    fs.mkdirSync(path.join(project, 'specagile'));
+    fs.writeFileSync(path.join(project, 'specagile', 'config.yaml'), 'schema: spec-driven\n');
+    fs.mkdirSync(path.join(project, 'changes', 'add-login'), { recursive: true });
+    const nested = dir('project', 'src', 'components');
+
+    const root = await resolveOpenSpecRoot({ startPath: nested, globalDataDir });
+
+    expect(root.source).toBe('nearest');
+    expect(fs.realpathSync.native(root.path)).toBe(fs.realpathSync.native(project));
+    expect(root.changesDir).toBe(path.join(root.path, 'changes'));
+    expect(root.specsDir).toBe(path.join(root.path, 'specs'));
+    expect(root.archiveDir).toBe(path.join(root.path, 'changes', 'archive'));
+  });
+
+  it('counts specagile/ beside specs/ or changes/ as a root, even without a config', async () => {
+    const project = dir('project');
+    fs.mkdirSync(path.join(project, 'specagile'));
+    fs.mkdirSync(path.join(project, 'specs'));
+
+    const root = await resolveOpenSpecRoot({ startPath: dir('project', 'lib'), globalDataDir });
+
+    expect(fs.realpathSync.native(root.path)).toBe(fs.realpathSync.native(project));
+  });
+
+  it('never takes a repo with a specs/ folder of tests for a root', async () => {
+    const repo = dir('repo');
+    fs.mkdirSync(path.join(repo, 'specs'));
+    fs.writeFileSync(path.join(repo, 'specs', 'login.spec.ts'), 'test\n');
+
+    expect((await failure(repo)).diagnostic.code).toBe('no_openspec_root');
+  });
+
+  it('never takes a home folder with a specagile/ clone and no config for a root', async () => {
+    const home = dir('home');
+    fs.mkdirSync(path.join(home, 'specagile', 'src'), { recursive: true });
+    fs.writeFileSync(path.join(home, 'specagile', 'package.json'), '{}\n');
+
+    expect((await failure(dir('home', 'notes'))).diagnostic.code).toBe('no_openspec_root');
+  });
+
+  it('stops at a folder with only the former layout and asks for specagile update', async () => {
+    const project = dir('project');
+    fs.mkdirSync(path.join(project, 'openspec', 'changes', 'add-login'), { recursive: true });
+    // A root further up must not be reached: writes would land there.
+    fs.mkdirSync(path.join(box, 'specagile'));
+    fs.writeFileSync(path.join(box, 'specagile', 'config.yaml'), 'schema: spec-driven\n');
+
+    const error = await failure(dir('project', 'src'));
+
+    expect(error.diagnostic.code).toBe('former_layout');
+    expect(error.diagnostic.fix).toBe('Run specagile update');
+    expect(error.message).toContain(fs.realpathSync.native(project));
+    expect(error.message).toContain('specagile update');
+  });
+
+  it('takes the layout in force when both layouts sit in the same root', async () => {
+    const project = dir('project');
+    fs.mkdirSync(path.join(project, 'specagile'));
+    fs.writeFileSync(path.join(project, 'specagile', 'config.yaml'), 'schema: spec-driven\n');
+    fs.mkdirSync(path.join(project, 'openspec', 'changes', 'old-change'), { recursive: true });
+
+    const root = await resolveOpenSpecRoot({ startPath: project, globalDataDir });
+
+    expect(root.changesDir).toBe(path.join(root.path, 'changes'));
+  });
+
+  it('never takes a home folder that only holds stores for the former layout', async () => {
+    const home = dir('home');
+    fs.mkdirSync(path.join(home, 'openspec', 'team', '.openspec-store'), { recursive: true });
+
+    expect((await failure(dir('home', 'notes'))).diagnostic.code).toBe('no_openspec_root');
+  });
 });

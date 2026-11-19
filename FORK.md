@@ -134,7 +134,7 @@ SpecAgile is the npm package `specagile` (`npm install -g specagile`), version 2
 | `new`, `continue`, `ff`, `bulk-archive`, `update` | `sa-<workflow>-change` | `openspec-<workflow>-change` |
 | `sync` | `sa-sync-specs` | `openspec-sync-specs` |
 
-Workflow ids (`apply`, `verify`, …), the project's `openspec/` folder, internal files (`.openspec-target`, `.openspec-store/`), the global config directory and "OpenSpec" in prose keep upstream's names.
+Workflow ids (`apply`, `verify`, …), internal files (`.openspec.yaml`, `.openspec-target`, `.openspec-store/`), the global config directory and "OpenSpec" in prose keep upstream's names. The project's folders do not: see [Project layout](#project-layout).
 
 Because it is published on its own, SpecAgile also differs from upstream in what it installs and sends:
 
@@ -154,7 +154,9 @@ Publishing (`npm publish`) is the maintainer's step. Upstream's release workflow
 - `CLI_NAME`, and the two tables `SKILL_NAME_BY_WORKFLOW` (`sa-*`) and `FORMER_SKILL_NAME_BY_WORKFLOW` (`openspec-*`). Both are typed `Record<WorkflowId, …>`, so a workflow upstream adds fails the build until it has a name in each.
 - `KNOWN_SKILL_NAMES`: current and former names, for detecting a set-up project, never for deciding what to write.
 - `CLI_SUBCOMMANDS` (every subcommand of `src/cli/index.ts`, hidden ones included), and `CLI_WORDS`: those, `--version` and the trigger verbs (`apply`, `implement`, …).
-- `applyForkIdentity(text)`: turns each former skill name into its `sa-*` name, each `openspec <word in CLI_WORDS>` into `specagile <word>`, and three exact texts (`Bash(openspec:*)`, `Requires openspec CLI.`, `Get-Command openspec `). Anything outside the tables, such as `openspec/changes/` or `openspec-helpers`, is left as written.
+- `applyForkNames(text)`: turns each former skill name into its `sa-*` name, each `openspec <word in CLI_WORDS>` into `specagile <word>`, and three exact texts (`Bash(openspec:*)`, `Requires openspec CLI.`, `Get-Command openspec `). Anything outside the tables, such as `openspec/changes/` or `openspec-helpers`, is left as written. This is the whole translation SpecAgile 2.1 applied, so it also describes what 2.1 wrote.
+- `applyForkIdentity(text)`: `applyForkNames`, then `applyLayoutText` from [`src/core/fork/layout.ts`](src/core/fork/layout.ts), which applies `LAYOUT_TEXT_REPLACEMENTS`: whole upstream texts that name its layout, each with its SpecAgile translation (`<planningHome.root>/openspec/specs/` → `<planningHome.root>/specs/`, `<root.path>/openspec/config.yaml` → `<root.path>/specagile/config.yaml`, ``under `openspec/changes/` by hand`` → ``under `changes/` by hand``, the five phrases that name `openspec/` alone, and the Copilot agent's directory list). No regexes, longest first, and each entry carries enough context that its translation never appears in upstream's text. A bare `openspec/specs/` is never translated: upstream already writes `specs/` for a change's deltas. Internal files (`.openspec.yaml`, `.openspec-target`, `.openspec-store/`) and `~/openspec/<id>` stay.
+- `withUpstreamIdentity` (`test/helpers/fork-identity.ts`) is the inverse of both: it undoes the layout table first, then the names. `test/fork/identity.test.ts` checks the round trip, `withUpstreamIdentity(applyForkIdentity(t)) === t`, on every skill and command template, so upstream tests that pin a template's wording keep their text.
 
 **Upstream skill templates are not edited.** `generateSkillContent` (`src/core/shared/skill-generation.ts`) passes every generated `SKILL.md` through `applyForkIdentity`, and so do the hints `init`, `update` and the profile migration print (`src/core/init.ts`, `src/core/update.ts`, `src/core/migration.ts`). `COMMAND_TO_SKILL_NAME` keeps upstream's names on purpose: the current text is always the translation of upstream's, which is what lets the migration recognize copies an earlier version wrote.
 
@@ -171,10 +173,11 @@ These can conflict when upstream changes the same lines:
 - **Skill source**: `src/core/skill-installer.ts` (`SKILLS_SOURCE`, `RELEASE_TAG_PREFIX`), `test/helpers/skill-release.mjs` (the faked repository's URL), and the "link another tool" note in `src/core/config.ts`.
 - **CLI and package name**: `package.json` (`name`, `bin`, `dev:cli`, `repository`, `homepage`, `bugs`, `author`), `src/cli/index.ts` (`.name(CLI_NAME)`, `getCommandPath`, the hidden `install`, no standalone tip, no telemetry hooks), `src/core/version-check.ts`, `src/commands/feedback.ts`, the "Learn more" lines in `src/core/init.ts` and `src/core/update.ts`, `src/core/github-copilot/cloud-agent.ts`, `scripts/pack-version-check.mjs`, `scripts/binary/install-check.sh`, `flake.nix` (`pname`, completions) and the Nix check in `.github/workflows/ci.yml`.
 - **Messages**: every `openspec <subcommand>` a user reads in `src/cli/`, `src/commands/`, `src/core/` and `src/telemetry/` now says `specagile <subcommand>`. Comments were left alone.
-- **Built-in schema**: `schemas/spec-driven/schema.yaml` and `schemas/spec-driven/templates/proposal.md`.
+- **Built-in schema**: `schemas/spec-driven/schema.yaml` and `schemas/spec-driven/templates/proposal.md`: the CLI name, and the layout (the living spec at `<planningHome.root>/specs/<capability-path>/spec.md`, the delta at `specs/<capability-path>/spec.md` inside the change). `docs-lab/reference/schemas/spec-driven/index.md` quotes them verbatim (`test/core/templates/schema-docs-instruction-parity.test.ts`).
 - **Shell completions** (`src/core/completions/`): the registry does not list `install`; the scripts register and call `CLI_NAME`, the installers write `specagile` files (`_specagile`, `specagile.fish`, `SpecAgileCompletion.ps1`, …) and mark their block in shell config with `# SPECAGILE:START`/`# SPECAGILE:END`, so an OpenSpec completion installed beside them is left alone. Internal function names (`_openspec_*`) are unchanged.
 - **Tests**: names in the tests that pin what this version installs; `scripts/parity-hash-shared.mjs` accepts `sa-*` keys. Upstream tests that pin a template's wording on generated text compare it through `withUpstreamIdentity` (`test/helpers/fork-identity.ts`), so their assertions stay as upstream wrote them.
-- **Docs**: `README.md`, `docs-lab/` and `skills/README.md` (the page of the folder the skills are installed from).
+- **Docs**: `README.md`, `docs-lab/` and `skills/README.md` (the page of the folder the skills are installed from), which also name the project layout (see [Project layout](#project-layout)).
+- **Layout**: the source files listed under [Upstream files edited for the layout](#upstream-files-edited-for-the-layout), `src/core/github-copilot/cloud-agent.ts` (2.1's output, translated with `applyForkNames` only, counts as earlier output), and the upstream tests whose fixtures or expected paths now come from `test/helpers/layout.ts`.
 - **Not identity, same risk**: `src/core/update-plan.ts` (`removesLinkAbove`). A file the plan writes where it removed a link is planned as added, not updated, as on Windows, where the installer replaces a junction with a copy. Upstream has the same bug; the fork's extra skills are what made `test/core/update-dry-run.property.test.ts` hit it on Windows.
 
 ### Texts that keep `openspec` on purpose
@@ -190,6 +193,8 @@ These are the exceptions in `test/fork/cli-name.test.ts`: `src/core/github-copil
 - **A new hard-coded `Fission-AI/OpenSpec` link or `@fission-ai/openspec` install** in user-facing code: point it at `REPOSITORY_URL` or `PACKAGE_NAME`.
 - **A new workflow**: the build fails until it has a name in both tables; add it to `test/fork/identity.test.ts` too.
 - **A template with a new wording**: `test/fork/generated-skills-identity.test.ts` fails when a generated skill still names a former skill or `openspec <word>`.
+- **A template with a new `openspec/` path**: the same test fails, naming the skill (and its check of `skills/` fails after `pnpm generate:skills`). Add the whole sentence or path, with enough context that its translation is not already upstream text, to `LAYOUT_TEXT_REPLACEMENTS` in `src/core/fork/layout.ts`; the round trip in `test/fork/identity.test.ts` tells you when the context is too short.
+- **A new path into the project layout in `src/`**: `test/fork/layout.test.ts` lists it. Build it with `src/core/fork/layout.ts`, or add the text to that test's allow list with the reason when it is not the project layout.
 
 Then run:
 
@@ -197,6 +202,56 @@ Then run:
 pnpm build && pnpm regen:parity-hashes && pnpm generate:skills
 pnpm test -- --run test/fork test/core/templates
 ```
+
+## Project layout
+
+SpecAgile keeps a project's (or a store's) planning in three folders at the root, named for what they hold rather than for the tool:
+
+```
+specs/        living specs: specs/<capability-path>/spec.md
+changes/      changes in progress; changes/archive/ holds the archived ones
+specagile/    the tool's own files: config.yaml, schemas/, and whatever else upstream keeps in openspec/
+```
+
+Inside a change nothing differs from upstream (its deltas are in `specs/<capability-path>/spec.md`). Upstream keeps all of it in `openspec/`; that is the *former layout*, and `specagile update` (or `specagile init` on a set-up project) migrates it.
+
+### Where it lives
+
+[`src/core/fork/layout.ts`](src/core/fork/layout.ts) is the fork's own file, so a sync never conflicts in it, and it loads only `node:` modules (the CLI loads it at startup). It holds:
+
+- The names: `SPECS_DIR_NAME`, `CHANGES_DIR_NAME`, `ARCHIVE_DIR_NAME`, `TOOL_DIR_NAME` (`specagile`), `CONFIG_FILE_NAMES` (`config.yaml`, then `config.yml`), `SCHEMAS_DIR_NAME`, and `FORMER_TOOL_DIR_NAME` (`openspec`, for detection and migration only).
+- `CURRENT_LAYOUT`, the one place that decides where `specs/`/`changes/` and the tool folder sit relative to the root.
+- Functions that build absolute paths with `path.join` (`getSpecsDir`, `getChangesDir`, `getArchiveDir`, `getToolDir`, `getConfigFilePaths`, `getProjectSchemasDir`), their inverses (`getRootOfSpecsDir`, `getRootOfChangesDir`, `getRootOfChangeDir`) for the code that derives the root from a folder, and the relative forms with `/` that messages print (`RELATIVE_CONFIG_FILE` is `specagile/config.yaml` on every platform, `relativeChangeDir`, `relativeSpecFile`, …).
+- `isLayoutRoot(dir)` and `detectFormerLayout(dir)`.
+
+Upstream's own constants keep their names and take their values from it: `OPENSPEC_DIR_NAME` (`project-dir.ts`) is the tool folder; `OPENSPEC_ROOT_DIR`, `OPENSPEC_SPECS_DIR`, `OPENSPEC_CHANGES_DIR`, `OPENSPEC_ARCHIVE_DIR`, `OPENSPEC_CONFIG_YAML`/`_YML` (`openspec-root.ts`) are relative paths into the layout. So do `inspectOpenSpecRoot`, `classifyOpenSpecDir`, `ResolvedOpenSpecRoot` and the `openspec_*` diagnostic codes: same names, new paths.
+
+### How a root is recognized
+
+A folder is a root when it has `specagile/` with a config file, or `specagile/` next to `specs/` or `changes/`; `findRepoPlanningRootSync` (`planning-home.ts`) looks for `specagile/`, and `classifyOpenSpecDir` (`project-config.ts`) reads `specs/` and `changes/` at the root and the config inside `specagile/`. A `specs/` folder alone is never a root: many repos keep tests there. A `specs/` or `changes/` with store metadata is a store at `~/openspec/<id>`, as upstream already handled.
+
+The former layout is only detected, never read: `detectFormerLayout` applies upstream's old rule to `openspec/` (a config, or `specs/`/`changes/` without store metadata), so a `~/openspec/` that only holds stores never counts. When the nearest root has only the former layout, the walk stops there and fails with `former_layout` ("Run specagile update"), without looking further up. With `--store`, `store doctor` and `store register`, `inspectOpenSpecRoot` reports `openspec_former_layout` with the store's path.
+
+Spec link containment (`src/utils/spec-path-containment.ts`) has no container folder to look for any more: the project of a specs root is the first ancestor whose child on the way is `specs` or `changes` and that has a `specagile/` folder.
+
+### Migration
+
+[`src/core/fork/layout-migration.ts`](src/core/fork/layout-migration.ts) (`migrateFormerLayout`) moves `openspec/specs/` to `specs/`, `openspec/changes/` to `changes/` and every other entry to `specagile/<entry>`, then removes the empty `openspec/`. It checks that `specs/`, `changes/` and `specagile/` are missing or empty before moving anything, moves each entry with one `rename` recorded in a ledger, retries `EPERM`/`EBUSY`/`EACCES` on Windows a few times, and undoes in reverse order when a move still fails. `update` runs it before anything else in `updateProject` (and plans it on the recorder for `--dry-run`); `init` runs it before the store-pointer guard. A root that already has the new layout keeps its `openspec/` untouched, with a warning.
+
+This repository still keeps `openspec/` (it is operated with upstream's CLI, and every sync writes there), so `specagile update` and `specagile init` are never run at its root (see AGENTS.md).
+
+### Upstream files edited for the layout
+
+- **Root and config resolution**: `src/core/project-dir.ts`, `openspec-root.ts`, `planning-home.ts`, `root-selection.ts`, `project-config.ts`, `artifact-graph/resolver.ts`, `artifact-graph/instruction-loader.ts`.
+- **Commands and readers**: `src/commands/` (`change.ts`, `spec.ts`, `schema.ts`, `shared-gather.ts`, `doctor.ts`, `validate.ts`, `workflow/shared.ts`, `workflow/new-change.ts`), `src/core/` (`list.ts`, `view.ts`, `archive.ts`, `specs-apply.ts`, `references.ts`, `known-projects.ts`, `relationship-health.ts`, `parsers/spec-structure.ts`), `src/utils/` (`item-discovery.ts`, `change-utils.ts`, `nested-change.ts`, `change-metadata.ts`, `spec-path-containment.ts`) and `src/cli/index.ts` (the implicit root of `list`).
+- **Writers**: `src/core/init.ts`, `update.ts`, `update-plan.ts` (the `layout-migration` note), `legacy-cleanup.ts`, `store/operations.ts`, `project-skills-scope.ts`, `github-copilot/cloud-agent.ts`.
+- **Tests**: fixtures build their paths with `test/helpers/layout.ts` (and `createOpenSpecRoot` in `openspec-fixtures.ts`); the ones that build the former layout on purpose use `createFormerLayout`.
+
+### When a sync touches the layout
+
+- **A new path built by hand** (`path.join(root, 'openspec', …)` or a message with `openspec/…`): `test/fork/layout.test.ts` lists it. Build it with `layout.ts`, or add the text to its allow list with the reason when it is not the project layout (a tool's command folder, the store location `~/openspec/<id>`, an owner tag).
+- **A conflict in a line edited for the layout**: keep upstream's change, then route the path through `layout.ts` again.
+- **A new fixture under `openspec/`** in an upstream test: build it with `test/helpers/layout.ts`.
 
 ## Verification record
 
@@ -206,6 +261,11 @@ pnpm test -- --run test/fork test/core/templates
 | Linux (Docker, `node:22-bookworm`) | Full suite | ✅ Passed | Same working tree, checked out with LF as a clone would be; unprivileged user, Node 22.23.5, git 2.39.5, pnpm 10.34.5. 7253 passed, 0 failed, 18 skipped |
 | Packed install (Windows, Linux) | `pnpm pack` → `specagile-2.0.0.tgz`, global install, `specagile init --tools claude` | ✅ Passed | The package installs only `specagile` (`specagile`, `.cmd`, `.ps1` on Windows); `specagile --version` prints 2.0.0; `specagile install` prints `npm install -g specagile@latest` and exits 1; a new project gets only `sa-*` skills, with no telemetry notice and nothing written to the global config. Installing `@fission-ai/openspec@2.0.0` and then `specagile` into the same npm prefix leaves both `openspec` and `specagile` working (Linux, and a temporary prefix on Windows) |
 | CI (GitHub Actions) | Full suite | ⚪ Not run | Actions never triggered on the fork; would require pushing the branch |
+| Windows 11 (local) | `adopt-tool-agnostic-layout`: `pnpm build`, `pnpm lint`, `tsc --noEmit`, full suite | ✅ Passed | Working tree on `ead634a3`, Node 26.13.0, pnpm 10.34.5. Build, lint and typecheck clean. Full suite (6722 tests) compared with a full run of `ead634a3` on the same machine: every remaining failure also fails there (symlink privileges, editor quoting, `EBUSY` on temp folders, timeouts under load); the files changed after that run were re-run with no new failures. `test/fork` passes |
+| Linux (Docker, `node:22-bookworm`) | `adopt-tool-agnostic-layout`: install, build, lint, full suite | ✅ Passed | Working tree checked out with LF as a clone would be; unprivileged user, Node 22.23.5, git 2.39.5, pnpm 10.34.5. 6702 passed, 0 failed, 20 skipped. The symlink cases of spec containment run here |
+| Packed install (Windows, Linux) | `adopt-tool-agnostic-layout`: `pnpm pack` → `specagile-2.1.2.tgz` in a temporary prefix, faked skills repository (`test/helpers/skill-release.mjs`) | ✅ Passed | `specagile init --tools claude` in a new project leaves `specs/`, `changes/archive/` and `specagile/config.yaml`, no `openspec/`, and 8 `sa-*` skills that name no `openspec/` path. A project made with 2.1.2 (built from `ead634a3`; 2.1.2 is not on npm) gets `specagile list` refused with the `specagile update` fix; `specagile update` moves it and `specagile list` lists its change |
+| Release upgrades (Windows) | `OPENSPEC_RELEASE_UPGRADES=1`, `test/cli-e2e/upgrade-from-releases.test.ts` | ✅ Passed | 19 passed: projects made by OpenSpec 0.14.0 to 2.0.0 end with the new layout after one `specagile update`, and `specagile list` lists their changes |
+| Windows 11 (local, PowerShell) | `adopt-tool-agnostic-layout`: manual migration (task 5.7) | ✅ Passed | Node 26.13.0, isolated home and config. "Migrar en Windows": `specagile update` moved `openspec\specs\identity\user-auth\spec.md`, `openspec\changes\add-login\` and `openspec\config.yaml` to `specs\`, `changes\` and `specagile\`, and removed `openspec\`. "Un archivo bloqueado": with `openspec\changes\add-login\tasks.md` held by `[System.IO.File]::Open(<path>, 'Open', 'Read', 'None')` in another PowerShell process, update exited 1 with `Could not move openspec/changes/ to changes/ (EPERM). openspec/changes/add-login/tasks.md is open in another program. Nothing was moved`, and the tree was unchanged; after closing it, the same command completed the move. The guide `docs-lab/help/move-to-the-specagile-layout.md` followed step by step (`--dry-run`, `update`, commit): git records the move as renames |
 
 The fork's CI is not enabled. Verification is local only until the branch is
 pushed and Actions is configured for this fork.

@@ -13,6 +13,7 @@ import {
 import { runCLI, type RunCLIResult } from '../helpers/run-cli.js';
 import { createHealthyOpenSpecRoot, isolatedGitEnv } from '../helpers/store-git.js';
 import { cleanupTempPath } from '../helpers/temp-cleanup.js';
+import { getArchiveDir, getConfigFile, getSpecsDir, getToolDir } from '../helpers/layout.js';
 
 const TEST_NET_URL = 'https://192.0.2.1/acme/team-context.git';
 const GIT_JOURNEY_TIMEOUT_MS = 60_000;
@@ -358,8 +359,8 @@ describe('store canonical remote (3.3)', { timeout: REAL_GIT_TEST_TIMEOUT_MS }, 
       createHealthyOpenSpecRoot(originWorktree);
       // Anchor every directory a healthy clone needs (the same job
       // store setup's anchor files do).
-      fs.writeFileSync(path.join(originWorktree, 'openspec', 'specs', '.gitkeep'), '');
-      fs.writeFileSync(path.join(originWorktree, 'openspec', 'changes', 'archive', '.gitkeep'), '');
+      fs.writeFileSync(path.join(getSpecsDir(originWorktree), '.gitkeep'), '');
+      fs.writeFileSync(path.join(getArchiveDir(originWorktree), '.gitkeep'), '');
       fs.mkdirSync(path.join(originWorktree, '.openspec-store'), { recursive: true });
       fs.writeFileSync(
         path.join(originWorktree, '.openspec-store', 'store.yaml'),
@@ -374,14 +375,14 @@ describe('store canonical remote (3.3)', { timeout: REAL_GIT_TEST_TIMEOUT_MS }, 
       // (backslashes fail isShellSafeRemote); git accepts it anywhere.
       const originRemote = originWorktree.split(path.sep).join('/');
       const appRepo = path.join(tempDir, 'app-repo');
-      fs.mkdirSync(path.join(appRepo, 'openspec'), { recursive: true });
+      fs.mkdirSync(getToolDir(appRepo), { recursive: true });
       fs.writeFileSync(
-        path.join(appRepo, 'openspec', 'config.yaml'),
+        getConfigFile(appRepo),
         'schema: spec-driven\nreferences:\n' +
           `  - { id: team-context, remote: ${originRemote} }\n`
       );
-      fs.mkdirSync(path.join(appRepo, 'openspec', 'specs'), { recursive: true });
-      fs.mkdirSync(path.join(appRepo, 'openspec', 'changes', 'archive'), { recursive: true });
+      fs.mkdirSync(getSpecsDir(appRepo), { recursive: true });
+      fs.mkdirSync(getArchiveDir(appRepo), { recursive: true });
 
       const created = await runCLI(['new', 'change', 'onboard-check', '--json'], {
         cwd: appRepo,
@@ -435,8 +436,8 @@ describe('store canonical remote (3.3)', { timeout: REAL_GIT_TEST_TIMEOUT_MS }, 
       createHealthyOpenSpecRoot(storeRoot);
       // Keep specs/ and archive/ tracked so the pre-existing
       // fragile-directories warning stays out of this assertion.
-      fs.writeFileSync(path.join(storeRoot, 'openspec', 'specs', '.gitkeep'), '');
-      fs.writeFileSync(path.join(storeRoot, 'openspec', 'changes', 'archive', '.gitkeep'), '');
+      fs.writeFileSync(path.join(getSpecsDir(storeRoot), '.gitkeep'), '');
+      fs.writeFileSync(path.join(getArchiveDir(storeRoot), '.gitkeep'), '');
       fs.mkdirSync(path.join(storeRoot, '.openspec-store'), { recursive: true });
       fs.writeFileSync(
         path.join(storeRoot, '.openspec-store', 'store.yaml'),

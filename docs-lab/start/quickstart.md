@@ -58,7 +58,7 @@ Propose a change to add rate limiting.
 The agent asks what it needs to, then writes a change folder:
 
 ```
-openspec/changes/add-rate-limiting/
+changes/add-rate-limiting/
 ├── proposal.md    why, and what changes
 ├── specs/         what "done" means, as testable requirements
 ├── design.md      technical decisions (only when the change needs one)
@@ -96,7 +96,7 @@ The agent reads the change folder, then works through `tasks.md`, checking off e
 
 ## Step 5: Archive
 
-Archiving does two things: it updates your main specs with the change's requirements, and it moves the change folder into the archive folder (in `/openspec/changes/archive/*`).
+Archiving does two things: it updates your main specs with the change's requirements, and it moves the change folder into the archive folder (in `changes/archive/*`).
 
 When every box in `tasks.md` is checked, in your AI chat:
 
@@ -109,7 +109,7 @@ Step through what archiving does:
 ```file-steps
 ## The finished change
 > Implementation is done. The delta spec (what this change adds) still sits inside the change folder; specs/ doesn't know about rate limiting yet.
-  openspec/
+  your-project/
   ├── specs/                                   (no rate-limiting spec yet)
   └── changes/
       └── add-rate-limiting/
@@ -121,7 +121,7 @@ Step through what archiving does:
 
 ## Requirements land in specs/
 > Each requirement in the delta lands in the main spec: added ones append, modified ones replace their old version. A new capability gets a new spec file.
-  openspec/
+  your-project/
   ├── specs/
 + │   └── rate-limiting/
 + │       └── spec.md                          gains "Requirement: Rate limiting"
@@ -133,7 +133,7 @@ Step through what archiving does:
 
 ## The folder moves to archive/
 > The whole change folder, delta included, moves into the archive under a date prefix. Nothing is deleted.
-  openspec/
+  your-project/
   ├── specs/
   │   └── rate-limiting/
   │       └── spec.md
@@ -147,7 +147,7 @@ Step through what archiving does:
 
 ## Specs describe the system as built
 > changes/ is clear for the next change. specs/ is the source of truth for what the system does; archive/ is the history of how it got there.
-  openspec/
+  your-project/
   ├── specs/
   │   └── rate-limiting/
   │       └── spec.md                          the spec as built
@@ -160,10 +160,10 @@ Git is a separate concern. Commit the change folder with the code, and nothing e
 
 ### Keep or prune archived changes
 
-`openspec/changes/archive/` keeps the proposal, design, tasks, and delta for each finished change. In the archive flow above, the delta has already updated `openspec/specs/`.
+`changes/archive/` keeps the proposal, design, tasks, and delta for each finished change. In the archive flow above, the delta has already updated `specs/`.
 
 - **Keep the whole change folder** when you want a self-contained record in the current checkout.
-- **Remove an archived change's `specs/` folder** when Git is your spec history. Commit the archive first, then delete `openspec/changes/archive/<change>/specs/`. The proposal, design, and tasks remain in the checkout. `specagile validate --archived` still works because it checks task completion, not applied deltas.
+- **Remove an archived change's `specs/` folder** when Git is your spec history. Commit the archive first, then delete `changes/archive/<change>/specs/`. The proposal, design, and tasks remain in the checkout. `specagile validate --archived` still works because it checks task completion, not applied deltas.
 - **Remove the whole change folder** only when you no longer need its proposal, design, or task history in the checkout. The current specs do not change, but `specagile validate --archived` and searches of the checkout no longer include that change.
 
 > [!WARNING]

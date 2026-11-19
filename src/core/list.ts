@@ -4,6 +4,7 @@ import { getTaskProgressForChange, formatTaskStatus } from '../utils/task-progre
 import { readFileSync, type Dirent } from 'fs';
 import { MarkdownParser } from './parsers/markdown-parser.js';
 import type { RootOutput } from './root-selection.js';
+import { getChangesDir, getSpecsDir } from './fork/layout.js';
 import { discoverSpecFiles } from '../utils/spec-discovery.js';
 import {
   describeNestedChange,
@@ -132,7 +133,7 @@ export class ListCommand {
     }
 
     if (mode === 'changes') {
-      const changesDir = path.join(targetPath, 'openspec', 'changes');
+      const changesDir = getChangesDir(targetPath);
       const archiveDir = path.join(changesDir, 'archive');
       const includeArchived = archived || all;
 
@@ -248,7 +249,7 @@ export class ListCommand {
     }
 
     // specs mode
-    const specsDir = path.join(targetPath, 'openspec', 'specs');
+    const specsDir = getSpecsDir(targetPath);
     try {
       await fs.access(specsDir);
     } catch {

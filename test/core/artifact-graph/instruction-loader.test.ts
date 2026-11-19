@@ -10,6 +10,7 @@ import {
   formatChangeStatus,
   TemplateLoadError,
 } from '../../../src/core/artifact-graph/instruction-loader.js';
+import { getChangesDir, getConfigFile, getProjectSchemasDir, getToolDir } from '../../helpers/layout.js';
 
 const PACKAGED_SCHEMAS_DIR = path.join(__dirname, '..', '..', '..', 'schemas');
 
@@ -43,7 +44,7 @@ describe('instruction-loader', () => {
       expect(template).toContain('## What Changes');
       expect(template).toContain('specs/<capability-path>/spec.md');
       expect(template).toContain('<existing-capability-path>');
-      expect(template).toContain('exact existing path under openspec/specs/');
+      expect(template).toContain('exact existing path of its living spec, under <planningHome.root>/specs/');
     });
 
     // Artifacts inherit the template's opening line, so every packaged template
@@ -113,7 +114,7 @@ describe('instruction-loader', () => {
       if (process.platform === 'win32') return;
 
       const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openspec-template-boundary-'));
-      const schemaDir = path.join(tempDir, 'openspec', 'schemas', 'custom');
+      const schemaDir = path.join(getProjectSchemasDir(tempDir), 'custom');
       const templatesDir = path.join(schemaDir, 'templates');
       const outsideFile = path.join(tempDir, 'outside.md');
       fs.mkdirSync(templatesDir, { recursive: true });
@@ -168,7 +169,7 @@ describe('instruction-loader', () => {
 
     it('should detect completed artifacts', () => {
       // Create change directory with proposal.md
-      const changeDir = path.join(tempDir, 'openspec', 'changes', 'my-change');
+      const changeDir = path.join(getChangesDir(tempDir), 'my-change');
       fs.mkdirSync(changeDir, { recursive: true });
       fs.writeFileSync(path.join(changeDir, 'proposal.md'), '# Proposal');
 
@@ -185,7 +186,7 @@ describe('instruction-loader', () => {
 
     it('should auto-detect schema from .openspec.yaml metadata', () => {
       // Create change directory with metadata file
-      const changeDir = path.join(tempDir, 'openspec', 'changes', 'my-change');
+      const changeDir = path.join(getChangesDir(tempDir), 'my-change');
       fs.mkdirSync(changeDir, { recursive: true });
       fs.writeFileSync(path.join(changeDir, '.openspec.yaml'), 'schema: spec-driven\ncreated: "2025-01-05"\n');
 
@@ -198,7 +199,7 @@ describe('instruction-loader', () => {
 
     it('should use explicit schema over metadata schema', () => {
       // Create change directory with metadata file using spec-driven
-      const changeDir = path.join(tempDir, 'openspec', 'changes', 'my-change');
+      const changeDir = path.join(getChangesDir(tempDir), 'my-change');
       fs.mkdirSync(changeDir, { recursive: true });
       fs.writeFileSync(path.join(changeDir, '.openspec.yaml'), 'schema: spec-driven\n');
 
@@ -211,7 +212,7 @@ describe('instruction-loader', () => {
 
     it('should fall back to default when no metadata and no explicit schema', () => {
       // Create change directory without metadata file
-      const changeDir = path.join(tempDir, 'openspec', 'changes', 'my-change');
+      const changeDir = path.join(getChangesDir(tempDir), 'my-change');
       fs.mkdirSync(changeDir, { recursive: true });
 
       const context = loadChangeContext(tempDir, 'my-change');
@@ -220,7 +221,7 @@ describe('instruction-loader', () => {
     });
 
     it('should mark specs complete when metadata declares skip_specs', () => {
-      const changeDir = path.join(tempDir, 'openspec', 'changes', 'my-change');
+      const changeDir = path.join(getChangesDir(tempDir), 'my-change');
       fs.mkdirSync(changeDir, { recursive: true });
       fs.writeFileSync(path.join(changeDir, 'proposal.md'), '# Proposal');
       fs.writeFileSync(
@@ -253,10 +254,10 @@ describe('instruction-loader', () => {
     it('should skip artifacts whose generates path carries a ./ prefix', () => {
       // './specs/...' globs identically to 'specs/...' everywhere else, so
       // the skip set must normalize before its prefix test.
-      const changeDir = path.join(tempDir, 'openspec', 'changes', 'my-change');
+      const changeDir = path.join(getChangesDir(tempDir), 'my-change');
       fs.mkdirSync(changeDir, { recursive: true });
       fs.writeFileSync(path.join(changeDir, 'proposal.md'), '# Proposal');
-      const schemaDir = path.join(tempDir, 'openspec', 'schemas', 'dot-specs');
+      const schemaDir = path.join(getProjectSchemasDir(tempDir), 'dot-specs');
       fs.mkdirSync(schemaDir, { recursive: true });
       fs.writeFileSync(
         path.join(schemaDir, 'schema.yaml'),
@@ -284,7 +285,7 @@ describe('instruction-loader', () => {
     });
 
     it('should not mark specs complete without skip_specs', () => {
-      const changeDir = path.join(tempDir, 'openspec', 'changes', 'my-change');
+      const changeDir = path.join(getChangesDir(tempDir), 'my-change');
       fs.mkdirSync(changeDir, { recursive: true });
       fs.writeFileSync(path.join(changeDir, 'proposal.md'), '# Proposal');
       fs.writeFileSync(path.join(changeDir, '.openspec.yaml'), 'schema: spec-driven\n');
@@ -334,7 +335,7 @@ describe('instruction-loader', () => {
 
     it('should mark completed dependencies as done', () => {
       // Create proposal
-      const changeDir = path.join(tempDir, 'openspec', 'changes', 'my-change');
+      const changeDir = path.join(getChangesDir(tempDir), 'my-change');
       fs.mkdirSync(changeDir, { recursive: true });
       fs.writeFileSync(path.join(changeDir, 'proposal.md'), '# Proposal');
 
@@ -370,10 +371,10 @@ describe('instruction-loader', () => {
     describe('project config integration', () => {
       it('should return context as separate field for all artifacts', () => {
         // Create project config
-        const configDir = path.join(tempDir, 'openspec');
+        const configDir = getToolDir(tempDir);
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
-          path.join(configDir, 'config.yaml'),
+          getConfigFile(tempDir),
           `schema: spec-driven
 context: |
   Tech stack: TypeScript, React
@@ -402,10 +403,10 @@ context: |
 
       it('should preserve multi-line context', () => {
         // Create project config with multi-line context
-        const configDir = path.join(tempDir, 'openspec');
+        const configDir = getToolDir(tempDir);
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
-          path.join(configDir, 'config.yaml'),
+          getConfigFile(tempDir),
           `schema: spec-driven
 context: |
   Line 1
@@ -422,10 +423,10 @@ context: |
 
       it('should preserve special characters in context', () => {
         // Create project config with special characters
-        const configDir = path.join(tempDir, 'openspec');
+        const configDir = getToolDir(tempDir);
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
-          path.join(configDir, 'config.yaml'),
+          getConfigFile(tempDir),
           `schema: spec-driven
 context: |
   Special: < > & " ' @ # $ % [ ] { }
@@ -440,10 +441,10 @@ context: |
 
       it('should return rules only for matching artifact', () => {
         // Create project config with rules
-        const configDir = path.join(tempDir, 'openspec');
+        const configDir = getToolDir(tempDir);
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
-          path.join(configDir, 'config.yaml'),
+          getConfigFile(tempDir),
           `schema: spec-driven
 rules:
   proposal:
@@ -469,10 +470,10 @@ rules:
 
       it('should return undefined rules for non-matching artifact', () => {
         // Create project config with rules only for proposal
-        const configDir = path.join(tempDir, 'openspec');
+        const configDir = getToolDir(tempDir);
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
-          path.join(configDir, 'config.yaml'),
+          getConfigFile(tempDir),
           `schema: spec-driven
 rules:
   proposal:
@@ -502,10 +503,10 @@ rules:
 
       it('should return undefined rules when empty array', () => {
         // Create project config with empty rules array
-        const configDir = path.join(tempDir, 'openspec');
+        const configDir = getToolDir(tempDir);
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
-          path.join(configDir, 'config.yaml'),
+          getConfigFile(tempDir),
           `schema: spec-driven
 context: Some context
 rules:
@@ -522,10 +523,10 @@ rules:
 
       it('should keep context, rules, and template as separate fields', () => {
         // Create project config with both context and rules
-        const configDir = path.join(tempDir, 'openspec');
+        const configDir = getToolDir(tempDir);
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
-          path.join(configDir, 'config.yaml'),
+          getConfigFile(tempDir),
           `schema: spec-driven
 context: Project context here
 rules:
@@ -548,10 +549,10 @@ rules:
 
       it('should handle context without rules', () => {
         // Create project config with only context
-        const configDir = path.join(tempDir, 'openspec');
+        const configDir = getToolDir(tempDir);
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
-          path.join(configDir, 'config.yaml'),
+          getConfigFile(tempDir),
           `schema: spec-driven
 context: Project context only
 `
@@ -567,10 +568,10 @@ context: Project context only
 
       it('should handle rules without context', () => {
         // Create project config with only rules
-        const configDir = path.join(tempDir, 'openspec');
+        const configDir = getToolDir(tempDir);
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
-          path.join(configDir, 'config.yaml'),
+          getConfigFile(tempDir),
           `schema: spec-driven
 rules:
   proposal:
@@ -609,10 +610,10 @@ rules:
 
       it('should warn about unknown artifact IDs in rules', () => {
         // Create project config with invalid artifact ID
-        const configDir = path.join(tempDir, 'openspec');
+        const configDir = getToolDir(tempDir);
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
-          path.join(configDir, 'config.yaml'),
+          getConfigFile(tempDir),
           `schema: spec-driven
 rules:
   proposal:
@@ -636,10 +637,11 @@ rules:
 
         try {
           // Create project config with a uniquely named invalid artifact ID
-          const configDir = path.join(freshTempDir, 'openspec');
+          const configDir = getToolDir(freshTempDir);
           fs.mkdirSync(configDir, { recursive: true });
+          fs.mkdirSync(getToolDir(freshTempDir), { recursive: true });
           fs.writeFileSync(
-            path.join(configDir, 'config.yaml'),
+            getConfigFile(freshTempDir),
             `schema: spec-driven
 rules:
   unique-invalid-artifact-${Date.now()}:
@@ -669,10 +671,10 @@ rules:
 
       it('should not warn for valid artifact IDs', () => {
         // Create project config with valid artifact IDs
-        const configDir = path.join(tempDir, 'openspec');
+        const configDir = getToolDir(tempDir);
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
-          path.join(configDir, 'config.yaml'),
+          getConfigFile(tempDir),
           `schema: spec-driven
 rules:
   proposal:
@@ -721,7 +723,7 @@ rules:
     });
 
     it('should show completed artifacts as done', () => {
-      const changeDir = path.join(tempDir, 'openspec', 'changes', 'my-change');
+      const changeDir = path.join(getChangesDir(tempDir), 'my-change');
       fs.mkdirSync(changeDir, { recursive: true });
       fs.writeFileSync(path.join(changeDir, 'proposal.md'), '# Proposal');
 
@@ -748,7 +750,7 @@ rules:
     });
 
     it('should report planning completion without removing the compatibility alias', () => {
-      const changeDir = path.join(tempDir, 'openspec', 'changes', 'my-change');
+      const changeDir = path.join(getChangesDir(tempDir), 'my-change');
       fs.mkdirSync(changeDir, { recursive: true });
       fs.mkdirSync(path.join(changeDir, 'specs'), { recursive: true });
 
@@ -768,7 +770,7 @@ rules:
     });
 
     it('should count skipped artifacts as planning-complete without creating them', () => {
-      const changeDir = path.join(tempDir, 'openspec', 'changes', 'my-change');
+      const changeDir = path.join(getChangesDir(tempDir), 'my-change');
       fs.mkdirSync(changeDir, { recursive: true });
       fs.writeFileSync(
         path.join(changeDir, '.openspec.yaml'),
@@ -799,7 +801,7 @@ rules:
     });
 
     it('should expose each artifact\'s requires edges regardless of status', () => {
-      const changeDir = path.join(tempDir, 'openspec', 'changes', 'my-change');
+      const changeDir = path.join(getChangesDir(tempDir), 'my-change');
       fs.mkdirSync(changeDir, { recursive: true });
       // Prewritten-tasks scenario: only tasks.md exists. `tasks` reads `done`
       // by file existence, but its specs/design dependencies were never written.

@@ -3,6 +3,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
 import { ViewCommand } from '../../src/core/view.js';
+import { getChangesDir, getConfigFile, getProjectSchemasDir, getToolDir } from '../helpers/layout.js';
 
 const stripAnsi = (input: string): string => input.replace(/\u001b\[[0-9;]*m/g, '');
 
@@ -13,6 +14,8 @@ describe('ViewCommand', () => {
 
   beforeEach(async () => {
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-view-test-'));
+    // SpecAgile: the dashboard needs the specagile/ folder of a root (src/core/fork/layout.ts).
+    await fs.mkdir(getToolDir(tempDir), { recursive: true });
     vi.stubEnv('XDG_DATA_HOME', path.join(tempDir, 'data'));
     vi.stubEnv('XDG_CONFIG_HOME', path.join(tempDir, 'config'));
 
@@ -32,7 +35,7 @@ describe('ViewCommand', () => {
   });
 
   it('shows workflow states for legacy active changes without changing task progress', async () => {
-    const changesDir = path.join(tempDir, 'openspec', 'changes');
+    const changesDir = getChangesDir(tempDir);
     for (const name of ['planning', 'implementing']) {
       await fs.mkdir(path.join(changesDir, name), { recursive: true });
       await fs.writeFile(path.join(changesDir, name, 'tasks.md'), '- [x] Done\n- [ ] Pending\n');
@@ -52,7 +55,7 @@ describe('ViewCommand', () => {
   });
 
   it('distinguishes skipped specs from completed and blocked artifacts', async () => {
-    const changeDir = path.join(tempDir, 'openspec', 'changes', 'refactor');
+    const changeDir = path.join(getChangesDir(tempDir), 'refactor');
     await fs.mkdir(changeDir, { recursive: true });
     await fs.writeFile(path.join(changeDir, '.openspec.yaml'), 'schema: spec-driven\nskip_specs: true\n');
     await fs.writeFile(path.join(changeDir, 'proposal.md'), '# Proposal\n');
@@ -70,7 +73,7 @@ describe('ViewCommand', () => {
     ['invalid metadata', 'schema: 123\n', 'Invalid metadata'],
     ['unknown schema', 'schema: missing-workflow\n', "Unknown schema 'missing-workflow'"],
   ])('warns about %s without hiding changes or breaking the dashboard', async (_name, metadata, error) => {
-    const changesDir = path.join(tempDir, 'openspec', 'changes');
+    const changesDir = getChangesDir(tempDir);
     for (const name of ['broken', 'healthy']) {
       await fs.mkdir(path.join(changesDir, name), { recursive: true });
       await fs.writeFile(path.join(changesDir, name, 'tasks.md'), '- [ ] Pending\n');
@@ -92,7 +95,7 @@ describe('ViewCommand', () => {
   });
 
   it('renders terminal controls in workflow errors as inert text', async () => {
-    const changeDir = path.join(tempDir, 'openspec', 'changes', 'broken');
+    const changeDir = path.join(getChangesDir(tempDir), 'broken');
     await fs.mkdir(changeDir, { recursive: true });
     await fs.writeFile(path.join(changeDir, 'tasks.md'), '- [ ] Pending\n');
     await fs.writeFile(
@@ -109,9 +112,9 @@ describe('ViewCommand', () => {
   });
 
   it('renders terminal controls in every artifact state without changing workflow semantics', async () => {
-    const openspecDir = path.join(tempDir, 'openspec');
-    const schemaDir = path.join(openspecDir, 'schemas', 'custom');
-    const changeDir = path.join(openspecDir, 'changes', 'display-controls');
+    const openspecDir = getToolDir(tempDir);
+    const schemaDir = path.join(getProjectSchemasDir(tempDir), 'custom');
+    const changeDir = path.join(getChangesDir(tempDir), 'display-controls');
     const ready = '設計\u001b[2J';
     const blocked = 'blocked\u009bH';
     const skipped = 'specs\r\n';
@@ -144,7 +147,7 @@ describe('ViewCommand', () => {
   });
 
   it('shows changes with no tasks in Draft section, not Completed', async () => {
-    const changesDir = path.join(tempDir, 'openspec', 'changes');
+    const changesDir = getChangesDir(tempDir);
     await fs.mkdir(changesDir, { recursive: true });
 
     // Empty change (no tasks.md) - should show in Draft
@@ -195,7 +198,7 @@ describe('ViewCommand', () => {
   });
 
   it('sorts active changes by completion percentage ascending with deterministic tie-breakers', async () => {
-    const changesDir = path.join(tempDir, 'openspec', 'changes');
+    const changesDir = getChangesDir(tempDir);
     await fs.mkdir(changesDir, { recursive: true });
 
     await fs.mkdir(path.join(changesDir, 'gamma-change'), { recursive: true });
@@ -243,12 +246,12 @@ describe('ViewCommand', () => {
   });
 
   it.each(['metadata', 'project config'])('uses a nested glob-tasks workflow from %s (#1202)', async (schemaSource) => {
-    const openspecDir = path.join(tempDir, 'openspec');
-    const changesDir = path.join(openspecDir, 'changes');
+    const openspecDir = getToolDir(tempDir);
+    const changesDir = getChangesDir(tempDir);
     await fs.mkdir(changesDir, { recursive: true });
 
     // Project-local schema whose tasks artifact resolves a nested glob.
-    const schemaDir = path.join(openspecDir, 'schemas', 'glob-tasks');
+    const schemaDir = path.join(getProjectSchemasDir(tempDir), 'glob-tasks');
     await fs.mkdir(schemaDir, { recursive: true });
     await fs.writeFile(
       path.join(schemaDir, 'schema.yaml'),
@@ -278,9 +281,11 @@ describe('ViewCommand', () => {
     await fs.mkdir(path.join(changeDir, 'frontend'), { recursive: true });
     if (schemaSource === 'metadata') {
       await fs.writeFile(path.join(changeDir, '.openspec.yaml'), 'schema: glob-tasks\n');
-      await fs.writeFile(path.join(openspecDir, 'config.yaml'), 'schema: spec-driven\n');
+      await fs.mkdir(getToolDir(tempDir), { recursive: true });
+      await fs.writeFile(getConfigFile(tempDir), 'schema: spec-driven\n');
     } else {
-      await fs.writeFile(path.join(openspecDir, 'config.yaml'), 'schema: glob-tasks\n');
+      await fs.mkdir(getToolDir(tempDir), { recursive: true });
+      await fs.writeFile(getConfigFile(tempDir), 'schema: glob-tasks\n');
     }
     await fs.writeFile(path.join(changeDir, 'backend', 'tasks.md'), '- [x] 1.1 a\n- [x] 1.2 b\n');
     await fs.writeFile(path.join(changeDir, 'frontend', 'tasks.md'), '- [x] 2.1 a\n- [ ] 2.2 b\n- [ ] 2.3 c\n');
@@ -298,7 +303,7 @@ describe('ViewCommand', () => {
   });
 
   it('keeps a change with unfinished sub-tasks in Active, not Completed (#1485)', async () => {
-    const changesDir = path.join(tempDir, 'openspec', 'changes');
+    const changesDir = getChangesDir(tempDir);
     await fs.mkdir(path.join(changesDir, 'subtask-change'), { recursive: true });
     await fs.writeFile(
       path.join(changesDir, 'subtask-change', 'tasks.md'),
@@ -314,7 +319,7 @@ describe('ViewCommand', () => {
   });
 
   it('renders the same dashboard however many changes are archived (#2030)', async () => {
-    const changesDir = path.join(tempDir, 'openspec', 'changes');
+    const changesDir = getChangesDir(tempDir);
     await fs.mkdir(path.join(changesDir, 'draft-change'), { recursive: true });
     await fs.mkdir(path.join(changesDir, 'active-change'));
     await fs.writeFile(path.join(changesDir, 'active-change', 'tasks.md'), '- [x] Done\n- [ ] Pending\n');
@@ -337,7 +342,7 @@ describe('ViewCommand', () => {
   });
 
   it('aligns progress bars in Active Changes when a change name exceeds 30 characters (#1986)', async () => {
-    const changesDir = path.join(tempDir, 'openspec', 'changes');
+    const changesDir = getChangesDir(tempDir);
     await fs.mkdir(path.join(changesDir, 'add-harp-profile-catalog'), { recursive: true });
     await fs.writeFile(
       path.join(changesDir, 'add-harp-profile-catalog', 'tasks.md'),
@@ -363,7 +368,7 @@ describe('ViewCommand', () => {
   });
 
   it('caps the Active Changes name column at 48 characters (#1986)', async () => {
-    const changesDir = path.join(tempDir, 'openspec', 'changes');
+    const changesDir = getChangesDir(tempDir);
     const longName = 'a-change-name-that-is-well-beyond-the-forty-eight-column-cap';
     for (const name of ['short-change', 'improve-tuner-readout-legibility', longName]) {
       await fs.mkdir(path.join(changesDir, name), { recursive: true });

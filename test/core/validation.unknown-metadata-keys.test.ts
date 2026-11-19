@@ -8,6 +8,7 @@ import {
   CHANGE_METADATA_KNOWN_KEYS,
   ChangeMetadataSchema,
 } from '../../src/core/change-metadata/schema.js';
+import { getChangesDir } from '../helpers/layout.js';
 
 const PROPOSAL = `# Test Change
 
@@ -126,7 +127,7 @@ describe('status/instructions report unrecognized change metadata keys', () => {
 
   beforeEach(async () => {
     tempDir = await fs.mkdtemp(path.join(process.cwd(), 'test-status-unknown-metadata-'));
-    changeDir = path.join(tempDir, 'openspec', 'changes', 'probe');
+    changeDir = path.join(getChangesDir(tempDir), 'probe');
     await fs.mkdir(changeDir, { recursive: true });
     await fs.writeFile(path.join(changeDir, 'proposal.md'), PROPOSAL, 'utf-8');
     await fs.writeFile(

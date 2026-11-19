@@ -3,11 +3,12 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { tmpdir } from 'os';
 import { runCLI } from '../helpers/run-cli.js';
+import { RELATIVE_CHANGES_DIR, RELATIVE_SPECS_DIR, getChangesDir, getSpecsDir, getToolDir } from '../helpers/layout.js';
 
 /**
  * The layout reported in #2100: a project keeps its main specs beside the
  * product documentation they belong to and links
- * `openspec/specs/<capability>/spec.md` to them, so OpenSpec and the docs read
+ * `${RELATIVE_SPECS_DIR}/<capability>/spec.md` to them, so OpenSpec and the docs read
  * and write the same bytes.
  *
  * Driven through the real CLI on purpose. The regression this guards against
@@ -67,14 +68,16 @@ describeWithSymlinks('a main spec that is a symlink into the project (#2100)', (
     base = await fs.mkdtemp(path.join(tmpdir(), 'openspec-spec-symlink-e2e-'));
     projectDir = path.join(base, 'repo');
     docsSpec = path.join(projectDir, 'docs', 'auth', 'specs', 'login.md');
-    linkedSpec = path.join(projectDir, 'openspec', 'specs', 'login', 'spec.md');
+    linkedSpec = path.join(getSpecsDir(projectDir), 'login', 'spec.md');
 
     await write(path.join('docs', 'auth', 'specs', 'login.md'), MAIN_SPEC);
-    await write(path.join('openspec', 'changes', 'add-mfa', 'proposal.md'),
+    await write(path.join(RELATIVE_CHANGES_DIR, 'add-mfa', 'proposal.md'),
       '# Add MFA\n\n## Why\nAccounts need a second factor.\n\n## What Changes\n- Require a second factor\n');
-    await write(path.join('openspec', 'changes', 'add-mfa', 'tasks.md'), '## 1. Work\n- [x] 1.1 Ship it\n');
-    await write(path.join('openspec', 'changes', 'add-mfa', 'specs', 'login', 'spec.md'), DELTA);
+    await write(path.join(RELATIVE_CHANGES_DIR, 'add-mfa', 'tasks.md'), '## 1. Work\n- [x] 1.1 Ship it\n');
+    await write(path.join(RELATIVE_CHANGES_DIR, 'add-mfa', 'specs', 'login', 'spec.md'), DELTA);
     await fs.mkdir(path.dirname(linkedSpec), { recursive: true });
+    // SpecAgile: specagile/ is what makes repo/ the project (src/core/fork/layout.ts).
+    await fs.mkdir(getToolDir(projectDir), { recursive: true });
   });
 
   afterEach(async () => {
@@ -150,7 +153,7 @@ describeWithSymlinks('a main spec that is a symlink into the project (#2100)', (
       await expect(fs.readFile(outside, 'utf-8')).resolves.toBe(MAIN_SPEC);
       // The change is still there to retry once the link is corrected.
       await expect(
-        fs.access(path.join(projectDir, 'openspec', 'changes', 'add-mfa'))
+        fs.access(path.join(getChangesDir(projectDir), 'add-mfa'))
       ).resolves.toBeUndefined();
     });
   });

@@ -7,10 +7,10 @@ OpenSpec reuses words that mean something else in git, CI, and agent tooling. Ea
 | Term | Definition | More |
 |---|---|---|
 | **Apply** | Implement the tasks in a change proposal. Skill: `sa-implement`. | [Apply a change](skills.md#sa-implement) |
-| **Archive** | Complete a change proposal: merge its deltas into the main specs and move its folder to `openspec/changes/archive/`. | [Quickstart](../start/quickstart.md) |
+| **Archive** | Complete a change proposal: merge its deltas into the main specs and move its folder to `changes/archive/`. | [Quickstart](../start/quickstart.md) |
 | **Artifact** | A planning document inside a change proposal: `proposal.md`, delta specs, `design.md`, `tasks.md`. Not a build output. | [Artifacts](schemas/spec-driven/index.md#artifacts) |
-| **Capability** | One behavior area of your system. Each has one spec at `openspec/specs/<capability>/spec.md`. | [Capabilities](schemas/spec-driven/index.md#proposalmd) |
-| **Change proposal** | One unit of work: a folder under `openspec/changes/<name>/` holding its planning artifacts. Often shortened to "change". Not a git commit. | [Propose](../start/quickstart.md#step-2-propose) |
+| **Capability** | One behavior area of your system. Each has one spec at `specs/<capability>/spec.md`. | [Capabilities](schemas/spec-driven/index.md#proposalmd) |
+| **Change proposal** | One unit of work: a folder under `changes/<name>/` holding its planning artifacts. Often shortened to "change". Not a git commit. | [Propose](../start/quickstart.md#step-2-propose) |
 | **Command** | In OpenSpec 1.x, a typed entry point for a workflow (`/opsx:propose`, `/opsx-propose`). OpenSpec 2.0 installs skills only. | [Supported tools](supported-tools.md) |
 | **Continue** | Create the next planning artifact for an existing change proposal. Skill: `sa-continue-change`. | [Skills](skills.md) |
 | **Delivery** | In 1.x, how workflows were installed: as skills, commands, or both. Retired in 2.0. | [Upgrade to 2.0](../help/upgrade-to-2.md) |
@@ -19,8 +19,8 @@ OpenSpec reuses words that mean something else in git, CI, and agent tooling. Ea
 | **Fast-forward** | Create a change proposal with every planning artifact in one pass, ready to implement. Skill: `sa-ff-change`. Not a git fast-forward. | [Skills](skills.md) |
 | **Legacy workflow** | The pre-OPSX `/openspec:*` commands. |  |
 | **Loop** | The cycle a change proposal moves through: explore, propose, review, apply, archive. | [Quickstart](../start/quickstart.md) |
-| **Main specs** | The `openspec/specs/` tree: the current, agreed behavior of your system. Archiving merges deltas into it. A capability with no spec yet gets one from its `ADDED` requirements. | [Archive](../start/quickstart.md#step-5-archive) |
-| **OpenSpec root** | The `openspec/` tree a command resolves to and operates on: your repo's, or a store's. | [Stores](../multi-repo/stores.md#where-artifacts-get-created-when-using-stores) |
+| **Main specs** | The `specs/` tree: the current, agreed behavior of your system. Archiving merges deltas into it. A capability with no spec yet gets one from its `ADDED` requirements. | [Archive](../start/quickstart.md#step-5-archive) |
+| **OpenSpec root** | The folder with `specagile/` (and its `specs/` and `changes/`) a command resolves to and operates on: your repo's, or a store's. | [Stores](../multi-repo/stores.md#where-artifacts-get-created-when-using-stores) |
 | **OPSX** | The current OpenSpec workflow system. Its 1.x commands used the `/opsx:` prefix. |  |
 | **Profile** | Which workflows init installs: `core` or `custom`. | [Profiles](../customize/profiles.md) |
 | **Propose** | Create a change proposal and generate all its planning artifacts in one step. Skill: `sa-propose`. | [Quickstart](../start/quickstart.md) |
@@ -29,7 +29,7 @@ OpenSpec reuses words that mean something else in git, CI, and agent tooling. Ea
 | **Scenario** | A testable example under a requirement, in WHEN/THEN form. | [Delta specs](schemas/spec-driven/index.md#delta-specs-specmd) |
 | **Schema** | The definition of which artifacts a change proposal produces, and in what order. Not JSON Schema. | [Schemas](schemas/index.md) |
 | **Skill** | A workflow's instructions, installed where your AI tool reads them (`.agents/skills/`, ...). | [Skills](skills.md) |
-| **Spec** | A file describing how one capability behaves today, at `openspec/specs/<capability>/spec.md`. | [Archive](../start/quickstart.md#step-5-archive) |
+| **Spec** | A file describing how one capability behaves today, at `specs/<capability>/spec.md`. | [Archive](../start/quickstart.md#step-5-archive) |
 | **spec-driven** | The default schema: proposal, then delta specs, then design, then tasks. | [spec-driven](schemas/spec-driven/index.md) |
 | **Store** | A standalone OpenSpec repo registered on your machine, for planning that spans repositories. Not a data store. | [Stores (beta)](../multi-repo/stores.md) |
 | **Sync** | Merge implemented deltas into the main specs without archiving. Skill: `sa-sync-specs`. | [Skills](skills.md) |

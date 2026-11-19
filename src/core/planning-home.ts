@@ -2,6 +2,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 
 import { FileSystemUtils } from '../utils/file-system.js';
+import { getChangesDir, getToolDir } from './fork/layout.js';
 
 export type PlanningHomeKind = 'repo';
 
@@ -56,9 +57,10 @@ function findNearestAncestor(startPath: string, predicate: (dirPath: string) => 
   }
 }
 
+// SpecAgile: a root is marked by its tool folder (src/core/fork/layout.ts).
 export function findRepoPlanningRootSync(startPath = process.cwd()): string | null {
   return findNearestAncestor(startPath, (dirPath) =>
-    pathExistsAsDirectory(path.join(dirPath, 'openspec'))
+    pathExistsAsDirectory(getToolDir(dirPath))
   );
 }
 
@@ -66,7 +68,7 @@ function repoPlanningHome(repoRoot: string): PlanningHome {
   return {
     kind: 'repo',
     root: repoRoot,
-    changesDir: path.join(repoRoot, 'openspec', 'changes'),
+    changesDir: getChangesDir(repoRoot),
     defaultSchema: REPO_DEFAULT_SCHEMA,
   };
 }

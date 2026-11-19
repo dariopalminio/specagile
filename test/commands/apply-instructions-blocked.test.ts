@@ -6,6 +6,7 @@ import {
   generateApplyInstructions,
   printApplyInstructionsText,
 } from '../../src/commands/workflow/instructions.js';
+import { getChangesDir } from '../helpers/layout.js';
 
 /**
  * Apply blocks on the schema's `apply.requires` alone, so its own list stops at
@@ -19,7 +20,7 @@ describe('generateApplyInstructions blocked prerequisites', () => {
 
   beforeEach(() => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openspec-apply-blocked-'));
-    changeDir = path.join(tempDir, 'openspec', 'changes', 'my-change');
+    changeDir = path.join(getChangesDir(tempDir), 'my-change');
     fs.mkdirSync(changeDir, { recursive: true });
     fs.writeFileSync(path.join(changeDir, '.openspec.yaml'), 'schema: spec-driven\n');
     fs.writeFileSync(path.join(changeDir, 'proposal.md'), '## Why\nx\n');

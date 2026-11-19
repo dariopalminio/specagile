@@ -4,7 +4,7 @@
 
 ## Location
 
-Each change keeps its metadata at `openspec/changes/<change-name>/.openspec.yaml`, next to its artifacts. Creating a change writes the file with `schema` and `created` filled in.
+Each change keeps its metadata at `changes/<change-name>/.openspec.yaml`, next to its artifacts. Creating a change writes the file with `schema` and `created` filled in.
 
 ## Fields
 
@@ -20,7 +20,7 @@ Each change keeps its metadata at `openspec/changes/<change-name>/.openspec.yaml
 
 ### schema
 
-The workflow schema this change follows. It is set when the change is created and wins over the project config, so a change keeps its schema even if `openspec/config.yaml` changes afterwards. Run [`specagile schemas`](../cli.md#specagile-schemas) to list the available schema names.
+The workflow schema this change follows. It is set when the change is created and wins over the project config, so a change keeps its schema even if `specagile/config.yaml` changes afterwards. Run [`specagile schemas`](../cli.md#specagile-schemas) to list the available schema names.
 
 ### initiative
 

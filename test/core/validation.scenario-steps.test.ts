@@ -5,6 +5,7 @@ import path from 'path';
 import { scenarioStepCoverage } from '../../src/core/parsers/requirement-text.js';
 import { Validator } from '../../src/core/validation/validator.js';
 import { runCLI } from '../helpers/run-cli.js';
+import { getChangesDir } from '../helpers/layout.js';
 
 /**
  * A scenario whose steps assert nothing — only AND lines, or plain prose —
@@ -270,7 +271,7 @@ describe('validate and archive verdicts (e2e)', () => {
 
     expect((await cli(['init', '--tools', 'claude'])).exitCode).toBe(0);
     expect((await cli(['new', 'change', 'edit'])).exitCode).toBe(0);
-    const dir = path.join(project, 'openspec', 'changes', 'edit');
+    const dir = path.join(getChangesDir(project), 'edit');
     await fs.mkdir(path.join(dir, 'specs', 'billing'), { recursive: true });
     await fs.writeFile(
       path.join(dir, 'proposal.md'),

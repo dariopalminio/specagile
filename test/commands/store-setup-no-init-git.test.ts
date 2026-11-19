@@ -11,6 +11,7 @@ import {
 } from '../../src/core/index.js';
 import { runCLI, type RunCLIResult } from '../helpers/run-cli.js';
 import { isolatedGitEnv } from '../helpers/store-git.js';
+import { getConfigFile, getToolDir } from '../helpers/layout.js';
 
 /**
  * The nested-repo guard exists because store setup normally runs `git init`,
@@ -99,7 +100,7 @@ describe('store setup --no-init-git inside an existing Git repository', () => {
       committed: false,
     });
     expect(fs.existsSync(getStoreMetadataPath(storeRoot))).toBe(true);
-    expect(fs.existsSync(path.join(storeRoot, 'openspec', 'config.yaml'))).toBe(true);
+    expect(fs.existsSync(getConfigFile(storeRoot))).toBe(true);
   }, 30_000);
 
   it('creates no repository and commits nothing in the enclosing one', async () => {
@@ -145,7 +146,7 @@ describe('store setup --no-init-git inside an existing Git repository', () => {
     expect(parseJson(result).status[0]).toEqual(
       expect.objectContaining({ code: 'store_setup_inside_git_repo' })
     );
-    expect(fs.existsSync(path.join(storeRoot, 'openspec'))).toBe(false);
+    expect(fs.existsSync(getToolDir(storeRoot))).toBe(false);
     expect(fs.existsSync(getStoreMetadataPath(storeRoot))).toBe(false);
   }, 30_000);
 
@@ -158,6 +159,6 @@ describe('store setup --no-init-git inside an existing Git repository', () => {
     expect(parseJson(result).status[0]).toEqual(
       expect.objectContaining({ code: 'store_setup_inside_git_repo' })
     );
-    expect(fs.existsSync(path.join(storeRoot, 'openspec'))).toBe(false);
+    expect(fs.existsSync(getToolDir(storeRoot))).toBe(false);
   }, 30_000);
 });

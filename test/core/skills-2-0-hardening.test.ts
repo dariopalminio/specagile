@@ -11,6 +11,7 @@ import { detectLegacyArtifacts } from '../../src/core/legacy-cleanup.js';
 import { hasProjectConfigDrift } from '../../src/core/profile-sync-drift.js';
 import { CORE_WORKFLOWS } from '../../src/core/profiles.js';
 import { releasedCodexPrompt } from '../helpers/released-codex-prompt.js';
+import { getToolDir } from '../helpers/layout.js';
 
 vi.mock('../../src/utils/interactive.js', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../../src/utils/interactive.js')>();
@@ -43,7 +44,7 @@ describe('OpenSpec 2.0 skills: hardening', () => {
     originalEnv = { ...process.env };
     root = await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-2-0-')));
     project = path.join(root, 'project');
-    await fs.mkdir(path.join(project, 'openspec'), { recursive: true });
+    await fs.mkdir(getToolDir(project), { recursive: true });
     process.env.HOME = path.join(root, 'home');
     process.env.USERPROFILE = path.join(root, 'home');
     process.env.CODEX_HOME = path.join(root, 'home', '.codex');

@@ -1,39 +1,43 @@
 import * as nodeFs from 'fs';
 import path from 'path';
-import { OPENSPEC_DIR_NAME } from '../core/project-dir.js';
+import { CHANGES_DIR_NAME, SPECS_DIR_NAME, getToolDir } from '../core/fork/layout.js';
 import { FileSystemUtils } from './file-system.js';
 
 /**
  * The project a specs root belongs to, or null when it cannot be named.
  *
- * Every specs root OpenSpec reads is addressed through the project's
- * `openspec` directory - `<project>/openspec/specs` for main specs and
- * `<project>/openspec/changes/<change>/specs` (or `.../changes/archive/...`)
- * for a change's deltas - so the project is the parent of that `openspec`
- * directory.
+ * SpecAgile: every specs root is addressed from the project root (the layout
+ * of src/core/fork/layout.ts) - `<project>/specs` for main specs and
+ * `<project>/changes/<change>/specs` (or `.../changes/archive/...`) for a
+ * change's deltas. With no container folder to look for, the project is the
+ * first ancestor reached through a `specs` or `changes` folder that has the
+ * `specagile/` folder of a root.
  *
- * The directory below the match has to be `specs` or `changes`, which is what
- * makes this a planning root rather than a directory that merely shares the
- * name: a store kept at `~/openspec/my-store` would otherwise hand out `~` as
- * its boundary. A specs root reached some other way (a store given by path)
+ * Only the folders are checked on disk, never the spec file's own link. A
+ * store kept at `~/openspec/my-store` is its own root, so it is the boundary
+ * rather than `~`. A specs root reached some other way (a store given by path)
  * has no project to name, and containment stays at the specs root.
  */
 function findProjectRoot(specsRoot: string): string | null {
   let current = path.resolve(specsRoot);
-  let below: string | null = null;
   while (true) {
     const parent = path.dirname(current);
     if (parent === current) {
       return null;
     }
-    if (
-      path.basename(current) === OPENSPEC_DIR_NAME &&
-      (below === 'specs' || below === 'changes')
-    ) {
+    const below = path.basename(current);
+    if ((below === SPECS_DIR_NAME || below === CHANGES_DIR_NAME) && isDirectory(getToolDir(parent))) {
       return parent;
     }
-    below = path.basename(current);
     current = parent;
+  }
+}
+
+function isDirectory(candidate: string): boolean {
+  try {
+    return nodeFs.statSync(candidate).isDirectory();
+  } catch {
+    return false;
   }
 }
 
@@ -51,7 +55,7 @@ function isLexicallyWithin(allowedDirectory: string, targetPath: string): boolea
 /**
  * A project may keep a capability's spec file elsewhere - beside the product
  * documentation it belongs to - and leave a relative symlink at
- * `openspec/specs/<capability>/spec.md`, so OpenSpec and the docs read and
+ * `specs/<capability>/spec.md`, so OpenSpec and the docs read and
  * write the same bytes. Accept such a link, and refuse one that leaves the
  * project, so a link swapped underneath a repo cannot turn a spec read or an
  * archive write into an arbitrary file access.

@@ -17,8 +17,9 @@ comandos (`specify` → `plan` → `implement`) y specs vivas en `.feature`.
 - Compilar: `pnpm build`
 - Test (acotado): `pnpm test -- --run <ruta>`
 - CLI del fork: `node bin/specagile.js <comando>` (o `specagile` tras `pnpm link --global`).
-- No ejecutar `specagile init` (ni `openspec init`) en la raíz del fork (no es un
-  proyecto de usuario).
+- No ejecutar `specagile init`, `specagile update` (ni `openspec init`) en la raíz
+  del fork: no es un proyecto de usuario, y `specagile` migraría su `openspec/`
+  al layout nuevo.
 
 ## Sincronización con upstream
 
@@ -76,6 +77,13 @@ Upstream (2.1.0) no trae `specify` ni `plan`. Estado del fork:
   las plantillas de upstream (`src/core/templates/workflows/`): la identidad se
   aplica al generar. Los mensajes de usuario dicen `specagile <comando>` y
   `test/fork/cli-name.test.ts` falla si queda un `openspec <comando>`. No renombrar
-  `src/`, `openspec/`, los ids de workflow ni los archivos internos
+  `src/`, la carpeta `openspec/` de este repositorio (se opera con la CLI de
+  OpenSpec upstream), los ids de workflow ni los archivos internos
   (`.openspec-target`).
+- Layout de proyecto (`specs/`, `changes/` y `specagile/` en la raíz): la fuente
+  única es `src/core/fork/layout.ts`, y la migración del layout `openspec/`
+  anterior, `src/core/fork/layout-migration.ts`; ver "Project layout" en
+  `FORK.md`. Las rutas del layout en `src/` se arman con ese módulo:
+  `test/fork/layout.test.ts` falla si se arma una a mano. Los tests usan
+  `test/helpers/layout.ts`, y `createFormerLayout` para el layout anterior.
   

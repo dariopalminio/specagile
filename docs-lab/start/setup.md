@@ -27,7 +27,7 @@ OpenSpec Setup Complete
 
 Created: Claude Code
 8 skills in ~/.agents/skills/ for every project on this machine
-Config: openspec/config.yaml (schema: spec-driven)
+Config: specagile/config.yaml (schema: spec-driven)
 ```
 
 With the skills in this project:
@@ -37,7 +37,7 @@ OpenSpec Setup Complete
 
 Created: Claude Code
 8 skills in .agents/skills/ (also in .claude/skills/)
-Config: openspec/config.yaml (schema: spec-driven)
+Config: specagile/config.yaml (schema: spec-driven)
 ```
 
 If your tool runs in an IDE, restart it so it picks up the new skills.
@@ -50,12 +50,12 @@ Re-running init is safe:
 
 ### Migrate an existing `project.md`
 
-Init does not copy legacy `openspec/project.md` into `config.yaml`. It keeps the file and prints an AI-assisted migration request.
+Init does not copy legacy `specagile/project.md` into `config.yaml` (an OpenSpec 0.x project kept it in `openspec/`; init moves it to `specagile/` first). It keeps the file and prints an AI-assisted migration request.
 
 In your AI chat:
 
 ```
-Review openspec/project.md and migrate its useful content to openspec/config.yaml.
+Review specagile/project.md and migrate its useful content to specagile/config.yaml.
 Keep context concise: include only project-wide facts needed during artifact creation, apply, and archive.
 Move artifact-specific guidance into rules for the matching artifacts.
 Move guidance for apply or archive into the matching operations entry.
@@ -66,13 +66,13 @@ Review `config.yaml`, then delete `project.md` when ready.
 
 ## What init installs
 
-Every project gets an `openspec/` folder at the repo root. Where the skills go depends on the choice you made:
+Every project gets three folders at the repo root: `specs/`, `changes/` and `specagile/`. Where the skills go depends on the choice you made:
 
 | | On this machine | In this project |
 |---|---|---|
 | Skills | `~/.agents/skills/` in your home folder | `.agents/skills/` in the project |
 | Links for tools that read their own folder | `~/.claude/skills/`, for example | `.claude/skills/`, for example |
-| What you commit | `openspec/` | `openspec/`, the skills and tool entries |
+| What you commit | `specs/`, `changes/`, `specagile/` | `specs/`, `changes/`, `specagile/`, the skills and tool entries |
 
 The rest of this section describes a project install. [Install the skills once for every project](#install-the-skills-once-for-every-project) covers the machine-wide one.
 
@@ -80,17 +80,19 @@ Vercel’s installer fetches skills from the OpenSpec GitHub tag that matches yo
 
 Init also removes the command files earlier versions generated, and keeps any you edited. A project set up before 1.0 also has older leftovers: folders like `.claude/commands/openspec/`, and OpenSpec marker blocks in files like `CLAUDE.md` and `AGENTS.md`. An interactive init asks before removing them. With `--force`, with `--tools`, or in a non-interactive run, init removes them without asking, including any edits inside those blocks, so back them up first.
 
-### The `openspec/` folder
+### The planning folders
 
-Every OpenSpec artifact lives here, at the root of your project. Here's what that looks like:
+Every artifact lives in three folders at the root of your project, named for what they hold rather than for the tool. Here's what that looks like:
 
 ```
-openspec/
-├── config.yaml     project settings and context for the AI
-├── specs/          your specs (empty for now)
-└── changes/        in-motion changes (empty for now)
-    └── archive/    completed changes move here
+specs/              your specs (empty for now)
+changes/            in-motion changes (empty for now)
+└── archive/        completed changes move here
+specagile/
+└── config.yaml     project settings and context for the AI
 ```
+
+A folder counts as a SpecAgile project when it has `specagile/` with its config, or `specagile/` next to `specs/` or `changes/`. A `specs/` folder alone does not, so a repo that keeps its tests in `specs/` is not taken for one. A project set up with OpenSpec or an earlier SpecAgile keeps everything in `openspec/`: `specagile update` moves it (see [Move to the SpecAgile layout](../help/move-to-the-specagile-layout.md)).
 
 [Project config](../customize/project-config.md) covers `config.yaml`.
 
@@ -152,8 +154,8 @@ Run `specagile update` to refresh the skills for your [workflow profile](../cust
 
 #### Move an existing project to the global skills
 
-1. Save any edits to built-in skills, and move out any file you added inside a built-in skill folder: update replaces those folders whole. Put team guidance under `rules` or `context` in `openspec/config.yaml`, or give a custom skill its own name.
-2. Run `specagile update` in a terminal. Choose **Switch to global** to install skills on your machine and remove the repo copies. To keep the skills in your project repo, press Enter on **Keep in this project** and commit the updated `openspec/config.yaml`, where OpenSpec saves the choice as `skillsScope: project`. Other checkouts then remember the choice. You can switch later with `specagile init --scope global`.
+1. Save any edits to built-in skills, and move out any file you added inside a built-in skill folder: update replaces those folders whole. Put team guidance under `rules` or `context` in `specagile/config.yaml`, or give a custom skill its own name.
+2. Run `specagile update` in a terminal. Choose **Switch to global** to install skills on your machine and remove the repo copies. To keep the skills in your project repo, press Enter on **Keep in this project** and commit the updated `specagile/config.yaml`, where OpenSpec saves the choice as `skillsScope: project`. Other checkouts then remember the choice. You can switch later with `specagile init --scope global`.
 3. If you switched to global, commit the removals. After pulling that commit, each teammate runs `specagile update` in a terminal, answers **Yes** to setting up skills on their machine, and selects their tools. In a script or from an agent, they run `specagile init --tools <ids>` instead.
 
 Keep project skills for GitHub’s hosted Copilot agent. It can read committed files, but it can’t read your home folder. CI jobs that only run `specagile validate` don’t need skills. For jobs that install them, see [OPENSPEC_SKILLS_SCOPE](../reference/configuration/environment-variables.md#openspec_skills_scope).

@@ -3,6 +3,7 @@ import path from 'path';
 import { promises as fs } from 'fs';
 import os from 'os';
 import { discoverSpecFiles } from '../../src/utils/spec-discovery.js';
+import { getSpecsDir, getToolDir } from '../helpers/layout.js';
 
 async function withTempDir(run: (dir: string) => Promise<void>) {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-spec-discovery-'));
@@ -155,8 +156,9 @@ describe('discoverSpecFiles', () => {
       await withTempDir(async (dir) => {
         // The project keeps its specs beside the product documentation and
         // links openspec/specs/<capability>/spec.md to them.
-        const specsRoot = path.join(dir, 'repo', 'openspec', 'specs');
+        const specsRoot = getSpecsDir(path.join(dir, 'repo'));
         const docsSpec = path.join(dir, 'repo', 'docs', 'auth', 'specs', 'login.md');
+        await fs.mkdir(getToolDir(path.join(dir, 'repo')), { recursive: true });
         await fs.mkdir(path.join(specsRoot, 'login'), { recursive: true });
         await fs.mkdir(path.dirname(docsSpec), { recursive: true });
         await fs.writeFile(docsSpec, '# login\n', 'utf8');
@@ -174,8 +176,9 @@ describe('discoverSpecFiles', () => {
     'rejects a spec.md symlink that leaves the project (#2100)',
     async () => {
       await withTempDir(async (dir) => {
-        const specsRoot = path.join(dir, 'repo', 'openspec', 'specs');
+        const specsRoot = getSpecsDir(path.join(dir, 'repo'));
         const outside = path.join(dir, 'outside.md');
+        await fs.mkdir(getToolDir(path.join(dir, 'repo')), { recursive: true });
         await fs.mkdir(path.join(specsRoot, 'login'), { recursive: true });
         await fs.writeFile(outside, '# Outside\n', 'utf8');
         await fs.symlink(outside, path.join(specsRoot, 'login', 'spec.md'), 'file');

@@ -23,6 +23,7 @@ import {
   isStoreSelectedRoot,
 } from '../../core/root-selection.js';
 import { readProjectConfig } from '../../core/project-config.js';
+import { getChangesDir, getSpecsDir, getToolDir } from '../../core/fork/layout.js';
 import { printJson, statusFromError, validateSchemaExists } from './shared.js';
 
 // -----------------------------------------------------------------------------
@@ -88,7 +89,7 @@ function printCreatedChangeHuman(
 }
 
 /**
- * An implicit root is the fallback taken when no `openspec/` directory was
+ * An implicit root is the fallback taken when no `specagile/` directory was
  * found: creating a change there materializes OpenSpec in whatever directory
  * the caller happened to be in, which is how an agent ends up adopting a
  * project that never ran `openspec init` (#1645). The creation itself stays
@@ -99,17 +100,23 @@ function printImplicitRootNotice(root: ResolvedOpenSpecRoot): void {
     return;
   }
 
-  const openspecDir = path.dirname(root.changesDir);
-  const relative = path.relative(process.cwd(), openspecDir);
-  const location = relative && !relative.startsWith('..') ? relative : openspecDir;
+  // SpecAgile: the folders of the layout (src/core/fork/layout.ts), each one
+  // named unless it sits inside another.
+  const dirs = [getSpecsDir(root.path), getChangesDir(root.path), getToolDir(root.path)];
+  const created = dirs
+    .filter((dir) => !dirs.some((other) => dir.startsWith(other + path.sep)))
+    .map((dir) => {
+      const relative = path.relative(process.cwd(), dir);
+      return `${relative && !relative.startsWith('..') ? relative : dir}/`;
+    });
 
   console.log();
   console.log(
-    chalk.dim(`Note: no OpenSpec root was found here, so one was created at ${location}/.`)
+    chalk.dim(`Note: no OpenSpec root was found here, so one was created at ${created.join(', ')}.`)
   );
   console.log(
     chalk.dim(
-      'Run `specagile init` to finish setting this project up, or delete that directory if you meant a different project.'
+      `Run \`specagile init\` to finish setting this project up, or delete ${created.length === 1 ? 'that directory' : 'those directories'} if you meant a different project.`
     )
   );
 }

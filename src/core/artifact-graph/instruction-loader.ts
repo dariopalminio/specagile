@@ -15,6 +15,7 @@ import {
   resolveSchemaForChange,
 } from '../../utils/change-metadata.js';
 import { FileSystemUtils } from '../../utils/file-system.js';
+import { getChangesDir } from '../fork/layout.js';
 import {
   buildActionContext,
   buildNextSteps,
@@ -280,7 +281,7 @@ export function loadChangeContext(
   options: LoadChangeContextOptions = {}
 ): ChangeContext {
   const changeDir = FileSystemUtils.canonicalizeExistingPath(
-    options.changeDir ?? path.join(projectRoot, 'openspec', 'changes', changeName)
+    options.changeDir ?? path.join(getChangesDir(projectRoot), changeName)
   );
 
   const metadata = readChangeMetadata(changeDir, projectRoot) ?? undefined;

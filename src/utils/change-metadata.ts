@@ -9,6 +9,7 @@ import {
 import { listSchemas, resolveSchema } from '../core/artifact-graph/resolver.js';
 import { readProjectConfig, type ProjectConfig } from '../core/project-config.js';
 import { sanitizeInline } from '../core/references.js';
+import { getRootOfChangeDir } from '../core/fork/layout.js';
 
 export const METADATA_FILENAME = '.openspec.yaml';
 
@@ -250,7 +251,7 @@ export interface ResolveSchemaForChangeOptions {
  * Resolution order:
  * 1. Explicit schema (if provided)
  * 2. Schema from .openspec.yaml metadata (if exists)
- * 3. Schema from openspec/config.yaml (if exists)
+ * 3. Schema from specagile/config.yaml (if exists)
  * 4. Default 'spec-driven'
  *
  * @param changeDir - The path to the change directory
@@ -263,8 +264,8 @@ export function resolveSchemaForChange(
   projectRootOverride?: string,
   options: ResolveSchemaForChangeOptions = {}
 ): string {
-  // Derive project root from changeDir (changeDir is typically projectRoot/openspec/changes/change-name)
-  const projectRoot = projectRootOverride ?? path.resolve(changeDir, '../../..');
+  // Derive project root from changeDir (changeDir is typically projectRoot/changes/change-name)
+  const projectRoot = projectRootOverride ?? getRootOfChangeDir(changeDir);
 
   // 1. Explicit override wins
   if (explicitSchema) {
@@ -323,7 +324,7 @@ export type SkipSpecsMarker = MetadataMarker;
  * Validate and archive must never honor metadata the rest of the CLI rejects,
  * in either direction. The project root for schema resolution is derived from
  * changeDir exactly like resolveSchemaForChange (changeDir is
- * <root>/openspec/changes/<name> for every root type, including store roots).
+ * <root>/changes/<name> for every root type, including store roots).
  * Missing metadata means "not declared"; a marker that cannot be honored
  * yields invalidReason so callers can say why.
  */
@@ -335,7 +336,7 @@ export function readSkipSpecsMarker(changeDir: string): MetadataMarker {
  * Non-throwing read of the retire_capabilities marker, with exactly the
  * semantics `readSkipSpecsMarker` documents above.
  *
- * Gates the one archive action that removes a file from `openspec/specs/`: when
+ * Gates the one archive action that removes a file from `specs/`: when
  * a change's REMOVED entries take a capability's last requirement, archive
  * deletes the emptied main spec rather than aborting on a spec it cannot write
  * (#1302). Declared rather than inferred because the delete is recoverable only
@@ -406,7 +407,7 @@ function readBooleanMarker(
     // resolveSchema alone would normalize and accept); resolveSchema then
     // proves the schema actually parses. Any failure fails closed.
     try {
-      const projectRoot = path.resolve(changeDir, '../../..');
+      const projectRoot = getRootOfChangeDir(changeDir);
       if (!listSchemas(projectRoot).includes(result.data.schema)) {
         return unhonorable(`schema: unknown schema '${result.data.schema}'`);
       }

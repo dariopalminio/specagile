@@ -7,6 +7,7 @@ import path from 'path';
 import { pathToFileURL } from 'node:url';
 import { version } from '../../package.json';
 import { cliProjectRoot, runCLI } from '../helpers/run-cli.js';
+import { RELATIVE_CHANGES_DIR, RELATIVE_SPECS_DIR, RELATIVE_TOOL_DIR } from '../helpers/layout.js';
 
 // A project's own skills are installed by the `skills` package, from the
 // repository's published skills/ folder. Every case runs the real CLI in a
@@ -250,7 +251,7 @@ describe("a project's skills, installed through the skills package", { timeout: 
     const result = await cli('init', '--scope', 'global', '--tools', 'claude');
 
     expect(result.exitCode, result.stderr).toBe(0);
-    expect((await fs.readdir(dir)).sort()).toEqual(['openspec']);
+    expect((await fs.readdir(dir)).sort()).toEqual([RELATIVE_CHANGES_DIR, RELATIVE_SPECS_DIR, RELATIVE_TOOL_DIR].sort());
   });
 
   it('reports a missing release tag even when the default branch contains the skills', async () => {

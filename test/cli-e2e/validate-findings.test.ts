@@ -4,16 +4,19 @@ import path from 'path';
 import { tmpdir } from 'os';
 import { getGlobalDataDir, registerStore } from '../../src/core/index.js';
 import { runCLI } from '../helpers/run-cli.js';
+import { getArchiveDir, getChangesDir, getConfigFile, getSpecsDir, getToolDir } from '../helpers/layout.js';
 
 describe('validation report CLI contract', () => {
   let projectDir: string;
 
   beforeAll(async () => {
     projectDir = await fs.mkdtemp(path.join(tmpdir(), 'openspec-findings-e2e-'));
-    await fs.mkdir(path.join(projectDir, 'openspec', 'specs'), { recursive: true });
-    await fs.writeFile(path.join(projectDir, 'openspec', 'config.yaml'), 'schema: spec-driven\n');
+    await fs.mkdir(getToolDir(projectDir), { recursive: true });
+    await fs.mkdir(getSpecsDir(projectDir), { recursive: true });
+    await fs.mkdir(getToolDir(projectDir), { recursive: true });
+    await fs.writeFile(getConfigFile(projectDir), 'schema: spec-driven\n');
     for (const [id, checkbox] of [['done', 'x'], ['unfinished', ' ']]) {
-      const dir = path.join(projectDir, 'openspec', 'changes', 'archive', id);
+      const dir = path.join(getArchiveDir(projectDir), id);
       await fs.mkdir(dir, { recursive: true });
       await fs.writeFile(path.join(dir, 'tasks.md'), `# Tasks\n\n- [${checkbox}] 1.1 Work\n`);
     }
@@ -98,8 +101,9 @@ describe('validation report CLI contract', () => {
   it('retains fatal archive-discovery diagnostics', async () => {
     const malformedDir = await fs.mkdtemp(path.join(tmpdir(), 'openspec-findings-malformed-'));
     try {
-      await fs.mkdir(path.join(malformedDir, 'openspec', 'changes'), { recursive: true });
-      await fs.writeFile(path.join(malformedDir, 'openspec', 'changes', 'archive'), 'not a directory');
+      await fs.mkdir(getToolDir(malformedDir), { recursive: true });
+      await fs.mkdir(getChangesDir(malformedDir), { recursive: true });
+      await fs.writeFile(getArchiveDir(malformedDir), 'not a directory');
       const result = await runCLI(['validate', '--archived', '--report', 'findings', '--json'], { cwd: malformedDir });
       expect(result.exitCode).toBe(1);
       expect(result.stderr).toBe('');

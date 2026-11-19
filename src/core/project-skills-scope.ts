@@ -1,6 +1,6 @@
 /**
  * The team's choice to keep OpenSpec's skills in the repository, recorded as
- * `skillsScope: project` in `openspec/config.yaml`. It sits with the project's
+ * `skillsScope: project` in `specagile/config.yaml`. It sits with the project's
  * other settings, so it is reviewed and committed like them, and a teammate
  * who pulls it is not asked again.
  */
@@ -8,6 +8,7 @@
 import { Document, isMap, parseDocument } from 'yaml';
 import { FileSystemUtils } from '../utils/file-system.js';
 import { readProjectConfig, resolveConfigFilePath } from './project-config.js';
+import { RELATIVE_CONFIG_FILE } from './fork/layout.js';
 
 const KEY = 'skillsScope';
 
@@ -25,7 +26,7 @@ export function keepsProjectSkills(projectPath: string): boolean {
 export async function rememberProjectSkills(projectPath: string): Promise<string | undefined> {
   const configPath = resolveConfigFilePath(projectPath);
   if (!configPath) {
-    const file = FileSystemUtils.resolveProjectArtifactPath(projectPath, 'openspec/config.yaml');
+    const file = FileSystemUtils.resolveProjectArtifactPath(projectPath, RELATIVE_CONFIG_FILE);
     await FileSystemUtils.writeFile(file, `schema: spec-driven\n${KEY}: project\n`);
     return file;
   }

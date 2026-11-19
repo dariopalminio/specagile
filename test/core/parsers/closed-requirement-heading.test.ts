@@ -9,6 +9,7 @@ import {
 } from '../../../src/core/parsers/requirement-blocks.js';
 import { findMainSpecStructureIssues } from '../../../src/core/parsers/spec-structure.js';
 import { buildUpdatedSpec, findSpecUpdates } from '../../../src/core/specs-apply.js';
+import { getChangesDir, getSpecsDir } from '../../helpers/layout.js';
 
 const NBSP = String.fromCharCode(0xa0);
 
@@ -151,9 +152,9 @@ describe('requirement names with a CommonMark closing sequence', () => {
       ].join('\n');
 
     async function build(deltaBody: string, main = mainSpec()) {
-      const specsRoot = path.join(tempDir, 'openspec', 'specs');
+      const specsRoot = getSpecsDir(tempDir);
       const specsDir = path.join(specsRoot, 'billing');
-      const changeDir = path.join(tempDir, 'openspec', 'changes', 'c');
+      const changeDir = path.join(getChangesDir(tempDir), 'c');
       await fs.mkdir(specsDir, { recursive: true });
       await fs.mkdir(path.join(changeDir, 'specs', 'billing'), { recursive: true });
       await fs.writeFile(path.join(specsDir, 'spec.md'), main);

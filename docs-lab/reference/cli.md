@@ -74,14 +74,14 @@ Initializes OpenSpec in a project.
 ```bash
 specagile init                        # current directory, interactive tool picker
 specagile init --tools claude,cursor  # set up specific tools, no prompts
-specagile init --tools none           # openspec/ structure only, no tool files
+specagile init --tools none           # specs/, changes/ and specagile/ only, no tool files
 ```
 
 With no `--tools`, init prompts you to pick tools in an interactive terminal. Outside one, it sets up the tools it detects in the project. With none detected it exits 1 and lists the valid ids, unless the [global skills](../start/setup.md#install-the-skills-once-for-every-project) are installed: then the project uses those.
 
 **Store-only repositories**
 
-When `openspec/config.yaml` contains a `store:` line and the repo has no local specs or changes, run init from the repository root:
+When `specagile/config.yaml` contains a `store:` line and the repo has no local specs or changes, run init from the repository root:
 
 ```bash
 # install Claude Code integration files in the code repo
@@ -89,8 +89,8 @@ specagile init --scope project --tools claude
 ```
 
 - **Integration files**: written in the code repo.
-- **`openspec/config.yaml`**: preserved byte-for-byte.
-- **`openspec/specs/` and `openspec/changes/`**: not created in the code repo.
+- **`specagile/config.yaml`**: preserved byte-for-byte.
+- **`specs/` and `changes/`**: not created in the code repo.
 
 Running init from a subdirectory exits 1 and tells you to run it from the repository root. `--language` also exits 1 because the language belongs in the external store's config. Run init in the store root or edit that config directly.
 
@@ -126,15 +126,15 @@ OpenSpec Setup Complete
 
 Created: Claude Code
 8 skills in .agents/skills/ (also in .claude/skills/)
-Config: openspec/config.yaml (schema: spec-driven)
+Config: specagile/config.yaml (schema: spec-driven)
 
 Getting started:
   Start your first change: /sa-propose "your idea"
 ```
 
-With the skills on this machine, the summary line reads `8 skills in ~/.agents/skills/ for every project on this machine` and the project holds only `openspec/`.
+With the skills on this machine, the summary line reads `8 skills in ~/.agents/skills/ for every project on this machine` and the project holds only `specs/`, `changes/` and `specagile/`.
 
-`--tools none` creates only the `openspec/` folder and sets up no tool. On an already-initialized project, init rewrites the installed files in place and the summary reads `Refreshed: Claude Code` with `Config: openspec/config.yaml (exists)`.
+`--tools none` creates only the `specs/`, `changes/` and `specagile/` folders and sets up no tool. On an already-initialized project, init rewrites the installed files in place and the summary reads `Refreshed: Claude Code` with `Config: specagile/config.yaml (exists)`.
 
 **Exit codes**
 
@@ -492,7 +492,7 @@ specagile list --specs            # specs with requirement counts
 specagile list --json             # machine-readable, includes the resolved root
 ```
 
-Rows come from `openspec/changes/` and `openspec/specs/` under the resolved root. The default change listing skips `openspec/changes/archive/`.
+Rows come from `changes/` and `specs/` under the resolved root. The default change listing skips `changes/archive/`.
 
 **Options**
 
@@ -554,11 +554,11 @@ With `--archived` or `--all`, every change object includes an `archived` boolean
 
 An empty listing prints `No active changes found.`, `No archived changes found.`, `No changes found.`, or `No specs found.` and still exits 0.
 
-A change is a directory directly under `openspec/changes/`. Unlike specs, changes cannot be nested in a namespace folder. A folder like `changes/mobile/` that only wraps a change (`changes/mobile/refresh-token/`) is listed with the status `not a change`, followed by a warning that names the nested directories. `--json` marks that entry with a `nested` array and adds a top-level `warnings` array. `show`, `status`, `validate` and `archive` refuse the folder with the same message. To fix it, move the change up and fold the namespace into its name:
+A change is a directory directly under `changes/`. Unlike specs, changes cannot be nested in a namespace folder. A folder like `changes/mobile/` that only wraps a change (`changes/mobile/refresh-token/`) is listed with the status `not a change`, followed by a warning that names the nested directories. `--json` marks that entry with a `nested` array and adds a top-level `warnings` array. `show`, `status`, `validate` and `archive` refuse the folder with the same message. To fix it, move the change up and fold the namespace into its name:
 
 ```bash
-mv openspec/changes/mobile/refresh-token openspec/changes/mobile-refresh-token
-rmdir openspec/changes/mobile
+mv changes/mobile/refresh-token changes/mobile-refresh-token
+rmdir changes/mobile
 ```
 
 **Exit codes**
@@ -877,7 +877,7 @@ Next steps:
 **Exit codes**
 
 - `0`: every validated item passed, including an empty bulk scope.
-- `1`: an item failed, the report request is invalid, `openspec/config.yaml` cannot be read or is not valid YAML, or the run failed (for example an unknown name or no OpenSpec root). A config that cannot be read or parsed stops the run before any item is checked; with `--json` it is reported as a single `status` entry with the code `unreadable_config` or `unparseable_config`.
+- `1`: an item failed, the report request is invalid, `specagile/config.yaml` cannot be read or is not valid YAML, or the run failed (for example an unknown name or no OpenSpec root). A config that cannot be read or parsed stops the run before any item is checked; with `--json` it is reported as a single `status` entry with the code `unreadable_config` or `unparseable_config`.
 
 ### --report full|findings
 
@@ -1048,14 +1048,14 @@ Task status: ✓ Complete
 
 Specs to update:
   api: update
-Applying changes to openspec/specs/api/spec.md:
+Applying changes to specs/api/spec.md:
   + 1 added
 Totals: + 1, ~ 0, - 0, → 0
 Specs updated successfully.
 Change 'add-rate-limit' archived as '2026-08-11-add-rate-limit'.
 ```
 
-The change folder moves whole to `openspec/changes/archive/2026-08-11-add-rate-limit/`, today's date prefixed to its name. Each delta merges into its main spec: the ADDED requirement above was appended to `openspec/specs/api/spec.md`. Without `-y`, archive shows the preview and asks before updating. Declining still archives the change and leaves the specs alone.
+The change folder moves whole to `changes/archive/2026-08-11-add-rate-limit/`, today's date prefixed to its name. Each delta merges into its main spec: the ADDED requirement above was appended to `specs/api/spec.md`. Without `-y`, archive shows the preview and asks before updating. Declining still archives the change and leaves the specs alone.
 
 With `--json --yes`:
 
@@ -1064,7 +1064,7 @@ With `--json --yes`:
   "archive": {
     "change": "add-rate-limit",
     "archivedAs": "2026-08-11-add-rate-limit",
-    "path": "/Users/you/projects/my-app/openspec/changes/archive/2026-08-11-add-rate-limit",
+    "path": "/Users/you/projects/my-app/changes/archive/2026-08-11-add-rate-limit",
     "specsUpdated": true,
     "totals": {
       "added": 1,
@@ -1111,7 +1111,7 @@ specagile new change add-caching                                # metadata only
 specagile new change add-search --goal "Users can search docs"  # record a goal
 ```
 
-`new` has one subcommand, `new change <name>`. It creates `openspec/changes/<name>/` containing a single [`.openspec.yaml` metadata file](configuration/change-metadata.md):
+`new` has one subcommand, `new change <name>`. It creates `changes/<name>/` containing a single [`.openspec.yaml` metadata file](configuration/change-metadata.md):
 
 ```yaml
 schema: spec-driven
@@ -1139,32 +1139,32 @@ Artifacts (proposal, specs, design, tasks) aren't scaffolded here. You write the
 **Output**
 
 ```
-Created change 'add-caching' at openspec/changes/add-caching/
+Created change 'add-caching' at changes/add-caching/
 Schema: spec-driven
 Next: specagile status --change add-caching
 ```
 
-When no `openspec/` directory was found, `new change` creates one where you are and says so:
+When no `specagile/` directory was found, `new change` creates the project folders where you are and says so:
 
 ```
-Created change 'add-caching' at openspec/changes/add-caching/
+Created change 'add-caching' at changes/add-caching/
 Schema: spec-driven
 Next: specagile status --change add-caching
 
-Note: no OpenSpec root was found here, so one was created at openspec/.
+Note: no OpenSpec root was found here, so one was created at specs/, changes/, specagile/.
 Run `specagile init` to finish setting this project up, or delete that directory if you meant a different project.
 ```
 
 The notice goes to stdout with the rest of the human output, and never appears with `--json`.
 
-With `--json`, in a project that already has `openspec/`:
+With `--json`, in a project that already has `specagile/`:
 
 ```json
 {
   "change": {
     "id": "add-caching",
-    "path": "/Users/you/projects/my-app/openspec/changes/add-caching",
-    "metadataPath": "/Users/you/projects/my-app/openspec/changes/add-caching/.openspec.yaml",
+    "path": "/Users/you/projects/my-app/changes/add-caching",
+    "metadataPath": "/Users/you/projects/my-app/changes/add-caching/.openspec.yaml",
     "schema": "spec-driven"
   },
   "root": {
@@ -1174,7 +1174,7 @@ With `--json`, in a project that already has `openspec/`:
 }
 ```
 
-When no `openspec/` directory was found and `new change` created one, the JSON has the same shape. `root.path` is the directory you ran it from, and `root.source` reads `implicit`:
+When no `specagile/` directory was found and `new change` created one, the JSON has the same shape. `root.path` is the directory you ran it from, and `root.source` reads `implicit`:
 
 ```json
 "root": {
@@ -1214,7 +1214,7 @@ When the project has no active changes, status prints `No active changes. Create
 |---|---|
 | `--change <id>` | The change to report on, by folder name. |
 | `--all` | Report every active change, sorted by name. Can't be combined with `--change`. |
-| `--schema <name>` | Override the schema auto-detected from `openspec/config.yaml`. An unknown name is an error. |
+| `--schema <name>` | Override the schema auto-detected from `specagile/config.yaml`. An unknown name is an error. |
 | `--json` | Print a structured report instead of text. |
 | `--store <id>` | Use a registered store as the OpenSpec root instead of the current project. |
 
@@ -1225,7 +1225,7 @@ A checklist of the schema's artifacts: `[x]` done, `[ ]` ready to write, `[-]` b
 ```
 Change: add-rate-limit
 Schema: spec-driven
-Change root: /Users/you/projects/my-app/openspec/changes/add-rate-limit
+Change root: /Users/you/projects/my-app/changes/add-rate-limit
 Progress: 2/4 artifacts complete
 
 [x] proposal
@@ -1354,7 +1354,7 @@ Initial proposal document outlining the change
 </task>
 
 <output>
-Write to: /Users/you/projects/my-app/openspec/changes/add-rate-limit/proposal.md
+Write to: /Users/you/projects/my-app/changes/add-rate-limit/proposal.md
 </output>
 
 <instruction>
@@ -1369,9 +1369,9 @@ Create the proposal document that establishes WHY this change is needed.
 Schema: spec-driven
 
 ### Context Files
-- proposal: /Users/you/projects/my-app/openspec/changes/add-rate-limit/proposal.md
-- specs: /Users/you/projects/my-app/openspec/changes/add-rate-limit/specs/api/spec.md
-- tasks: /Users/you/projects/my-app/openspec/changes/add-rate-limit/tasks.md
+- proposal: /Users/you/projects/my-app/changes/add-rate-limit/proposal.md
+- specs: /Users/you/projects/my-app/changes/add-rate-limit/specs/api/spec.md
+- tasks: /Users/you/projects/my-app/changes/add-rate-limit/tasks.md
 
 ### Progress
 1/3 complete
@@ -1397,7 +1397,7 @@ With `--json`, each form returns one object. The artifact form starts:
   "changeName": "add-rate-limit",
   "artifactId": "proposal",
   "schemaName": "spec-driven",
-  "changeDir": "/Users/you/projects/my-app/openspec/changes/add-rate-limit",
+  "changeDir": "/Users/you/projects/my-app/changes/add-rate-limit",
   ...
 ```
 
@@ -1444,7 +1444,7 @@ tasks:
   /usr/local/lib/node_modules/specagile/schemas/spec-driven/templates/tasks.md
 ```
 
-`Source` names where the schema resolved from: `project` (`openspec/schemas/` in your project), `user` (a global override), or `package` (built into the CLI). Project wins over user, user over package.
+`Source` names where the schema resolved from: `project` (`specagile/schemas/` in your project), `user` (a global override), or `package` (built into the CLI). Project wins over user, user over package.
 
 ```json
 {
@@ -1541,7 +1541,7 @@ Schemas resolve from three locations. The first match wins:
 
 | Source | Location |
 |---|---|
-| `project` | `openspec/schemas/` in the current project. |
+| `project` | `specagile/schemas/` in the current project. |
 | `user` | `~/.local/share/openspec/schemas/` (`XDG_DATA_HOME` and Windows `%LOCALAPPDATA%` respected). |
 | `package` | The schemas shipped with the CLI. `spec-driven` lives here. |
 
@@ -1581,7 +1581,7 @@ When a higher-priority copy hides another, a `Shadows:` section lists the hidden
 {
   "name": "my-flow",
   "source": "project",
-  "path": "/Users/you/projects/my-app/openspec/schemas/my-flow",
+  "path": "/Users/you/projects/my-app/specagile/schemas/my-flow",
   "shadows": []
 }
 ```
@@ -1647,13 +1647,13 @@ specagile schema fork spec-driven my-flow
 ✔ Forked 'spec-driven' to 'my-flow'
 
 Source: /usr/local/lib/node_modules/specagile/schemas/spec-driven (package)
-Destination: /Users/you/projects/my-app/openspec/schemas/my-flow
+Destination: /Users/you/projects/my-app/specagile/schemas/my-flow
 ```
 
-The fork lands in `openspec/schemas/`, and the `name:` field in its `schema.yaml` is rewritten to the new name:
+The fork lands in `specagile/schemas/`, and the `name:` field in its `schema.yaml` is rewritten to the new name:
 
 ```
-openspec/schemas/my-flow/
+specagile/schemas/my-flow/
 ├── schema.yaml
 └── templates/
     ├── design.md
@@ -1686,7 +1686,7 @@ With no `--description` and no `--artifacts` in an interactive terminal, init pr
 |---|---|
 | `--description <text>` | Schema description. Default: `Custom workflow schema for <name>`. |
 | `--artifacts <list>` | Comma-separated artifact IDs from `proposal`, `specs`, `design`, `tasks`. Default: all four. |
-| `--default` | Writes `schema: <name>` to the existing `openspec/config.yaml` or `openspec/config.yml`. Creates `openspec/config.yaml` if neither exists. New changes use this schema. |
+| `--default` | Writes `schema: <name>` to the existing `specagile/config.yaml` or `specagile/config.yml`. Creates `specagile/config.yaml` if neither exists. New changes use this schema. |
 | `--no-default` | Skip the prompt about the default. |
 | `--force` | Overwrite an existing schema with the same name. |
 | `--json` | Print the result as JSON. |
@@ -1698,7 +1698,7 @@ Schema creation and the `--default` config update are one operation. If OpenSpec
 ```
 ✔ Created schema 'my-schema'
 
-Schema created at: /Users/you/projects/my-app/openspec/schemas/my-schema
+Schema created at: /Users/you/projects/my-app/specagile/schemas/my-schema
 
 Artifacts: proposal, tasks
 ```
@@ -1706,7 +1706,7 @@ Artifacts: proposal, tasks
 The layout on disk:
 
 ```
-openspec/schemas/my-schema/
+specagile/schemas/my-schema/
 ├── schema.yaml
 └── templates/
     ├── proposal.md
@@ -1796,13 +1796,13 @@ Share this store by committing and pushing it like any Git repo.
     "committed": true
   },
   "created_files": [
-    "openspec/",
-    "openspec/specs/",
-    "openspec/changes/",
-    "openspec/changes/archive/",
-    "openspec/config.yaml",
-    "openspec/specs/.gitkeep",
-    "openspec/changes/archive/.gitkeep",
+    "specagile/",
+    "specs/",
+    "changes/",
+    "changes/archive/",
+    "specagile/config.yaml",
+    "specs/.gitkeep",
+    "changes/archive/.gitkeep",
     ".openspec-store/store.yaml"
   ],
   "status": []
@@ -1817,7 +1817,7 @@ Registers an existing store folder, for example a teammate's store you cloned.
 specagile store register ~/stores/design-system
 ```
 
-The folder must contain a healthy `openspec/` root. With `.openspec-store/store.yaml` present, register reuses the recorded id. Without it, register asks before creating that metadata. Outside an interactive terminal, pass `--yes` instead. A machine can register one checkout per store id. A second path under the same id, or the same path under a second id, exits 1.
+The folder must contain a healthy root: `specagile/` with its config, `specs/` and `changes/`. A store with the former `openspec/` layout must be moved first with `specagile update` in its folder. With `.openspec-store/store.yaml` present, register reuses the recorded id. Without it, register asks before creating that metadata. Outside an interactive terminal, pass `--yes` instead. A machine can register one checkout per store id. A second path under the same id, or the same path under a second id, exits 1.
 
 **Arguments**
 
@@ -1936,11 +1936,11 @@ team-context
 Reports relationship health for the resolved OpenSpec root.
 
 ```bash
-specagile doctor                       # nearest openspec/ root above your cwd
+specagile doctor                       # nearest specagile/ root above your cwd
 specagile doctor --store team-context  # a registered store as the root
 ```
 
-Doctor is read-only: it never clones, syncs, or repairs. It reports whether the root is healthy and whether each reference declared in `openspec/config.yaml` resolves on this machine. With no root above your cwd and no `--store`, it exits 1 and names your registered stores.
+Doctor is read-only: it never clones, syncs, or repairs. It reports whether the root is healthy and whether each reference declared in `specagile/config.yaml` resolves on this machine. With no root above your cwd and no `--store`, it exits 1 and names your registered stores.
 
 **Options**
 
@@ -2000,14 +2000,14 @@ References
 **Exit codes**
 
 - `0`: the report printed, including when it lists issues.
-- `1`: no root resolved (no `openspec/` above your cwd and no `--store`), or an unknown `--store` id.
+- `1`: no root resolved (no `specagile/` above your cwd and no `--store`), or an unknown `--store` id.
 
 ## specagile context
 
-Prints the working context for the resolved OpenSpec root: the root plus every referenced store declared in `openspec/config.yaml`, each with a fetch command.
+Prints the working context for the resolved OpenSpec root: the root plus every referenced store declared in `specagile/config.yaml`, each with a fetch command.
 
 ```bash
-specagile context                       # nearest openspec/ root above your cwd
+specagile context                       # nearest specagile/ root above your cwd
 specagile context --store team-context  # a registered store as the root
 specagile context --json                # agent brief
 ```
@@ -2090,7 +2090,7 @@ No references declared; the working set is this root alone.
 **Exit codes**
 
 - `0`: the report printed.
-- `1`: no root resolved (no `openspec/` above your cwd and no `--store`), or the `--code-workspace` write was refused.
+- `1`: no root resolved (no `specagile/` above your cwd and no `--store`), or the `--code-workspace` write was refused.
 
 ## specagile workset
 

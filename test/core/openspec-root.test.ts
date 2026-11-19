@@ -10,6 +10,7 @@ import {
   inspectOpenSpecRoot,
   rollbackCreatedPaths,
 } from '../../src/core/index.js';
+import { RELATIVE_ARCHIVE_DIR, RELATIVE_CHANGES_DIR, RELATIVE_CONFIG_FILE, RELATIVE_CONFIG_FILES, RELATIVE_SPECS_DIR, RELATIVE_TOOL_DIR, getArchiveDir, getChangesDir, getConfigFile, getConfigYmlFile, getSpecsDir, getToolDir } from '../helpers/layout.js';
 
 vi.mock('node:fs/promises', async (importOriginal) => ({
   ...await importOriginal<typeof import('node:fs/promises')>(),
@@ -28,9 +29,10 @@ describe('OpenSpec root helper', () => {
   });
 
   function createHealthyRoot(root: string, configName = 'config.yaml'): void {
-    fs.mkdirSync(path.join(root, 'openspec', 'specs'), { recursive: true });
-    fs.mkdirSync(path.join(root, 'openspec', 'changes', 'archive'), { recursive: true });
-    fs.writeFileSync(path.join(root, 'openspec', configName), `schema: ${DEFAULT_OPENSPEC_SCHEMA}\n`);
+    fs.mkdirSync(getSpecsDir(root), { recursive: true });
+    fs.mkdirSync(getArchiveDir(root), { recursive: true });
+    fs.mkdirSync(getToolDir(root), { recursive: true });
+    fs.writeFileSync(path.join(getToolDir(root), configName), `schema: ${DEFAULT_OPENSPEC_SCHEMA}\n`);
   }
 
   it('inspects a healthy root with config.yaml', async () => {
@@ -42,7 +44,7 @@ describe('OpenSpec root helper', () => {
       present: true,
       config: {
         present: true,
-        path: 'openspec/config.yaml',
+        path: RELATIVE_CONFIG_FILES[0],
       },
       diagnostics: [],
     }));
@@ -56,14 +58,15 @@ describe('OpenSpec root helper', () => {
       healthy: true,
       config: {
         present: true,
-        path: 'openspec/config.yml',
+        path: RELATIVE_CONFIG_FILES[1],
       },
     }));
   });
 
   it('reports missing root pieces without mutating files', async () => {
     const root = path.join(tempDir, 'store');
-    fs.mkdirSync(path.join(root, 'openspec', 'changes'), { recursive: true });
+    fs.mkdirSync(getToolDir(root), { recursive: true });
+    fs.mkdirSync(getChangesDir(root), { recursive: true });
 
     const inspection = await inspectOpenSpecRoot(root);
 
@@ -71,13 +74,13 @@ describe('OpenSpec root helper', () => {
     expect(inspection.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
       'openspec_config_missing',
     ]);
-    expect(fs.existsSync(path.join(root, 'openspec', 'changes', 'archive'))).toBe(false);
+    expect(fs.existsSync(getArchiveDir(root))).toBe(false);
   });
 
   it('accepts roots before changes, applied specs, or archives exist', async () => {
     const root = path.join(tempDir, 'store');
-    fs.mkdirSync(path.join(root, 'openspec'), { recursive: true });
-    fs.writeFileSync(path.join(root, 'openspec', 'config.yaml'), `schema: ${DEFAULT_OPENSPEC_SCHEMA}\n`);
+    fs.mkdirSync(getToolDir(root), { recursive: true });
+    fs.writeFileSync(getConfigFile(root), `schema: ${DEFAULT_OPENSPEC_SCHEMA}\n`);
 
     const inspection = await inspectOpenSpecRoot(root);
 
@@ -92,9 +95,9 @@ describe('OpenSpec root helper', () => {
 
   it('reports malformed optional planning paths without throwing', async () => {
     const root = path.join(tempDir, 'store');
-    fs.mkdirSync(path.join(root, 'openspec'), { recursive: true });
-    fs.writeFileSync(path.join(root, 'openspec', 'config.yaml'), `schema: ${DEFAULT_OPENSPEC_SCHEMA}\n`);
-    fs.writeFileSync(path.join(root, 'openspec', 'changes'), 'not a directory\n');
+    fs.mkdirSync(getToolDir(root), { recursive: true });
+    fs.writeFileSync(getConfigFile(root), `schema: ${DEFAULT_OPENSPEC_SCHEMA}\n`);
+    fs.writeFileSync(getChangesDir(root), 'not a directory\n');
 
     const inspection = await inspectOpenSpecRoot(root);
 
@@ -112,14 +115,14 @@ describe('OpenSpec root helper', () => {
     const result = await ensureOpenSpecRoot(root);
 
     expect(result.createdArtifacts).toEqual([
-      'openspec/',
-      'openspec/specs/',
-      'openspec/changes/',
-      'openspec/changes/archive/',
-      'openspec/config.yaml',
+      `${RELATIVE_TOOL_DIR}/`,
+      `${RELATIVE_SPECS_DIR}/`,
+      `${RELATIVE_CHANGES_DIR}/`,
+      `${RELATIVE_ARCHIVE_DIR}/`,
+      RELATIVE_CONFIG_FILE,
     ]);
     expect(result.inspection.healthy).toBe(true);
-    expect(fs.readFileSync(path.join(root, 'openspec', 'config.yaml'), 'utf-8')).toContain(
+    expect(fs.readFileSync(getConfigFile(root), 'utf-8')).toContain(
       `schema: ${DEFAULT_OPENSPEC_SCHEMA}`
     );
   });
@@ -127,16 +130,16 @@ describe('OpenSpec root helper', () => {
   it('preserves existing config and user files', async () => {
     const root = path.join(tempDir, 'store');
     createHealthyRoot(root, 'config.yml');
-    fs.writeFileSync(path.join(root, 'openspec', 'specs', 'note.md'), 'keep me\n');
+    fs.writeFileSync(path.join(getSpecsDir(root), 'note.md'), 'keep me\n');
 
     const result = await ensureOpenSpecRoot(root);
 
     expect(result.createdArtifacts).toEqual([]);
-    expect(fs.existsSync(path.join(root, 'openspec', 'config.yaml'))).toBe(false);
-    expect(fs.readFileSync(path.join(root, 'openspec', 'config.yml'), 'utf-8')).toBe(
+    expect(fs.existsSync(getConfigFile(root))).toBe(false);
+    expect(fs.readFileSync(getConfigYmlFile(root), 'utf-8')).toBe(
       `schema: ${DEFAULT_OPENSPEC_SCHEMA}\n`
     );
-    expect(fs.readFileSync(path.join(root, 'openspec', 'specs', 'note.md'), 'utf-8')).toBe(
+    expect(fs.readFileSync(path.join(getSpecsDir(root), 'note.md'), 'utf-8')).toBe(
       'keep me\n'
     );
   });
@@ -148,15 +151,15 @@ describe('OpenSpec root helper', () => {
     const result = await ensureOpenSpecRoot(root, { anchorEmptyDirectories: true });
 
     expect(result.createdArtifacts).toEqual([
-      'openspec/specs/.gitkeep',
-      'openspec/changes/archive/.gitkeep',
+      `${RELATIVE_SPECS_DIR}/.gitkeep`,
+      `${RELATIVE_ARCHIVE_DIR}/.gitkeep`,
     ]);
     expect((await ensureOpenSpecRoot(root, { anchorEmptyDirectories: true })).createdPaths).toEqual([]);
 
     await rollbackCreatedPaths(result.createdPaths);
 
-    expect(fs.readdirSync(path.join(root, 'openspec', 'specs'))).toEqual([]);
-    expect(fs.readdirSync(path.join(root, 'openspec', 'changes', 'archive'))).toEqual([]);
+    expect(fs.readdirSync(getSpecsDir(root))).toEqual([]);
+    expect(fs.readdirSync(getArchiveDir(root))).toEqual([]);
   });
 
   it.each(['file', 'directory', 'symlink'] as const)(
@@ -164,7 +167,7 @@ describe('OpenSpec root helper', () => {
     async (kind) => {
       const root = path.join(tempDir, 'store');
       createHealthyRoot(root);
-      const marker = path.join(root, 'openspec', 'specs', '.gitkeep');
+      const marker = path.join(getSpecsDir(root), '.gitkeep');
       const target = path.join(tempDir, 'outside-target');
       fs.mkdirSync(target);
       fs.writeFileSync(path.join(target, 'user.txt'), 'keep me');
@@ -177,7 +180,7 @@ describe('OpenSpec root helper', () => {
 
       const result = await ensureOpenSpecRoot(root, { anchorEmptyDirectories: true });
 
-      expect(result.createdArtifacts).toEqual(['openspec/changes/archive/.gitkeep']);
+      expect(result.createdArtifacts).toEqual([`${RELATIVE_ARCHIVE_DIR}/.gitkeep`]);
       if (kind === 'file') expect(fs.readFileSync(marker, 'utf-8')).toBe('keep me');
       if (kind === 'directory') expect(fs.lstatSync(marker).isDirectory()).toBe(true);
       if (kind === 'symlink') expect(fs.lstatSync(marker).isSymbolicLink()).toBe(true);
@@ -201,7 +204,7 @@ describe('OpenSpec root helper', () => {
 
     await rollbackCreatedPaths(result.createdPaths);
 
-    expect(fs.existsSync(path.join(root, 'openspec'))).toBe(false);
+    expect(fs.existsSync(getToolDir(root))).toBe(false);
     expect(fs.readFileSync(path.join(root, 'user.md'), 'utf-8')).toBe('mine\n');
   });
 });

@@ -5,7 +5,9 @@
  * `validate`, `archive`) resolve one OpenSpec root through this module:
  *
  * - `--store <id>` selects a registered store's root.
- * - Without `--store`, the nearest ancestor containing `openspec/` wins.
+ * - Without `--store`, the nearest ancestor containing `specagile/` wins
+ *   (SpecAgile: one with only the former `openspec/` layout fails with
+ *   `former_layout`).
  *   Leftover workspace view state is never considered a root here.
  * - With no nearest root, a global `defaultStore` (if set) is the last
  *   machine-level fallback before the selection hint error.
@@ -37,7 +39,19 @@ import { getStoreRootForBackend } from './store/registry.js';
 import { gitOriginUrl, repoNameFromGitUrl } from './store/git.js';
 import { toKebabCase, isKebabId } from './id.js';
 import { inspectOpenSpecRoot } from './openspec-root.js';
-import { findRepoPlanningRootSync, type PlanningHome } from './planning-home.js';
+import {
+  FORMER_TOOL_DIR_NAME,
+  RELATIVE_CHANGES_DIR,
+  RELATIVE_CONFIG_FILE,
+  RELATIVE_SPECS_DIR,
+  RELATIVE_TOOL_DIR,
+  detectFormerLayout,
+  getArchiveDir,
+  getChangesDir,
+  getSpecsDir,
+  isLayoutRoot,
+} from './fork/layout.js';
+import type { PlanningHome } from './planning-home.js';
 import { classifyOpenSpecDir, storePointerProblem } from './project-config.js';
 import { getGlobalConfig } from './global-config.js';
 import { FileSystemUtils } from '../utils/file-system.js';
@@ -123,9 +137,9 @@ function makeRoot(
 ): ResolvedOpenSpecRoot {
   return {
     path: rootPath,
-    changesDir: path.join(rootPath, 'openspec', 'changes'),
-    specsDir: path.join(rootPath, 'openspec', 'specs'),
-    archiveDir: path.join(rootPath, 'openspec', 'changes', 'archive'),
+    changesDir: getChangesDir(rootPath),
+    specsDir: getSpecsDir(rootPath),
+    archiveDir: getArchiveDir(rootPath),
     defaultSchema: 'spec-driven',
     source,
     ...(storeId ? { storeId } : {}),
@@ -284,19 +298,34 @@ export async function inspectRegisteredStore(
  * home tree.
  */
 function findQualifyingRootSync(startPath: string): string | null {
-  let candidate = findRepoPlanningRootSync(startPath);
-  while (candidate) {
-    const { hasPlanningShape, pointer } = classifyOpenSpecDir(candidate);
-    if (hasPlanningShape || pointer.filePath) {
+  // SpecAgile: each folder on the way is a root when it has the layout of
+  // src/core/fork/layout.ts (specagile/ with its config, or beside specs/ or
+  // changes/). One with only the former openspec/ layout is the nearest root
+  // too, so the walk stops there and asks for the migration: going further up
+  // could land the command's writes in another root.
+  let candidate = canonicalDirectory(startPath);
+  while (true) {
+    if (isLayoutRoot(candidate)) {
       return candidate;
+    }
+    if (detectFormerLayout(candidate)) {
+      throw formerLayoutError(candidate);
     }
     const parent = path.dirname(candidate);
     if (parent === candidate) {
       return null;
     }
-    candidate = findRepoPlanningRootSync(parent);
+    candidate = parent;
   }
-  return null;
+}
+
+/** The error for a nearest root that still has the former `openspec/` layout. */
+export function formerLayoutError(root: string): RootSelectionError {
+  return new RootSelectionError(
+    `${path.join(root, FORMER_TOOL_DIR_NAME)} has the former layout. Run specagile update in ${root} to move it to ${RELATIVE_SPECS_DIR}/, ${RELATIVE_CHANGES_DIR}/ and ${RELATIVE_TOOL_DIR}/.`,
+    'former_layout',
+    { target: 'openspec.root', fix: 'Run specagile update' }
+  );
 }
 
 async function resolveNearestOrDeclaredRoot(
@@ -471,11 +500,11 @@ export async function resolveOpenSpecRoot(
     const suggested = await suggestStoreFromGitRemote(startPath, registeredIds);
     if (suggested) {
       throw new RootSelectionError(
-        `No OpenSpec root found in the current directory or its ancestors. This repo's origin name matches the registered store "${suggested}". To use it, rerun with --store ${suggested}, or add "store: ${suggested}" to openspec/config.yaml so every command here uses it.`,
+        `No OpenSpec root found in the current directory or its ancestors. This repo's origin name matches the registered store "${suggested}". To use it, rerun with --store ${suggested}, or add "store: ${suggested}" to ${RELATIVE_CONFIG_FILE} so every command here uses it.`,
         'no_root_with_registered_stores',
         {
           target: 'openspec.root',
-          fix: `Rerun with --store ${suggested}, or add "store: ${suggested}" to openspec/config.yaml.`,
+          fix: `Rerun with --store ${suggested}, or add "store: ${suggested}" to ${RELATIVE_CONFIG_FILE}.`,
         }
       );
     }
@@ -538,7 +567,13 @@ export function findDeclaringProjectRoot(
   storeId: string,
   startPath: string = process.cwd()
 ): string | null {
-  const nearestRoot = findQualifyingRootSync(startPath);
+  let nearestRoot: string | null;
+  try {
+    nearestRoot = findQualifyingRootSync(startPath);
+  } catch {
+    // A project still on the former layout declares nothing yet.
+    return null;
+  }
   if (!nearestRoot) {
     return null;
   }

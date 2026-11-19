@@ -12,7 +12,9 @@ import {
 import {
   ANCHORED_OPENSPEC_DIRS,
   DIRECTORY_ANCHOR_FILE_NAME,
+  OPENSPEC_CHANGES_DIR,
   OPENSPEC_ROOT_DIR,
+  OPENSPEC_SPECS_DIR,
   ensureOpenSpecRoot,
   inspectOpenSpecRoot,
   rollbackCreatedPaths,
@@ -668,7 +670,11 @@ export async function setupPreparedStore(
     // be unhealthy. In a pre-existing repo the user owns the history, so
     // setup commits only what it created.
     const commitPathspecs = gitInitialized
-      ? [OPENSPEC_ROOT_DIR, STORE_METADATA_DIR_NAME]
+      ? [
+          // SpecAgile: each top-level folder of the layout (src/core/fork/layout.ts).
+          ...new Set([OPENSPEC_ROOT_DIR, OPENSPEC_SPECS_DIR, OPENSPEC_CHANGES_DIR].map((dir) => dir.split('/')[0])),
+          STORE_METADATA_DIR_NAME,
+        ]
       : createdPaths
           .filter((entry) => entry.kind === 'file')
           .map((entry) => entry.relativePath);
@@ -783,7 +789,9 @@ export async function registerExistingStore(
         target: 'openspec.root',
         fix: isEmptyCloneSuspect
           ? 'If this is a store clone: commit and push the origin store, pull it into this clone, then rerun register.'
-          : 'Run specagile store setup for a new store, or point register at a checkout whose openspec/ files are present.',
+          : openspecRoot.diagnostics.some((diagnostic) => diagnostic.code === 'openspec_former_layout')
+            ? `Run specagile update in ${storeRoot} to move it to the SpecAgile layout, then rerun register.`
+            : `Run specagile store setup for a new store, or point register at a checkout whose ${OPENSPEC_ROOT_DIR}/ files are present.`,
       }
     );
   }

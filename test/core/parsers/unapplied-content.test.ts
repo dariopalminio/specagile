@@ -5,6 +5,7 @@ import os from 'os';
 import { parseDeltaSpec } from '../../../src/core/parsers/requirement-blocks.js';
 import { buildUpdatedSpec, findSpecUpdates } from '../../../src/core/specs-apply.js';
 import { Validator } from '../../../src/core/validation/validator.js';
+import { getChangesDir, getSpecsDir } from '../../helpers/layout.js';
 
 // Archive carries requirement blocks only. Text written anywhere else in a delta
 // used to vanish with no warning while `validate --strict` passed.
@@ -114,8 +115,8 @@ describe('archive and validate report unapplied content', () => {
 
   beforeEach(async () => {
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-unapplied-'));
-    specsRoot = path.join(tempDir, 'openspec', 'specs');
-    changeDir = path.join(tempDir, 'openspec', 'changes', 'c');
+    specsRoot = getSpecsDir(tempDir);
+    changeDir = path.join(getChangesDir(tempDir), 'c');
     await fs.mkdir(path.join(changeDir, 'specs', 'billing'), { recursive: true });
     await fs.mkdir(specsRoot, { recursive: true });
     await fs.writeFile(path.join(changeDir, 'specs', 'billing', 'spec.md'), DELTA);

@@ -3,6 +3,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
 import { runCLI } from '../helpers/run-cli.js';
+import { getChangesDir, getSpecsDir, getToolDir } from '../helpers/layout.js';
 
 /**
  * End to end, the exact repro from #2195: a delta with one recognized section
@@ -41,8 +42,9 @@ async function probeProject() {
   const home = path.join(base, 'home');
   const project = path.join(base, 'project');
   await fs.mkdir(home, { recursive: true });
-  await fs.mkdir(path.join(project, 'openspec', 'changes', 'probe', 'specs', 'probe'), { recursive: true });
-  await fs.writeFile(path.join(project, 'openspec', 'changes', 'probe', 'specs', 'probe', 'spec.md'), DELTA);
+  await fs.mkdir(getToolDir(project), { recursive: true });
+  await fs.mkdir(path.join(getChangesDir(project), 'probe', 'specs', 'probe'), { recursive: true });
+  await fs.writeFile(path.join(getChangesDir(project), 'probe', 'specs', 'probe', 'spec.md'), DELTA);
   const env = {
     HOME: home,
     USERPROFILE: home,
@@ -72,8 +74,8 @@ describe('unrecognized requirement-bearing delta section (#2195)', () => {
     ]) {
       const result = await cli(args);
       expect(result.exitCode).toBe(1);
-      await expect(fs.access(path.join(project, 'openspec', 'specs', 'probe', 'spec.md'))).rejects.toThrow();
-      await expect(fs.access(path.join(project, 'openspec', 'changes', 'probe'))).resolves.toBeUndefined();
+      await expect(fs.access(path.join(getSpecsDir(project), 'probe', 'spec.md'))).rejects.toThrow();
+      await expect(fs.access(path.join(getChangesDir(project), 'probe'))).resolves.toBeUndefined();
     }
   }, TIMEOUT);
 });

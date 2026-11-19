@@ -3,6 +3,7 @@ import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getGlobalDataDir } from '../global-config.js';
 import { FileSystemUtils } from '../../utils/file-system.js';
+import { getProjectSchemasDir as getLayoutSchemasDir } from '../fork/layout.js';
 import { parseSchema, SchemaValidationError } from './schema.js';
 import type { SchemaYaml } from './types.js';
 
@@ -55,7 +56,7 @@ export function getUserSchemasDir(): string {
  * @returns The path to the project's schemas directory
  */
 export function getProjectSchemasDir(projectRoot: string): string {
-  return path.join(projectRoot, 'openspec', 'schemas');
+  return getLayoutSchemasDir(projectRoot);
 }
 
 /**
@@ -133,7 +134,7 @@ function getSchemaCandidateDir(schemasDir: string, name: string): string | null 
  * Resolves a schema name to its directory path.
  *
  * Resolution order (when projectRoot is provided):
- * 1. Project-local: <projectRoot>/openspec/schemas/<name>/schema.yaml
+ * 1. Project-local: <projectRoot>/specagile/schemas/<name>/schema.yaml
  * 2. User override: ${XDG_DATA_HOME}/openspec/schemas/<name>/schema.yaml
  * 3. Package built-in: <package>/schemas/<name>/schema.yaml
  *
@@ -187,7 +188,7 @@ export function getSchemaDir(
  * Resolves a schema name to a SchemaYaml object.
  *
  * Resolution order (when projectRoot is provided):
- * 1. Project-local: <projectRoot>/openspec/schemas/<name>/schema.yaml
+ * 1. Project-local: <projectRoot>/specagile/schemas/<name>/schema.yaml
  * 2. User override: ${XDG_DATA_HOME}/openspec/schemas/<name>/schema.yaml
  * 3. Package built-in: <package>/schemas/<name>/schema.yaml
  *

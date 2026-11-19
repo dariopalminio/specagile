@@ -7,6 +7,7 @@ import { getGlobalDataDir, registerStore } from '../../src/core/index.js';
 import { findDeclaringProjectRoot } from '../../src/core/root-selection.js';
 import { runCLI } from '../helpers/run-cli.js';
 import { createOpenSpecRoot } from '../helpers/openspec-fixtures.js';
+import { getChangesDir, getConfigFile, getToolDir } from '../helpers/layout.js';
 
 // #2013: a store-selected root is where planning artifacts live, not where
 // implementation happens. `actionContext` must not tell the agent that the
@@ -33,12 +34,12 @@ describe('status actionContext for store-selected roots (#2013)', () => {
     storeRoot = path.join(tempDir, 'plans');
     createOpenSpecRoot(storeRoot);
     await registerStore({ id: 'plans', localPath: storeRoot, globalDataDir });
-    fs.mkdirSync(path.join(storeRoot, 'openspec', 'changes', 'add-auth'), { recursive: true });
+    fs.mkdirSync(path.join(getChangesDir(storeRoot), 'add-auth'), { recursive: true });
 
     appRepo = path.join(tempDir, 'app');
-    fs.mkdirSync(path.join(appRepo, 'openspec'), { recursive: true });
+    fs.mkdirSync(getToolDir(appRepo), { recursive: true });
     fs.writeFileSync(
-      path.join(appRepo, 'openspec', 'config.yaml'),
+      getConfigFile(appRepo),
       'schema: spec-driven\nstore: plans\n'
     );
   });
@@ -104,7 +105,8 @@ describe('status actionContext for store-selected roots (#2013)', () => {
   });
 
   it('does not borrow a repo that declares a different store', async () => {
-    fs.writeFileSync(path.join(appRepo, 'openspec', 'config.yaml'), 'store: other\n');
+    fs.mkdirSync(getToolDir(appRepo), { recursive: true });
+    fs.writeFileSync(getConfigFile(appRepo), 'store: other\n');
 
     const context = await actionContext(['--store', 'plans'], appRepo);
 
@@ -114,7 +116,8 @@ describe('status actionContext for store-selected roots (#2013)', () => {
   it('does not borrow a real planning root whose store pointer is ignored', async () => {
     const repo = path.join(tempDir, 'local');
     createOpenSpecRoot(repo);
-    fs.writeFileSync(path.join(repo, 'openspec', 'config.yaml'), 'store: plans\n');
+    fs.mkdirSync(getToolDir(repo), { recursive: true });
+    fs.writeFileSync(getConfigFile(repo), 'store: plans\n');
 
     const context = await actionContext(['--store', 'plans'], repo);
 
@@ -122,7 +125,7 @@ describe('status actionContext for store-selected roots (#2013)', () => {
   });
 
   it('gives every change in status --all the same edit roots', async () => {
-    fs.mkdirSync(path.join(storeRoot, 'openspec', 'changes', 'add-billing'), { recursive: true });
+    fs.mkdirSync(path.join(getChangesDir(storeRoot), 'add-billing'), { recursive: true });
 
     const result = await runCLI(['status', '--all', '--json'], { cwd: appRepo, env });
 
@@ -137,7 +140,7 @@ describe('status actionContext for store-selected roots (#2013)', () => {
   it('keeps the repo-local context byte-stable', async () => {
     const repo = path.join(tempDir, 'local');
     createOpenSpecRoot(repo);
-    fs.mkdirSync(path.join(repo, 'openspec', 'changes', 'add-auth'), { recursive: true });
+    fs.mkdirSync(path.join(getChangesDir(repo), 'add-auth'), { recursive: true });
 
     const context = await actionContext([], repo);
 

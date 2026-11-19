@@ -7,6 +7,7 @@ import { Validator } from '../../src/core/validation/validator.js';
 import { ArchiveCommand } from '../../src/core/archive.js';
 import { generateApplyInstructions } from '../../src/commands/workflow/instructions.js';
 import { runCLI } from '../helpers/run-cli.js';
+import { getArchiveDir, getChangesDir, getSpecsDir } from '../helpers/layout.js';
 
 vi.mock('@inquirer/prompts', () => ({
   select: vi.fn(),
@@ -217,8 +218,8 @@ describe('archive with an unread delta file', () => {
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-unread-archive-'));
     process.chdir(tempDir);
     process.env.XDG_DATA_HOME = path.join(tempDir, 'xdg-data');
-    await fs.mkdir(path.join(tempDir, 'openspec', 'specs'), { recursive: true });
-    await fs.mkdir(path.join(tempDir, 'openspec', 'changes', 'archive'), { recursive: true });
+    await fs.mkdir(getSpecsDir(tempDir), { recursive: true });
+    await fs.mkdir(getArchiveDir(tempDir), { recursive: true });
     console.log = vi.fn();
     process.exitCode = undefined;
     archiveCommand = new ArchiveCommand();
@@ -238,7 +239,7 @@ describe('archive with an unread delta file', () => {
   });
 
   async function change(name: string, specs: Array<[string[], string]>): Promise<string> {
-    const changeDir = path.join(tempDir, 'openspec', 'changes', name);
+    const changeDir = path.join(getChangesDir(tempDir), name);
     await write(changeDir, ['tasks.md'], '- [x] Task 1\n');
     for (const [segments, content] of specs) {
       await write(changeDir, ['specs', ...segments], content);
@@ -247,10 +248,10 @@ describe('archive with an unread delta file', () => {
   }
 
   const archived = async (name: string) =>
-    (await fs.readdir(path.join(tempDir, 'openspec', 'changes', 'archive'))).some((entry) =>
+    (await fs.readdir(getArchiveDir(tempDir))).some((entry) =>
       entry.endsWith(name)
     );
-  const mainSpec = () => path.join(tempDir, 'openspec', 'specs', 'user-auth', 'spec.md');
+  const mainSpec = () => path.join(getSpecsDir(tempDir), 'user-auth', 'spec.md');
 
   it('refuses to archive when the only delta is specs/<capability>.md', async () => {
     const changeDir = await change('flat-delta', [[['user-auth.md'], DELTA]]);
@@ -313,7 +314,7 @@ describe('instructions apply with an unread delta file', () => {
 
   beforeEach(async () => {
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-unread-apply-'));
-    changeDir = path.join(tempDir, 'openspec', 'changes', 'my-change');
+    changeDir = path.join(getChangesDir(tempDir), 'my-change');
     await write(changeDir, ['.openspec.yaml'], 'schema: spec-driven\n');
     await write(changeDir, ['proposal.md'], '## Why\nx\n');
     await write(changeDir, ['tasks.md'], '## 1. Implementation\n- [x] 1.1 Write the code\n');
@@ -382,7 +383,7 @@ describe('end to end: a delta written as specs/<capability>.md', () => {
     const cli = (args: string[]) => runCLI(args, { cwd: project, env, timeoutMs: 60_000 });
     expect((await cli(['init', '--tools', 'claude'])).exitCode).toBe(0);
     expect((await cli(['new', 'change', 'add-login'])).exitCode).toBe(0);
-    const dir = path.join(project, 'openspec', 'changes', 'add-login');
+    const dir = path.join(getChangesDir(project), 'add-login');
     await write(
       dir,
       ['proposal.md'],
@@ -391,7 +392,7 @@ describe('end to end: a delta written as specs/<capability>.md', () => {
     await write(dir, ['design.md'], '# Design\n\nSession cookies.\n');
     await write(dir, ['tasks.md'], '## 1. Work\n- [x] 1.1 Implement login\n');
     await write(dir, ['specs', ...deltaPath], DELTA);
-    const mainSpec = path.join(project, 'openspec', 'specs', 'user-auth', 'spec.md');
+    const mainSpec = path.join(getSpecsDir(project), 'user-auth', 'spec.md');
     return { cli, dir, mainSpec };
   }
 

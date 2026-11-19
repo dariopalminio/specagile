@@ -11,7 +11,7 @@ project. `specagile init` and `specagile update` fetch them from this folder, at
 the tag of the running release (`v<version>`, or `specagile@<version>` until
 that tag exists), so each release needs its tag on a commit whose folder
 matches the package. The skills drive the `specagile` CLI, so for the full
-setup (CLI + `openspec/` project scaffolding) run:
+setup (CLI + the `specs/`, `changes/` and `specagile/` project folders) run:
 
 ```bash
 npx specagile@latest init

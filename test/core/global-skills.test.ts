@@ -12,6 +12,7 @@ import { transformToSharedSkillReferences } from '../../src/utils/command-refere
 import { FORMER_SKILL_NAME_BY_WORKFLOW } from '../../src/core/fork/identity.js';
 import { withUpstreamIdentity } from '../helpers/fork-identity.js';
 import { stripVolatileFrontmatter } from '../../scripts/skillssh-shared.mjs';
+import { RELATIVE_CHANGES_DIR, RELATIVE_CONFIG_FILE, RELATIVE_SPECS_DIR, RELATIVE_TOOL_DIR, getToolDir } from '../helpers/layout.js';
 
 // Every case runs the real CLI in a fresh process with its own throwaway home:
 // the `skills` package settles some folders when it loads, so one process
@@ -92,13 +93,15 @@ describe('skills installed for this machine', { timeout: 60_000 }, () => {
     }
   };
   const entries = async (dir: string): Promise<string[]> => (await fs.readdir(dir)).sort();
+  // SpecAgile: the folders a project gets (src/core/fork/layout.ts).
+  const PLANNING_FOLDERS = [RELATIVE_CHANGES_DIR, RELATIVE_TOOL_DIR, RELATIVE_SPECS_DIR].sort();
 
   it('installs for the machine when a scripted init is told nothing else', async () => {
     const dir = await project('app');
     const result = await cli(dir, 'init', '--tools', 'claude');
 
     expect(result.exitCode).toBe(0);
-    expect(await entries(dir)).toEqual(['openspec']);
+    expect(await entries(dir)).toEqual(PLANNING_FOLDERS);
     expect(await globalSkills()).toEqual(CORE_SKILLS);
   });
 
@@ -130,7 +133,7 @@ describe('skills installed for this machine', { timeout: 60_000 }, () => {
 
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain('8 skills in ~/.agents/skills/ for every project on this machine');
-    expect(await entries(dir)).toEqual(['openspec']);
+    expect(await entries(dir)).toEqual(PLANNING_FOLDERS);
     expect(await globalSkills()).toEqual(CORE_SKILLS);
     // Claude Code reads its own folder, so it gets each skill there too.
     expect(readFileSync(path.join(home, '.claude', 'skills', 'sa-propose', 'SKILL.md'), 'utf8')).toBe(
@@ -196,7 +199,7 @@ describe('skills installed for this machine', { timeout: 60_000 }, () => {
     const result = await cli(second, 'init', '--tools', 'claude');
 
     expect(result.exitCode).toBe(0);
-    expect(await entries(second)).toEqual(['openspec']);
+    expect(await entries(second)).toEqual(PLANNING_FOLDERS);
   });
 
   it('honours a saved choice of project over a global install', async () => {
@@ -259,7 +262,7 @@ describe('skills installed for this machine', { timeout: 60_000 }, () => {
     expect(init.stderr).toContain('This is your home folder, where the global skills live.');
     expect(await globalSkills()).toEqual(CORE_SKILLS);
 
-    await fs.mkdir(path.join(home, 'openspec'), { recursive: true });
+    await fs.mkdir(getToolDir(home), { recursive: true });
     const update = await cli(home, 'update');
     expect(update.exitCode).toBe(0);
     expect(existsSync(path.join(home, '.agents', 'skills', '.openspec-target'))).toBe(false);
@@ -343,7 +346,7 @@ describe('skills installed for this machine', { timeout: 60_000 }, () => {
       await fs.writeFile(configFile, JSON.stringify({ ...JSON.parse(readFileSync(configFile, 'utf8')), profile: 'core' }));
       const next = await project('next');
       await cli(next, 'init', '--tools', 'claude');
-      expect(await entries(next)).toEqual(['openspec']);
+      expect(await entries(next)).toEqual(PLANNING_FOLDERS);
       expect(await globalSkills()).toEqual(CORE_SKILLS);
     });
 
@@ -396,12 +399,12 @@ describe('skills installed for this machine', { timeout: 60_000 }, () => {
       const result = await cli(dir, 'init', '--scope', 'global');
 
       expect(result.exitCode).toBe(0);
-      expect(await entries(dir)).toEqual(['openspec']);
+      expect(await entries(dir)).toEqual(PLANNING_FOLDERS);
       expect(await globalSkills()).toEqual(CORE_SKILLS);
       // The next update treats it as a project that uses the global skills.
       const update = await cli(dir, 'update');
       expect(update.stdout).not.toContain('No configured tools found');
-      expect(await entries(dir)).toEqual(['openspec']);
+      expect(await entries(dir)).toEqual(PLANNING_FOLDERS);
     });
 
     it('keeps the project skills when the global install fails', async () => {
@@ -420,7 +423,7 @@ describe('skills installed for this machine', { timeout: 60_000 }, () => {
       await fs.rm(path.join(home, '.agents', 'skills'));
       const again = await cli(dir, 'init', '--scope', 'global');
       expect(again.exitCode).toBe(0);
-      expect(await entries(dir)).toEqual(['openspec']);
+      expect(await entries(dir)).toEqual(PLANNING_FOLDERS);
     });
 
     it("links the moved project's tools, even when the machine was set up for another tool", async () => {
@@ -431,14 +434,14 @@ describe('skills installed for this machine', { timeout: 60_000 }, () => {
       const result = await cli(dir, 'init', '--scope', 'global');
 
       expect(result.exitCode).toBe(0);
-      expect(await entries(dir)).toEqual(['openspec']);
+      expect(await entries(dir)).toEqual(PLANNING_FOLDERS);
       expect(existsSync(path.join(home, '.claude', 'skills', 'sa-propose', 'SKILL.md'))).toBe(true);
     });
 
     it('keeps Copilot and project skills when one of the requested global targets fails, and retries', async () => {
       const dir = await project('partial');
       await cli(dir, 'init', '--scope', 'project', '--tools', 'claude,github-copilot', '--copilot-cloud');
-      const files = ['openspec/config.yaml', '.github/workflows/copilot-setup-steps.yml', '.github/agents/openspec.agent.md',
+      const files = [RELATIVE_CONFIG_FILE, '.github/workflows/copilot-setup-steps.yml', '.github/agents/openspec.agent.md',
         '.agents/skills/.openspec-target', ...CORE_SKILLS.map(name => `.agents/skills/${name}/SKILL.md`)];
       const before = files.map(file => readFileSync(path.join(dir, file), 'utf8'));
       await fs.mkdir(path.join(home, '.claude'));
@@ -452,7 +455,7 @@ describe('skills installed for this machine', { timeout: 60_000 }, () => {
       const retried = await cli(dir, 'init', '--scope', 'global', '--no-copilot-cloud');
       expect(retried.exitCode, retried.stderr).toBe(0);
       expect(existsSync(path.join(dir, '.agents/skills'))).toBe(false);
-      expect(readFileSync(path.join(dir, 'openspec/config.yaml'), 'utf8')).toContain('cloudAgent: false');
+      expect(readFileSync(path.join(dir, RELATIVE_CONFIG_FILE), 'utf8')).toContain('cloudAgent: false');
     });
 
     it('refuses to move a project that has the Copilot cloud files, unless they are turned off', async () => {
@@ -488,10 +491,10 @@ describe('skills installed for this machine', { timeout: 60_000 }, () => {
       expect(existsSync(path.join(dir, '.agents', 'skills', 'sa-propose', 'SKILL.md'))).toBe(true);
       expect(existsSync(path.join(workflows, 'openspec.agent.md'))).toBe(true);
       expect(existsSync(path.join(dir, '.github/workflows/copilot-setup-steps.yml'))).toBe(true);
-      expect(readFileSync(path.join(dir, 'openspec/config.yaml'), 'utf8')).toContain('cloudAgent: true');
+      expect(readFileSync(path.join(dir, RELATIVE_CONFIG_FILE), 'utf8')).toContain('cloudAgent: true');
       expect(await globalSkills()).toEqual(CORE_SKILLS);
       expect((await cli(dir, 'init', '--scope', 'global', '--no-copilot-cloud')).exitCode).toBe(0);
-      expect(readFileSync(path.join(dir, 'openspec/config.yaml'), 'utf8')).toContain('cloudAgent: false');
+      expect(readFileSync(path.join(dir, RELATIVE_CONFIG_FILE), 'utf8')).toContain('cloudAgent: false');
     });
 
     it('removes the command files 1.x wrote as well', async () => {
@@ -506,7 +509,7 @@ describe('skills installed for this machine', { timeout: 60_000 }, () => {
       const result = await cli(dir, 'init', '--scope', 'global');
 
       expect(result.exitCode).toBe(0);
-      expect(await entries(dir)).toEqual(['openspec']);
+      expect(await entries(dir)).toEqual(PLANNING_FOLDERS);
     });
 
     it('stops before removing anything when a command file was edited', async () => {
@@ -529,7 +532,7 @@ describe('skills installed for this machine', { timeout: 60_000 }, () => {
     // next update set the project up again.
     it('removes the skills an earlier release left under their former names, and stops on an edited one', async () => {
       const dir = await project('app');
-      await fs.mkdir(path.join(dir, 'openspec'));
+      await fs.mkdir(getToolDir(dir));
       const legacy = (workflow: 'propose' | 'explore') =>
         path.join(dir, '.agent', 'skills', FORMER_SKILL_NAME_BY_WORKFLOW[workflow], 'SKILL.md');
       for (const workflow of ['propose', 'explore'] as const) {
@@ -553,9 +556,9 @@ describe('skills installed for this machine', { timeout: 60_000 }, () => {
       const moved = await cli(dir, 'init', '--scope', 'global', '--tools', 'antigravity');
 
       expect(moved.exitCode).toBe(0);
-      expect(await entries(dir)).toEqual(['openspec']);
+      expect(await entries(dir)).toEqual(PLANNING_FOLDERS);
       expect((await cli(dir, 'update')).exitCode).toBe(0);
-      expect(await entries(dir)).toEqual(['openspec']);
+      expect(await entries(dir)).toEqual(PLANNING_FOLDERS);
     });
   });
 });

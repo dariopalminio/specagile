@@ -3,15 +3,17 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { execFileSync } from 'child_process';
 import { runCLI } from '../helpers/run-cli.js';
+import { getChangesDir, getSpecsDir, getToolDir } from '../helpers/layout.js';
 
 describe('validate command enriched human output', () => {
   const projectRoot = process.cwd();
   const testDir = path.join(projectRoot, 'test-validate-enriched-tmp');
-  const changesDir = path.join(testDir, 'openspec', 'changes');
+  const changesDir = getChangesDir(testDir);
   const bin = path.join(projectRoot, 'bin', 'specagile.js');
 
 
   beforeEach(async () => {
+    await fs.mkdir(getToolDir(testDir), { recursive: true });
     await fs.mkdir(changesDir, { recursive: true });
   });
 
@@ -20,9 +22,10 @@ describe('validate command enriched human output', () => {
   });
 
   const writeArchiveBlocker = async () => {
-    const mainDir = path.join(testDir, 'openspec', 'specs', 'widgets');
+    const mainDir = path.join(getSpecsDir(testDir), 'widgets');
     const changeDir = path.join(changesDir, 'c-archive');
     const deltaDir = path.join(changeDir, 'specs', 'widgets');
+    await fs.mkdir(getToolDir(testDir), { recursive: true });
     await fs.mkdir(mainDir, { recursive: true });
     await fs.mkdir(deltaDir, { recursive: true });
     await fs.writeFile(path.join(mainDir, 'spec.md'), `# Widgets Specification
@@ -108,7 +111,7 @@ The system SHALL report the future state.
           const deltaFile = path.join(changesDir, 'c-archive', 'specs', 'widgets', 'spec.md');
           const delta = await fs.readFile(deltaFile, 'utf-8');
           await fs.writeFile(deltaFile, delta.replace('## MODIFIED Requirements', '## ADDED Requirements'));
-          const mainFile = path.join(testDir, 'openspec', 'specs', 'widgets', 'spec.md');
+          const mainFile = path.join(getSpecsDir(testDir), 'widgets', 'spec.md');
           const missingFile = path.join(testDir, 'missing-spec.md');
           await fs.unlink(mainFile);
           await fs.symlink(missingFile, mainFile);

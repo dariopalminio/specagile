@@ -4,6 +4,7 @@ import path from 'path';
 import os from 'os';
 import { parseDeltaSpec } from '../../../src/core/parsers/requirement-blocks.js';
 import { buildUpdatedSpec, findSpecUpdates } from '../../../src/core/specs-apply.js';
+import { getChangesDir, getSpecsDir } from '../../helpers/layout.js';
 
 /**
  * CommonMark bullet lists may open with `-`, `*` or `+`. The REMOVED bullet form
@@ -161,9 +162,9 @@ describe('buildUpdatedSpec (delta list markers)', () => {
    * return its result without touching any real project.
    */
   async function build(deltaBody: string) {
-    const specsRoot = path.join(tempDir, 'openspec', 'specs');
+    const specsRoot = getSpecsDir(tempDir);
     const specsDir = path.join(specsRoot, 'billing');
-    const changeDir = path.join(tempDir, 'openspec', 'changes', 'c');
+    const changeDir = path.join(getChangesDir(tempDir), 'c');
     await fs.mkdir(specsDir, { recursive: true });
     await fs.mkdir(path.join(changeDir, 'specs', 'billing'), { recursive: true });
     await fs.writeFile(path.join(specsDir, 'spec.md'), MAIN_SPEC);

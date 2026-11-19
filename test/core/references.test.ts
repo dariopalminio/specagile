@@ -17,6 +17,7 @@ import {
 } from '../../src/core/store/foundation.js';
 import type { ResolvedOpenSpecRoot } from '../../src/core/root-selection.js';
 import { createOpenSpecRoot, writeSpec } from '../helpers/openspec-fixtures.js';
+import { getChangesDir } from '../helpers/layout.js';
 
 describe('reference index assembly', () => {
   let tempDir: string;
@@ -85,7 +86,7 @@ describe('reference index assembly', () => {
     return {
       path: rootDir,
       source: 'nearest',
-      changesDir: path.join(rootDir, 'openspec', 'changes'),
+      changesDir: getChangesDir(rootDir),
       defaultSchema: 'spec-driven',
     } as ResolvedOpenSpecRoot;
   }
@@ -280,7 +281,7 @@ describe('reference index assembly', () => {
         path: root,
         source: 'store',
         storeId: 'self-store',
-        changesDir: path.join(root, 'openspec', 'changes'),
+        changesDir: getChangesDir(root),
         defaultSchema: 'spec-driven',
       } as ResolvedOpenSpecRoot,
       globalDataDir,
@@ -302,7 +303,7 @@ describe('reference index assembly', () => {
         path: storeRoot,
         source: 'store',
         storeId: 'self-context',
-        changesDir: path.join(storeRoot, 'openspec', 'changes'),
+        changesDir: getChangesDir(storeRoot),
         defaultSchema: 'spec-driven',
       } as ResolvedOpenSpecRoot,
       globalDataDir,
@@ -314,7 +315,7 @@ describe('reference index assembly', () => {
       resolvedRoot: {
         path: storeRoot,
         source: 'nearest',
-        changesDir: path.join(storeRoot, 'openspec', 'changes'),
+        changesDir: getChangesDir(storeRoot),
         defaultSchema: 'spec-driven',
       } as ResolvedOpenSpecRoot,
       globalDataDir,

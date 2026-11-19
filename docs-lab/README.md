@@ -136,7 +136,7 @@ the page or rewriting the goal in both places, never letting them drift.
 | [Schemas › schema.yaml](reference/schemas/schema-yaml.md) | Every field of a schema definition, for reading or writing one. |
 | [Schemas › spec-driven](reference/schemas/spec-driven/index.md) | The default workflow's artifacts: their order, their formats, and the change folder they produce. |
 | [Configuration](reference/configuration/index.md) | Every file and setting that changes how OpenSpec behaves, and where each lives. |
-| [Configuration › Project configuration (config.yaml)](reference/configuration/config-yaml.md) | Every field of openspec/config.yaml: the schema, context, and rules this project plans with. |
+| [Configuration › Project configuration (config.yaml)](reference/configuration/config-yaml.md) | Every field of specagile/config.yaml: the schema, context, and rules this project plans with. |
 | [Configuration › Change metadata (.openspec.yaml)](reference/configuration/change-metadata.md) | The supported fields and validation rules for the metadata stored with each change. |
 | [Configuration › CLI settings (config.json)](reference/configuration/config-json.md) | Every field of config.json: how the openspec CLI behaves on your machine. |
 | [Configuration › Environment variables](reference/configuration/environment-variables.md) | Every environment variable OpenSpec reads. |
@@ -153,6 +153,7 @@ the page or rewriting the goal in both places, never letting them drift.
 |---|---|
 | [FAQ](help/faq.md) | Short answers to the questions that don't need a page. |
 | [Troubleshooting](help/troubleshooting.md) | When OpenSpec doesn't do what you expected: symptoms and their fixes. |
+| [Move to the SpecAgile layout](help/move-to-the-specagile-layout.md) | SpecAgile keeps your specs and changes at the root of the project, not inside `openspec/`. What moves, and how to move a project over. |
 | [Upgrade to 2.1](help/upgrade-to-2-1.md) (published now, under Upgrading, ahead of the rest of Help) | OpenSpec 2.1 supports global skills for coding agents. What changes, and what to do about it. |
 | [Upgrade to 2.0](help/upgrade-to-2.md) (published now, under Upgrading, ahead of the rest of Help) | What changes in 2.0, and how to move a project over. |
 

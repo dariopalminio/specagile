@@ -3,6 +3,7 @@ import { ChangeCommand } from '../../../src/commands/change.js';
 import path from 'path';
 import { promises as fs } from 'fs';
 import os from 'os';
+import { getChangesDir } from '../../helpers/layout.js';
 
 describe('ChangeCommand.list', () => {
   let cmd: ChangeCommand;
@@ -13,7 +14,7 @@ describe('ChangeCommand.list', () => {
     cmd = new ChangeCommand();
     originalCwd = process.cwd();
     tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-change-command-list-'));
-    const changeDir = path.join(tempRoot, 'openspec', 'changes', 'demo');
+    const changeDir = path.join(getChangesDir(tempRoot), 'demo');
     await fs.mkdir(changeDir, { recursive: true });
     const proposal = `# Change: Demo\n\n## Why\nTest list.\n\n## What Changes\n- **auth:** Add requirement`;
     await fs.writeFile(path.join(changeDir, 'proposal.md'), proposal, 'utf-8');
@@ -100,7 +101,7 @@ describe('ChangeCommand.list with a change that has no proposal.md', () => {
     originalCwd = process.cwd();
     tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-change-list-noproposal-'));
     // What `openspec new change` leaves behind, plus tasks: no proposal.md.
-    const scaffolded = path.join(tempRoot, 'openspec', 'changes', 'scaffolded');
+    const scaffolded = path.join(getChangesDir(tempRoot), 'scaffolded');
     await fs.mkdir(scaffolded, { recursive: true });
     await fs.writeFile(path.join(scaffolded, '.openspec.yaml'), 'schema: spec-driven\n', 'utf-8');
     await fs.writeFile(path.join(scaffolded, 'tasks.md'), '- [x] Task 1\n- [ ] Task 2\n', 'utf-8');

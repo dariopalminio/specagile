@@ -3,6 +3,8 @@ import { promises as fs } from 'fs';
 import os from 'os';
 import path from 'path';
 import { runCLI } from '../helpers/run-cli.js';
+import { snapshotDirectory } from '../helpers/fs-snapshot.js';
+import { createFormerLayout } from '../helpers/layout.js';
 
 /**
  * `update --dry-run --json` is read by agents and OpenSpec Desktop through a
@@ -60,5 +62,50 @@ describe('specagile update --dry-run --json over a pipe', () => {
     expect(result.exitCode).toBe(1);
     expect(result.stdout).toBe('');
     expect(result.stderr).toContain('--json is only available with --dry-run.');
+  });
+});
+
+// SpecAgile: a dry run on the former openspec/ layout (src/core/fork/layout-migration.ts).
+describe('specagile update --dry-run on the former layout', () => {
+  let tempRoot: string;
+  let project: string;
+  let env: NodeJS.ProcessEnv;
+
+  beforeEach(async () => {
+    tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'specagile-dry-run-layout-'));
+    project = path.join(tempRoot, 'project');
+    env = { HOME: tempRoot, USERPROFILE: tempRoot, XDG_CONFIG_HOME: path.join(tempRoot, 'xdg') };
+    createFormerLayout(project, {
+      'config.yaml': 'schema: spec-driven\n',
+      'specs/auth/spec.md': '# auth\n',
+      'changes/add-login/proposal.md': '# add-login\n',
+    });
+  });
+
+  afterEach(async () => {
+    await fs.rm(tempRoot, { recursive: true, force: true });
+  });
+
+  it('says it would move openspec/specs/ and openspec/changes/, and moves nothing', async () => {
+    const before = snapshotDirectory(project);
+
+    const result = await runCLI(['update', '--dry-run'], { cwd: project, env });
+
+    expect(result.exitCode, result.stderr).toBe(0);
+    expect(result.stdout).toContain('openspec/specs/ → specs/');
+    expect(result.stdout).toContain('openspec/changes/ → changes/');
+    expect(snapshotDirectory(project)).toEqual(before);
+  });
+
+  it('says the move would not happen, and why, when specs/ is taken', async () => {
+    await fs.mkdir(path.join(project, 'specs'));
+    await fs.writeFile(path.join(project, 'specs', 'login.test.ts'), 'test\n');
+    const before = snapshotDirectory(project);
+
+    const result = await runCLI(['update', '--dry-run'], { cwd: project, env });
+
+    expect(result.stdout).toContain('Would fail: specagile');
+    expect(result.stdout).toContain('specs/ already exists with content');
+    expect(snapshotDirectory(project)).toEqual(before);
   });
 });

@@ -3,6 +3,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
 import { buildUpdatedSpec, findSpecUpdates } from '../../src/core/specs-apply.js';
+import { getChangesDir, getSpecsDir } from '../helpers/layout.js';
 
 /**
  * The blank-line normalisation that tidies the seams between the rebuilt
@@ -44,9 +45,9 @@ describe('buildUpdatedSpec (code fence preservation)', () => {
    * return its result without touching any real project.
    */
   async function build(deltaBody: string, mainSpec = MAIN_SPEC) {
-    const specsRoot = path.join(tempDir, 'openspec', 'specs');
+    const specsRoot = getSpecsDir(tempDir);
     const specsDir = path.join(specsRoot, 'billing');
-    const changeDir = path.join(tempDir, 'openspec', 'changes', 'c');
+    const changeDir = path.join(getChangesDir(tempDir), 'c');
     await fs.mkdir(specsDir, { recursive: true });
     await fs.mkdir(path.join(changeDir, 'specs', 'billing'), { recursive: true });
     await fs.writeFile(path.join(specsDir, 'spec.md'), mainSpec);

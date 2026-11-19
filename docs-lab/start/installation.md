@@ -98,5 +98,5 @@ npm uninstall -g specagile
 
 - Skills installed for this machine: remove them with `npx skills remove --global`, picking the `sa-` ones, or delete the `sa-*` folders in `~/.agents/skills/` and the `sa-*` links in tool folders like `~/.claude/skills/`.
 - Generated agent files, per project: the `sa-*` skills and `.openspec-target` in `.agents/skills/`, and the `sa-*` links in tool folders like `.claude/skills/`. [Supported tools](../reference/supported-tools.md) lists which tools get links.
-- The `openspec/` folder: pause first. `specs/` and `changes/archive/` are your record of the system, plain Markdown that reads fine without SpecAgile.
+- The `specs/`, `changes/` and `specagile/` folders: pause first. `specs/` and `changes/archive/` are your record of the system, plain Markdown that reads fine without SpecAgile.
 - Per-machine state: settings in `~/.config/openspec/`; schema overrides and store registrations in `~/.local/share/openspec/` (Windows: `%APPDATA%\openspec`, `%LOCALAPPDATA%\openspec`). OpenSpec uses the same folders, so keep them if you also use OpenSpec. Registrations are pointers; the store repos they point to are untouched.

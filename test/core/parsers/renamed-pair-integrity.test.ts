@@ -5,6 +5,7 @@ import os from 'os';
 import { parseDeltaSpec } from '../../../src/core/parsers/requirement-blocks.js';
 import { buildUpdatedSpec, findSpecUpdates } from '../../../src/core/specs-apply.js';
 import { Validator } from '../../../src/core/validation/validator.js';
+import { getChangesDir, getSpecsDir } from '../../helpers/layout.js';
 
 /**
  * The RENAMED reader used to carry one mutable `{ from, to }` and drop whatever
@@ -182,9 +183,9 @@ describe('buildUpdatedSpec (RENAMED pairing)', () => {
    * return its result without touching any real project.
    */
   async function build(deltaBody: string) {
-    const specsRoot = path.join(tempDir, 'openspec', 'specs');
+    const specsRoot = getSpecsDir(tempDir);
     const specsDir = path.join(specsRoot, 'billing');
-    const changeDir = path.join(tempDir, 'openspec', 'changes', 'c');
+    const changeDir = path.join(getChangesDir(tempDir), 'c');
     await fs.mkdir(specsDir, { recursive: true });
     await fs.mkdir(path.join(changeDir, 'specs', 'billing'), { recursive: true });
     await fs.writeFile(path.join(specsDir, 'spec.md'), MAIN_SPEC);
@@ -266,7 +267,7 @@ describe('validate <change> (RENAMED pairing)', () => {
    * project, and return the report.
    */
   async function validateDelta(deltaBody: string) {
-    const changeDir = path.join(tempDir, 'openspec', 'changes', 'c');
+    const changeDir = path.join(getChangesDir(tempDir), 'c');
     await fs.mkdir(path.join(changeDir, 'specs', 'billing'), { recursive: true });
     await fs.writeFile(path.join(changeDir, 'specs', 'billing', 'spec.md'), deltaBody);
     return new Validator().validateChangeDeltaSpecs(changeDir);

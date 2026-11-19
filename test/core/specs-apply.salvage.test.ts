@@ -3,6 +3,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
 import { buildUpdatedSpec, findSpecUpdates } from '../../src/core/specs-apply.js';
+import { getChangesDir, getSpecsDir } from '../helpers/layout.js';
 
 // A requirement block runs to the next header the parser RECOGNISES, so a note
 // written below it - indented by the 0-3 spaces CommonMark allows, say - is
@@ -26,13 +27,13 @@ describe('buildUpdatedSpec (content absorbed into a requirement)', () => {
   });
 
   async function build(specBody: string[], deltaBody: string[]) {
-    const specsDir = path.join(tempDir, 'openspec', 'specs', 'demo');
-    const changeDir = path.join(tempDir, 'openspec', 'changes', 'c');
+    const specsDir = path.join(getSpecsDir(tempDir), 'demo');
+    const changeDir = path.join(getChangesDir(tempDir), 'c');
     await fs.mkdir(specsDir, { recursive: true });
     await fs.mkdir(path.join(changeDir, 'specs', 'demo'), { recursive: true });
     await fs.writeFile(path.join(specsDir, 'spec.md'), specBody.join('\n'));
     await fs.writeFile(path.join(changeDir, 'specs', 'demo', 'spec.md'), deltaBody.join('\n'));
-    const [update] = await findSpecUpdates(changeDir, path.join(tempDir, 'openspec', 'specs'));
+    const [update] = await findSpecUpdates(changeDir, getSpecsDir(tempDir));
     return buildUpdatedSpec(update, 'c', { silent: true });
   }
 

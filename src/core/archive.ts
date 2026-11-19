@@ -35,6 +35,7 @@ import {
 import { confirmPrompt, isNonInteractivePromptError } from '../utils/interactive.js';
 import { FileSystemUtils } from '../utils/file-system.js';
 import { folderStyleNameProblem } from './id.js';
+import { getRootOfChangesDir, relativeChangeDir } from './fork/layout.js';
 import {
   describeNestedChange,
   findNestedChangesIn,
@@ -1358,6 +1359,8 @@ export class ArchiveCommand {
     const archiveDir = root.archiveDir;
     const mainSpecsDir = root.specsDir;
 
+    // SpecAgile: the folder that holds changes/ and specs/, the root itself in
+    // the layout of src/core/fork/layout.ts.
     const openspecDir = path.dirname(changesDir);
 
     // openspec/, changes/ and specs/ may be project-owned symlinks to another
@@ -1368,6 +1371,7 @@ export class ArchiveCommand {
       [changesDir, archiveDir, false],
       [openspecDir, mainSpecsDir, true],
     ] as const) {
+      if (managedDir === allowedDirectory) continue;
       try {
         if (allowLinkedLeaf) {
           FileSystemUtils.assertPathWithinAllowingLinkedLeaf(allowedDirectory, managedDir);
@@ -1438,7 +1442,7 @@ export class ArchiveCommand {
       throw new ArchiveBlockedError(
         'archive_change_is_namespace_folder',
         `Cannot archive '${changeName}': ${describeNestedChange(nested)}`,
-        `Rename openspec/changes/${nested.nested[0]}/ to a flat change directory, then archive it.`
+        `Rename ${relativeChangeDir(nested.nested[0])}/ to a flat change directory, then archive it.`
       );
     }
 
@@ -1613,7 +1617,7 @@ export class ArchiveCommand {
     }
 
     // Show progress and check for incomplete tasks
-    const progress = await getTaskProgressForChange(changesDir, changeName, path.resolve(changesDir, '..', '..'));
+    const progress = await getTaskProgressForChange(changesDir, changeName, getRootOfChangesDir(changesDir));
     if (!json) {
       const status = formatTaskStatus(progress);
       console.log(`Task status: ${status}`);
@@ -2379,7 +2383,7 @@ export class ArchiveCommand {
     try {
       const progressList: Array<{ id: string; status: string }> = [];
       for (const id of changeDirs) {
-        const progress = await getTaskProgressForChange(changesDir, id, path.resolve(changesDir, '..', '..'));
+        const progress = await getTaskProgressForChange(changesDir, id, getRootOfChangesDir(changesDir));
         const status = formatTaskStatus(progress);
         progressList.push({ id, status });
       }

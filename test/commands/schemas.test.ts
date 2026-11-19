@@ -7,6 +7,7 @@ import { getGlobalDataDir, registerStore } from '../../src/core/index.js';
 import { runCLI, type RunCLIResult } from '../helpers/run-cli.js';
 import { createOpenSpecRoot } from '../helpers/openspec-fixtures.js';
 import { cleanupTempPath } from '../helpers/temp-cleanup.js';
+import { getConfigFile, getProjectSchemasDir, getToolDir } from '../helpers/layout.js';
 
 interface SchemaOutput {
   name: string;
@@ -66,7 +67,7 @@ describe('openspec schemas root selection', () => {
   }
 
   function writeProjectSchema(root: string, name: string, description: string): void {
-    const schemaDir = path.join(root, 'openspec', 'schemas', name);
+    const schemaDir = path.join(getProjectSchemasDir(root), name);
     fs.mkdirSync(schemaDir, { recursive: true });
     fs.writeFileSync(
       path.join(schemaDir, 'schema.yaml'),
@@ -153,9 +154,9 @@ describe('openspec schemas root selection', () => {
 
   it('honors declared pointers and global defaults while keeping nearest-root precedence', async () => {
     const pointerRoot = path.join(tempDir, 'pointer-project');
-    fs.mkdirSync(path.join(pointerRoot, 'openspec'), { recursive: true });
+    fs.mkdirSync(getToolDir(pointerRoot), { recursive: true });
     fs.writeFileSync(
-      path.join(pointerRoot, 'openspec', 'config.yaml'),
+      getConfigFile(pointerRoot),
       'store: team-context\n'
     );
     writeProjectSchema(pointerRoot, 'pointer-only', 'Pointer-only workflow');

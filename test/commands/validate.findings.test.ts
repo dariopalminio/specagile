@@ -6,6 +6,7 @@ import ora from 'ora';
 import { ValidateCommand, projectValidationFindings } from '../../src/commands/validate.js';
 import { resolveRootForCommand, toRootOutput, type ResolvedOpenSpecRoot } from '../../src/core/root-selection.js';
 import { Validator } from '../../src/core/validation/validator.js';
+import { RELATIVE_CHANGES_DIR, RELATIVE_SPECS_DIR, getArchiveDir, getChangesDir, getSpecsDir } from '../helpers/layout.js';
 
 vi.mock('../../src/core/root-selection.js', async (importOriginal) => ({
   ...await importOriginal<typeof import('../../src/core/root-selection.js')>(),
@@ -33,14 +34,14 @@ describe('validate findings reports', () => {
   }
 
   async function seed(): Promise<void> {
-    await write('openspec/changes/a-clean/specs/example/spec.md', delta());
-    await write('openspec/changes/b-warning/specs/example/spec.md', delta('The feature returns its documented result.'));
-    await write('openspec/changes/c-info/specs/example/spec.md', `${delta()}\n### Notes\nNon-requirement notes.\n`);
+    await write(`${RELATIVE_CHANGES_DIR}/a-clean/specs/example/spec.md`, delta());
+    await write(`${RELATIVE_CHANGES_DIR}/b-warning/specs/example/spec.md`, delta('The feature returns its documented result.'));
+    await write(`${RELATIVE_CHANGES_DIR}/c-info/specs/example/spec.md`, `${delta()}\n### Notes\nNon-requirement notes.\n`);
     await fs.mkdir(path.join(root.changesDir, 'd-error'));
-    await write('openspec/specs/clean/spec.md', `## Purpose\nThis specification defines a deterministic example for testing validation output contracts.\n\n## Requirements\n${delta().replace('## ADDED Requirements\n', '')}`);
-    await write('openspec/specs/error/spec.md', '# Invalid specification\n');
-    await write('openspec/changes/archive/a-clean/tasks.md', '- [x] 1.1 Done\n');
-    await write('openspec/changes/archive/b-error/tasks.md', '- [ ] 1.1 Pending\n');
+    await write(`${RELATIVE_SPECS_DIR}/clean/spec.md`, `## Purpose\nThis specification defines a deterministic example for testing validation output contracts.\n\n## Requirements\n${delta().replace('## ADDED Requirements\n', '')}`);
+    await write(`${RELATIVE_SPECS_DIR}/error/spec.md`, '# Invalid specification\n');
+    await write(`${RELATIVE_CHANGES_DIR}/archive/a-clean/tasks.md`, '- [x] 1.1 Done\n');
+    await write(`${RELATIVE_CHANGES_DIR}/archive/b-error/tasks.md`, '- [ ] 1.1 Pending\n');
   }
 
   async function run(options: Options, item?: string) {
@@ -63,9 +64,9 @@ describe('validate findings reports', () => {
     directory = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-findings-'));
     root = {
       path: directory,
-      changesDir: path.join(directory, 'openspec', 'changes'),
-      specsDir: path.join(directory, 'openspec', 'specs'),
-      archiveDir: path.join(directory, 'openspec', 'changes', 'archive'),
+      changesDir: getChangesDir(directory),
+      specsDir: getSpecsDir(directory),
+      archiveDir: getArchiveDir(directory),
       defaultSchema: 'spec-driven',
       source: 'nearest',
     };
@@ -137,7 +138,7 @@ describe('validate findings reports', () => {
   });
 
   it.each([false, true])('preserves warning-only exit status without errors (strict=%s)', async (strict) => {
-    await write('openspec/changes/warning/specs/example/spec.md', delta('The feature returns its documented result.'));
+    await write(`${RELATIVE_CHANGES_DIR}/warning/specs/example/spec.md`, delta('The feature returns its documented result.'));
     const full = await json({ changes: true, strict });
     const findings = await json({ changes: true, strict, report: 'findings' });
     expect(findings.document.itemFindings).toHaveLength(1);
@@ -146,7 +147,7 @@ describe('validate findings reports', () => {
   });
 
   it('keeps an INFO-only strict run successful while displaying its finding', async () => {
-    await write('openspec/changes/info/specs/example/spec.md', `${delta()}\n### Notes\nNon-requirement notes.\n`);
+    await write(`${RELATIVE_CHANGES_DIR}/info/specs/example/spec.md`, `${delta()}\n### Notes\nNon-requirement notes.\n`);
     const findings = await json({ changes: true, strict: true, report: 'findings' });
     expect(findings.document.itemFindings).toHaveLength(1);
     expect(findings.document.itemFindings[0].issues[0].level).toBe('INFO');
@@ -199,7 +200,7 @@ describe('validate findings reports', () => {
   });
 
   it('distinguishes a clean non-empty scope from an empty scope', async () => {
-    await write('openspec/changes/clean/specs/example/spec.md', delta());
+    await write(`${RELATIVE_CHANGES_DIR}/clean/specs/example/spec.md`, delta());
     const result = await json({ changes: true, report: 'findings' });
     expect(result.document.report).toMatchObject({ returnedItems: 0, totalItems: 1, scope: 'changes' });
     expect(result.document.itemFindings).toEqual([]);
@@ -259,8 +260,8 @@ describe('validate findings reports', () => {
 
   describe('a namespace folder holding nested changes (#1846)', () => {
     async function seedNamespaceFolder(): Promise<void> {
-      await write('openspec/changes/mobile/refresh-token/proposal.md', '# Refresh token\n');
-      await write('openspec/changes/mobile/refresh-token/specs/example/spec.md', delta());
+      await write(`${RELATIVE_CHANGES_DIR}/mobile/refresh-token/proposal.md`, '# Refresh token\n');
+      await write(`${RELATIVE_CHANGES_DIR}/mobile/refresh-token/specs/example/spec.md`, delta());
     }
 
     it('reports the nesting instead of a missing delta, in the bulk sweep', async () => {
@@ -296,12 +297,12 @@ describe('validate findings reports', () => {
       const result = await run({}, 'mobile');
 
       const output = result.stderr.join('\n');
-      expect(output).toContain('Move each nested change directly under openspec/changes/');
+      expect(output).toContain(`Move each nested change directly under ${RELATIVE_CHANGES_DIR}/`);
       expect(output).not.toContain('ADDED/MODIFIED/REMOVED/RENAMED Requirements');
     });
 
     it('leaves an ordinary change with delta specs untouched', async () => {
-      await write('openspec/changes/add-auth/specs/example/spec.md', delta());
+      await write(`${RELATIVE_CHANGES_DIR}/add-auth/specs/example/spec.md`, delta());
 
       const { document } = await json({ changes: true });
 

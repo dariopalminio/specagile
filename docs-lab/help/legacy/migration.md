@@ -2,6 +2,9 @@
 
 > Moving from the legacy `/openspec:*` commands to OPSX.
 
+> [!NOTE]
+> This page keeps the paths of the former layout, where everything lived in `openspec/`. SpecAgile now keeps `specs/`, `changes/` and `specagile/` at the project root: see [Move to the SpecAgile layout](../move-to-the-specagile-layout.md).
+
 <!-- WIP, on the todo list: this page is not written yet and is held back from the
 site (its section is commented out in website/docs.sync.config.mjs, 2026-08-21). The
 file stays so the structure and inbound links survive; re-list it in the sync config

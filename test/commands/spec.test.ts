@@ -2,15 +2,17 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { execFileSync } from 'child_process';
+import { getSpecsDir, getToolDir } from '../helpers/layout.js';
 
 describe('spec command', () => {
   const projectRoot = process.cwd();
   const testDir = path.join(projectRoot, 'test-spec-command-tmp');
-  const specsDir = path.join(testDir, 'openspec', 'specs');
+  const specsDir = getSpecsDir(testDir);
   const openspecBin = path.join(projectRoot, 'bin', 'specagile.js');
   
   
   beforeEach(async () => {
+    await fs.mkdir(getToolDir(testDir), { recursive: true });
     await fs.mkdir(specsDir, { recursive: true });
     
     // Create test spec files
@@ -35,6 +37,7 @@ The system SHALL allow users to reset their password
 - **WHEN** they request a password reset
 - **THEN** they receive a reset link`;
 
+    await fs.mkdir(getToolDir(testDir), { recursive: true });
     await fs.mkdir(path.join(specsDir, 'auth'), { recursive: true });
     await fs.writeFile(path.join(specsDir, 'auth', 'spec.md'), testSpec);
     
@@ -46,6 +49,7 @@ This specification defines the payment processing system.
 ### Requirement: Process Payments
 The system SHALL process credit card payments securely`;
 
+    await fs.mkdir(getToolDir(testDir), { recursive: true });
     await fs.mkdir(path.join(specsDir, 'payment'), { recursive: true });
     await fs.writeFile(path.join(specsDir, 'payment', 'spec.md'), testSpec2);
   });
@@ -273,6 +277,7 @@ The system SHALL process credit card payments securely`;
 ## Requirements
 This section has no actual requirements`;
 
+      await fs.mkdir(getToolDir(testDir), { recursive: true });
       await fs.mkdir(path.join(specsDir, 'invalid'), { recursive: true });
       await fs.writeFile(path.join(specsDir, 'invalid', 'spec.md'), invalidSpec);
 

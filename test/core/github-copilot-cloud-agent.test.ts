@@ -18,6 +18,8 @@ import {
   listManagedCloudFiles,
 } from '../../src/core/github-copilot/cloud-agent.js';
 import { withUpstreamIdentity } from '../helpers/fork-identity.js';
+import { LAYOUT_TEXT_REPLACEMENTS } from '../../src/core/fork/layout.js';
+import { getConfigFile, getConfigYmlFile } from '../helpers/layout.js';
 
 /**
  * SpecAgile: a generated file as OpenSpec wrote it (upstream's package and
@@ -350,6 +352,37 @@ describe('GitHub Copilot Cloud Agent', () => {
       await expect(fs.readFile(agentPath, 'utf8')).resolves.toBe(generateCopilotAgentFile());
     });
 
+    // SpecAgile 2.1 wrote the fork's names with upstream's layout paths.
+    const asSpecAgile21WroteIt = (text: string) =>
+      LAYOUT_TEXT_REPLACEMENTS.reduce((result, [upstream, fork]) => result.split(fork).join(upstream), text);
+
+    it('refreshes the agent file SpecAgile 2.1 wrote with the layout paths', async () => {
+      const agentPath = path.join(tempDir, COPILOT_CLOUD_FILES.agent);
+      await fs.mkdir(path.dirname(agentPath), { recursive: true });
+      const written21 = asSpecAgile21WroteIt(generateCopilotAgentFile());
+      expect(written21).toContain('`openspec/changes/`');
+      await fs.writeFile(agentPath, written21);
+
+      const result = await writeCopilotCloudFiles(tempDir);
+
+      expect(result.agentWritten).toBe(true);
+      const agent = await fs.readFile(agentPath, 'utf8');
+      expect(agent).toBe(generateCopilotAgentFile());
+      expect(agent).toContain('`changes/`');
+      expect(agent).not.toContain('openspec/');
+    });
+
+    it('keeps an agent file from SpecAgile 2.1 that the user edited', async () => {
+      const agentPath = path.join(tempDir, COPILOT_CLOUD_FILES.agent);
+      await fs.mkdir(path.dirname(agentPath), { recursive: true });
+      const edited = `${asSpecAgile21WroteIt(generateCopilotAgentFile())}\nOur own note.\n`;
+      await fs.writeFile(agentPath, edited);
+
+      await writeCopilotCloudFiles(tempDir);
+
+      await expect(fs.readFile(agentPath, 'utf8')).resolves.toBe(edited);
+    });
+
     it('refreshes the previous marker-bearing generated agent', async () => {
       const agentPath = path.join(tempDir, COPILOT_CLOUD_FILES.agent);
       const previousAgent = asOpenSpecWroteIt(generateCopilotAgentFile())
@@ -594,7 +627,7 @@ context: |
 `;
 
     async function writeConfig(content: string): Promise<string> {
-      const configPath = path.join(tempDir, 'openspec', 'config.yaml');
+      const configPath = getConfigFile(tempDir);
       await fs.mkdir(path.dirname(configPath), { recursive: true });
       await fs.writeFile(configPath, content);
       return configPath;
@@ -645,12 +678,12 @@ context: |
       it('is a no-op when no config file exists', async () => {
         await persistCopilotCloudOptIn(tempDir, true);
         await expect(
-          fs.stat(path.join(tempDir, 'openspec', 'config.yaml'))
+          fs.stat(getConfigFile(tempDir))
         ).rejects.toMatchObject({ code: 'ENOENT' });
       });
 
       it('persists into and reads from config.yml when only .yml exists', async () => {
-        const ymlPath = path.join(tempDir, 'openspec', 'config.yml');
+        const ymlPath = getConfigYmlFile(tempDir);
         await fs.mkdir(path.dirname(ymlPath), { recursive: true });
         await fs.writeFile(ymlPath, `${CONFIG_WITH_COMMENTS}`);
 
@@ -658,7 +691,7 @@ context: |
 
         // No sibling .yaml was created; the .yml file was edited in place.
         await expect(
-          fs.stat(path.join(tempDir, 'openspec', 'config.yaml'))
+          fs.stat(getConfigFile(tempDir))
         ).rejects.toMatchObject({ code: 'ENOENT' });
         const written = await fs.readFile(ymlPath, 'utf8');
         expect(written).toContain('# Project context (optional)');
@@ -706,7 +739,7 @@ context: |
           await expect(persistCopilotCloudOptIn(tempDir, true)).resolves.toBeUndefined();
           expect(readCopilotCloudOptIn(tempDir)).toBe(true);
           const written = await fs.readFile(
-            path.join(tempDir, 'openspec', 'config.yaml'),
+            getConfigFile(tempDir),
             'utf8'
           );
           expect(written).toContain('# keep me');

@@ -3,6 +3,7 @@ import { promises as fs } from 'fs';
 import os from 'os';
 import path from 'path';
 import { runCLI } from '../helpers/run-cli.js';
+import { getChangesDir, getSpecsDir } from '../helpers/layout.js';
 
 /**
  * `--type` short-circuits the membership check, so the id reached
@@ -17,8 +18,8 @@ describe('validate --type name guard', () => {
 
   beforeEach(async () => {
     testDir = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-validate-name-guard-'));
-    await fs.mkdir(path.join(testDir, 'openspec', 'changes'), { recursive: true });
-    await fs.mkdir(path.join(testDir, 'openspec', 'specs'), { recursive: true });
+    await fs.mkdir(getChangesDir(testDir), { recursive: true });
+    await fs.mkdir(getSpecsDir(testDir), { recursive: true });
     await fs.mkdir(path.join(testDir, 'secret'), { recursive: true });
     await fs.writeFile(path.join(testDir, 'secret', 'spec.md'), '# secret\n', 'utf-8');
   });
@@ -45,11 +46,11 @@ describe('validate --type name guard', () => {
     // Nested capabilities (specs/<area>/<capability>/spec.md, #1353) are legal,
     // so the guard runs per segment - rejecting every id containing a `/` would
     // break them, including the hint `validate --specs` prints.
-    await fs.mkdir(path.join(testDir, 'openspec', 'specs', 'platform', 'widgets'), {
+    await fs.mkdir(path.join(getSpecsDir(testDir), 'platform', 'widgets'), {
       recursive: true,
     });
     await fs.writeFile(
-      path.join(testDir, 'openspec', 'specs', 'platform', 'widgets', 'spec.md'),
+      path.join(getSpecsDir(testDir), 'platform', 'widgets', 'spec.md'),
       [
         '# widgets',
         '',

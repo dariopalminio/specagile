@@ -6,6 +6,7 @@ import { ChangeParser } from '../../../src/core/parsers/change-parser.js';
 import { parseDeltaSpec } from '../../../src/core/parsers/requirement-blocks.js';
 import type { Change } from '../../../src/core/schemas/index.js';
 import { runCLI } from '../../helpers/run-cli.js';
+import { getChangesDir, getSpecsDir } from '../../helpers/layout.js';
 
 /**
  * `openspec show --json --deltas-only` reads deltas through ChangeParser, while
@@ -270,7 +271,7 @@ async function projectWithDelta(delta: string) {
   const cli = (args: string[]) => runCLI(args, { cwd: project, env, timeoutMs: 60_000 });
   const writeChange = async (name: string, spec: string) => {
     expect((await cli(['new', 'change', name])).exitCode).toBe(0);
-    const dir = path.join(project, 'openspec', 'changes', name);
+    const dir = path.join(getChangesDir(project), name);
     await fs.mkdir(path.join(dir, 'specs', 'billing'), { recursive: true });
     await fs.writeFile(path.join(dir, 'proposal.md'), PROPOSAL);
     await fs.writeFile(path.join(dir, 'tasks.md'), '## 1. Work\n- [x] 1.1 Done\n');
@@ -282,7 +283,7 @@ async function projectWithDelta(delta: string) {
   expect((await cli(['archive', 'seed', '--yes'])).exitCode).toBe(0);
   await writeChange('edit', delta);
 
-  const mainSpec = path.join(project, 'openspec', 'specs', 'billing', 'spec.md');
+  const mainSpec = path.join(getSpecsDir(project), 'billing', 'spec.md');
   return {
     cli,
     shownOperations: async () => {

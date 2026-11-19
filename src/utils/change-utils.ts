@@ -7,6 +7,7 @@ import { isKebabId } from '../core/id.js';
 import { resolveSchema } from '../core/artifact-graph/resolver.js';
 import { isSpecsArtifactPath } from '../core/artifact-graph/outputs.js';
 import type { ChangeMetadata } from '../core/change-metadata/index.js';
+import { getArchiveDir, getChangesDir, getConfigFilePaths, getSpecsDir } from '../core/fork/layout.js';
 
 const DEFAULT_SCHEMA = 'spec-driven';
 
@@ -109,7 +110,7 @@ export function validateChangeName(name: string): ValidationResult {
 /**
  * Creates a new change directory with metadata file.
  *
- * @param projectRoot - The root directory of the project (where `openspec/` lives)
+ * @param projectRoot - The root directory of the project (where `specagile/` lives)
  * @param name - The change name (must be valid kebab-case)
  * @param options - Optional settings for the change
  * @throws Error if the change name is invalid
@@ -119,12 +120,12 @@ export function validateChangeName(name: string): ValidationResult {
  * @returns Result containing the resolved schema name
  *
  * @example
- * // Creates openspec/changes/add-auth/ with default schema
+ * // Creates changes/add-auth/ with default schema
  * const result = await createChange('/path/to/project', 'add-auth')
  * console.log(result.schema) // 'spec-driven' or value from config
  *
  * @example
- * // Creates openspec/changes/add-auth/ with custom schema
+ * // Creates changes/add-auth/ with custom schema
  * const result = await createChange('/path/to/project', 'add-auth', { schema: 'my-workflow' })
  * console.log(result.schema) // 'my-workflow'
  */
@@ -160,7 +161,7 @@ export async function createChange(
   validateSchemaName(schemaName, projectRoot);
 
   // Build the change directory path
-  const changeDir = path.join(options.changesDir ?? path.join(projectRoot, 'openspec', 'changes'), name);
+  const changeDir = path.join(options.changesDir ?? getChangesDir(projectRoot), name);
 
   // Check if change already exists
   if (await FileSystemUtils.directoryExists(changeDir)) {
@@ -178,14 +179,11 @@ export async function createChange(
   // specs/ and changes/archive/ exist, and write a config only when
   // none exists. The config records the PROJECT default schema, never
   // a one-change --schema override.
-  const openspecDir = path.join(projectRoot, 'openspec');
-
   // Create the directory (including parent directories if needed)
   await FileSystemUtils.createDirectory(changeDir);
-  await FileSystemUtils.createDirectory(path.join(openspecDir, 'specs'));
-  await FileSystemUtils.createDirectory(path.join(openspecDir, 'changes', 'archive'));
-  const configPath = path.join(openspecDir, 'config.yaml');
-  const configYmlPath = path.join(openspecDir, 'config.yml');
+  await FileSystemUtils.createDirectory(getSpecsDir(projectRoot));
+  await FileSystemUtils.createDirectory(getArchiveDir(projectRoot));
+  const [configPath, configYmlPath] = getConfigFilePaths(projectRoot);
   if (
     !(await FileSystemUtils.fileExists(configPath)) &&
     !(await FileSystemUtils.fileExists(configYmlPath))

@@ -2,6 +2,9 @@
 
 > OpenSpec 2.1 supports global skills for coding agents. What changes, and what to do about it.
 
+> [!NOTE]
+> This page keeps the paths of the former layout, where everything lived in `openspec/`. SpecAgile now keeps `specs/`, `changes/` and `specagile/` at the project root: see [Move to the SpecAgile layout](move-to-the-specagile-layout.md).
+
 **In short:** OpenSpec can now install its skills globally, so every project on your machine uses the same ones. To upgrade, update the CLI and run `specagile update` in each repo. It asks one question, and nothing changes until you answer.
 
 ## What’s changing

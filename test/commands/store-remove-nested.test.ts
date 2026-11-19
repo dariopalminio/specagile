@@ -13,6 +13,7 @@ import {
 } from '../../src/core/index.js';
 import { runCLI, type RunCLIResult } from '../helpers/run-cli.js';
 import { createHealthyOpenSpecRoot, isolatedGitEnv } from '../helpers/store-git.js';
+import { getChangesDir } from '../helpers/layout.js';
 
 /**
  * `store remove` deletes the store folder recursively. Another registered
@@ -67,7 +68,7 @@ describe('store remove with another registered store inside the target', () => {
 
   /** Planning work that exists only on disk, never committed anywhere. */
   function writeDraft(storeRoot: string): string {
-    const draft = path.join(storeRoot, 'openspec', 'changes', 'draft-idea', 'proposal.md');
+    const draft = path.join(getChangesDir(storeRoot), 'draft-idea', 'proposal.md');
     fs.mkdirSync(path.dirname(draft), { recursive: true });
     fs.writeFileSync(draft, '# Draft (uncommitted work)\n');
     return draft;

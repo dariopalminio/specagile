@@ -3,6 +3,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
 import { runCLI } from '../helpers/run-cli.js';
+import { getChangesDir, getProjectSchemasDir } from '../helpers/layout.js';
 
 describe('status --all', () => {
   let tempDir: string;
@@ -10,7 +11,7 @@ describe('status --all', () => {
 
   beforeEach(async () => {
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-status-all-'));
-    changesDir = path.join(tempDir, 'openspec', 'changes');
+    changesDir = getChangesDir(tempDir);
     await fs.mkdir(changesDir, { recursive: true });
   });
 
@@ -297,7 +298,7 @@ describe('status --all', () => {
   describe('--schema interaction', () => {
     /** Writes a minimal project-local schema so an override is distinguishable from the default. */
     async function createProjectSchema(schemaName: string): Promise<void> {
-      const schemaDir = path.join(tempDir, 'openspec', 'schemas', schemaName);
+      const schemaDir = path.join(getProjectSchemasDir(tempDir), schemaName);
       await fs.mkdir(schemaDir, { recursive: true });
       await fs.writeFile(
         path.join(schemaDir, 'schema.yaml'),
