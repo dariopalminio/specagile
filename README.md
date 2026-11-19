@@ -11,11 +11,10 @@
   <a href="https://github.com/dariopalminio/specagile/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/dariopalminio/specagile/actions/workflows/ci.yml/badge.svg" /></a>
   <a href="https://www.npmjs.com/package/specagile"><img alt="npm version" src="https://img.shields.io/npm/v/specagile?style=flat-square" /></a>
   <a href="./LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square" /></a>
-  <a href="https://discord.gg/YctCnvvshC"><img alt="Discord" src="https://img.shields.io/discord/1411657095639601154?style=flat-square&logo=discord&logoColor=white&label=Discord&suffix=%20online" /></a>
 </p>
 
 <details>
-<summary><strong>The most loved spec framework.</strong></summary>
+<summary><strong>Project stats</strong></summary>
 
 [![Stars](https://img.shields.io/github/stars/dariopalminio/specagile?style=flat-square&label=Stars)](https://github.com/dariopalminio/specagile/stargazers)
 [![Downloads](https://img.shields.io/npm/dm/specagile?style=flat-square&label=Downloads/mo)](https://www.npmjs.com/package/specagile)
@@ -23,6 +22,9 @@
 
 </details>
 <p></p>
+
+# SpecAgile
+
 Our philosophy:
 
 ```text
@@ -32,16 +34,13 @@ Our philosophy:
 → Built for brownfield or greenfield
 → Scalable from personal projects to enterprises
 → Tool-agnostic
+→ Maintain the Living spec actively
 ```
-
-<p align="center">
-  Follow <a href="https://x.com/0xTab">@0xTab on X</a> for updates · Join the <a href="https://discord.gg/YctCnvvshC">SpecAgile Discord</a> for help and questions.
-</p>
 
 <!-- TODO: Add GIF demo of /sa-propose → /sa-archive workflow -->
 
 > [!NOTE]
-> **SpecAgile** is a fork of OpenSpec. Its CLI is `specagile` and its skills are named `sa-*` (`/sa-propose`, `/sa-implement`, …). Use one of the two tools in a project, OpenSpec or SpecAgile, not both: each one refreshes its own skills. The fork's own docs are in [`docs-lab/`](docs-lab/README.md); the links to openspec.dev below describe OpenSpec, with the `openspec` CLI and `openspec-*` skill names.
+> **SpecAgile** is a fork of [OpenSpec](https://github.com/Fission-AI/OpenSpec). Its CLI is `specagile` and its skills are named `sa-*` (`/sa-propose`, `/sa-implement`, …). Use one of the two tools in a project, OpenSpec or SpecAgile, not both: each one refreshes its own skills. See the [SpecAgile documentation](#documentation) for its commands and guides.
 
 ## See it in action
 
@@ -54,10 +53,14 @@ AI:  Let me look at your styling setup...
      with system-preference detection. No new dependencies. Scope it?
 You: Yes, let's do it.
 
-You: /sa-propose add-dark-mode
+You: /sa-specify add-dark-mode
 AI:  Created changes/add-dark-mode/
      ✓ proposal.md — why we're doing this, what's changing
      ✓ specs/       — requirements and scenarios
+     Ready for plan!
+
+You: /sa-plan add-dark-mode
+AI:
      ✓ design.md    — technical approach
      ✓ tasks.md     — implementation checklist
      Ready for implementation!
@@ -94,30 +97,19 @@ defaulting to the system preference.
 
 Your AI writes these; you review the plan before any code is written.
 
-OpenSpec is built with OpenSpec — browse this repo's live [specs](openspec/specs) and in-flight [changes](openspec/changes) for real examples at scale.
-
 </details>
 
-<details>
-<summary><strong>OpenSpec Dashboard</strong></summary>
+## Why teams adopt SpecAgile
 
-<p align="center">
-  <img src="assets/openspec_dashboard.png" alt="OpenSpec dashboard preview" width="90%">
-</p>
+Solo, SpecAgile keeps you and your AI honest on a single repo. On a team, the hard part moves: a feature spans the API server, the web app, and a shared library; requirements are owned by one team and consumed by others; planning starts before any code exists.
 
-</details>
-
-## Why teams adopt OpenSpec
-
-Solo, OpenSpec keeps you and your AI honest on a single repo. On a team, the hard part moves: a feature spans the API server, the web app, and a shared library; requirements are owned by one team and consumed by others; planning starts before any code exists.
-
-**[Stores](https://openspec.dev/docs/stores)** are the answer — planning in a repo of its own. The same shape you already know (`specs/` and `changes/`), shared by `git push` like anything else. One source of truth your whole team and every coding agent can read, across every repo.
+**[Stores](docs-lab/multi-repo/stores.md)** let you keep planning in a repo of its own. The same shape you already know (`specs/` and `changes/`), shared by `git push` like anything else. One source of truth your whole team and every coding agent can read, across every repo.
 
 - **Cross-repo features** — one change, one plan, even when the code lands in three repos.
 - **Shared requirements** — a platform team owns the specs; product teams reference them read-only, right where their coding agent can read them. No drifting wiki.
 - **Plan before code** — capture the plan in the store now; the code repos catch up later.
 
-> Stores are in **beta**. Start with the [Stores guide](https://openspec.dev/docs/stores).
+> Stores are in **beta**. Start with the [Stores guide](docs-lab/multi-repo/stores.md).
 
 ## Quick Start
 
@@ -151,7 +143,7 @@ specagile init
 
 Now talk to your AI:
 
-- **Not sure what to build yet?** Start with `/sa-explore`, a no-stakes thinking partner that reads your code, weighs options, and shapes a plan before any code gets written. ([Quickstart](https://openspec.dev/docs/quickstart))
+- **Not sure what to build yet?** Start with `/sa-explore`, a no-stakes thinking partner that reads your code, weighs options, and shapes a plan before any code gets written. ([Quickstart](docs-lab/start/quickstart.md))
 - **Already know what you want?** Go straight to `/sa-propose <what-you-want-to-build>`.
 - **Want to agree on *what* before *how*?** Use the three-step flow: `/sa-specify <what-you-want-to-build>` writes the proposal and specs and stops there, so your team can review them; then `/sa-plan` writes the design and tasks, and `/sa-implement` implements them. `/sa-propose` remains the one-step shortcut for both planning stages.
 
@@ -161,46 +153,26 @@ These are skills. Most tools invoke them as `/sa-propose` and Codex as `$sa-prop
 
 **Coming from OpenSpec?** In a project set up with `openspec init`, run `specagile update`. It installs the `sa-*` skills and removes the `openspec-*` skills OpenSpec wrote, as long as they are unchanged; a skill you edited stays where it is and is listed in the output. It also moves the project's `openspec/` folder to the SpecAgile layout, with `specs/`, `changes/` and `specagile/` at the root; commit the move (see [Move to the SpecAgile layout](docs-lab/help/move-to-the-specagile-layout.md)). After that, use `specagile` in that project: OpenSpec no longer finds its planning there.
 
-> [!NOTE]
-> Not sure if your tool is supported? [View the full list](https://openspec.dev/docs/supported-tools) – we support 30+ tools and growing.
->
-> Also works with npm, Homebrew, pnpm, yarn, bun, and Nix. [See installation options](https://openspec.dev/docs/installation).
+## Documentation
 
-## Docs
+Start with the SpecAgile guides in this repository:
 
-Full documentation lives at **[openspec.dev/docs](https://openspec.dev/docs)**.
+→ **[Installation](docs-lab/start/installation.md)**: install and update the CLI<br>
+→ **[Quickstart](docs-lab/start/quickstart.md)**: your first change, start to finish<br>
+→ **[Set up your project](docs-lab/start/setup.md)**: what `specagile init` installs<br>
+→ **[CLI](docs-lab/reference/cli.md)**: terminal reference<br>
+→ **[Supported tools](docs-lab/reference/supported-tools.md)**: tool integrations and install paths<br>
+→ **[Customize](docs-lab/customize/overview.md)**: profiles, project config, and schemas<br>
+→ **[Stores](docs-lab/multi-repo/stores.md)**: plan in a separate repo, shared across your team (beta)
 
-→ **[Quickstart](https://openspec.dev/docs/quickstart)**: your first change, start to finish<br>
-→ **[Set up your project](https://openspec.dev/docs/setup)**: what `init` installs<br>
-→ **[CLI](https://openspec.dev/docs/cli)**: terminal reference<br>
-→ **[Supported Tools](https://openspec.dev/docs/supported-tools)**: tool integrations & install paths<br>
-→ **[Customize](https://openspec.dev/docs/customize)**: profiles, project config, and schemas<br>
-→ **[Stores](https://openspec.dev/docs/stores)**: plan in a separate repo, shared across your team (beta)<br>
-→ **[Community Showcase](docs/community.md)**: projects and resources built with and for OpenSpec
+## Why SpecAgile?
 
-## Community schemas
-
-Third-party schema bundles distributed via standalone repositories — these provide opinionated workflows that integrate OpenSpec with other tools, similar to how [github/spec-kit's community extension catalog](https://github.com/github/spec-kit/tree/main/extensions) handles tool integrations.
-
-→ **[Browse the catalog](docs/customization.md#community-schemas)** in the customization docs.
-
-
-## Why OpenSpec?
-
-AI coding assistants are powerful but unpredictable when requirements live only in chat history. OpenSpec adds a lightweight spec layer so you agree on what to build before any code is written.
+AI coding assistants are powerful but unpredictable when requirements live only in chat history. SpecAgile adds a lightweight spec layer so you agree on what to build before any code is written.
 
 - **Agree before you build** — human and AI align on specs before code gets written
 - **Stay organized** — each change gets its own folder with proposal, specs, design, and tasks
 - **Work fluidly** — update any artifact anytime, no rigid phase gates
 - **Use your tools** — works with 30+ AI assistants via skills
-
-### How we compare
-
-**vs. [Spec Kit](https://github.com/github/spec-kit)** (GitHub) — Thorough but heavyweight. Rigid phase gates, lots of Markdown, Python setup. OpenSpec is lighter and lets you iterate freely.
-
-**vs. [Kiro](https://kiro.dev)** (AWS) — Powerful but you're locked into their IDE and limited to Claude models. OpenSpec works with the tools you already use.
-
-**vs. nothing** — AI coding without specs means vague prompts and unpredictable results. OpenSpec brings predictability without the ceremony.
 
 ## Updating SpecAgile
 
@@ -222,15 +194,13 @@ specagile update
 
 ## Usage Notes
 
-**Model selection**: OpenSpec works best with high-reasoning models. We recommend Codex 5.5 and Opus 4.7 for both planning and implementation.
+**Model selection**: SpecAgile works best with models that can reason over your codebase for both planning and implementation.
 
-**Context hygiene**: OpenSpec benefits from a clean context window. Clear your context before starting implementation and maintain good context hygiene throughout your session.
+**Context hygiene**: SpecAgile benefits from a clean context window. Clear your context before starting implementation and maintain good context hygiene throughout your session.
 
 ## Contributing
 
-Every change starts as an issue. We discuss it there, and if we agree to pursue it, a maintainer implements the change or invites you to build it with us.
-
-→ **[CONTRIBUTING.md](CONTRIBUTING.md)**: the full process, from first issue to merged PR
+Report bugs and propose improvements in [SpecAgile issues](https://github.com/dariopalminio/specagile/issues).
 
 ## Other
 
@@ -240,15 +210,6 @@ Every change starts as an issue. We discuss it there, and if we agree to pursue 
 SpecAgile sends no telemetry: it records no usage and shows no first-run notice, whatever `telemetry.enabled` says in the config. (OpenSpec collects anonymous usage stats; SpecAgile turned that off.)
 
 </details>
-
-<details>
-<summary><strong>Maintainers & Advisors</strong></summary>
-
-See [MAINTAINERS.md](MAINTAINERS.md) for the list of core maintainers and advisors who help guide the project.
-
-</details>
-
-
 
 ## License
 
