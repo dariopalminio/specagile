@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 3.0.1
+
+The readme file was updated to the specagile version, and the implemented specs were archived.
+
 ## 3.0.0
 
 ### Breaking Changes
