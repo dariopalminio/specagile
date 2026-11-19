@@ -195,7 +195,7 @@ Turn on the expanded commands (see Recipe 6), then:
 ```text
 You: /opsx:onboard
 
-AI:  Welcome to OpenSpec! I'll walk you through a complete change
+AI:  Welcome to SpecAgile! I'll walk you through a complete change
      using your actual codebase. Let me scan for a small, safe
      improvement we can make together...
 ```
