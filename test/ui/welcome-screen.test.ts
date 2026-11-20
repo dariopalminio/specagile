@@ -204,6 +204,19 @@ describe('welcome screen', () => {
     expect(writtenOutput()).not.toMatch(/\x1b\[\d+A/);
   });
 
+  it('shows the glider at rest when it does not animate', async () => {
+    const { showWelcomeScreen } = await import('../../src/ui/welcome-screen.js');
+    const { WELCOME_ANIMATION } = await import('../../src/ui/glider-animation.js');
+    renderStatically();
+
+    await showWelcomeScreen(CORE_WORKFLOWS);
+
+    const output = writtenOutput();
+    for (const line of WELCOME_ANIMATION.staticFrame) {
+      expect(output).toContain(line);
+    }
+  });
+
   it('renders statically when animate is disabled via options', async () => {
     const { showWelcomeScreen } = await import('../../src/ui/welcome-screen.js');
 

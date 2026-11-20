@@ -20,6 +20,10 @@
 - **No profile is inferred from installed skills any more.** When the config has no `profile`, `specagile init` and `specagile update` use `core`: they no longer deduce a `custom` profile from the skills in the project (OpenSpec's `openspec-*` ones included), save it, or print `Migrated: custom profile with N workflows`. A `custom` profile exists only when you choose one with `specagile config profile`.
 - **OpenSpec is not affected.** Its `openspec` folders stay as they were, and `openspec` keeps using them. With both installed on one machine, what one tool saves no longer changes what the other installs.
 
+### Patch Changes
+
+- `specagile init` welcomes you with a glider from Conway's Game of Life instead of OpenSpec's logo. It crosses the screen diagonally and comes back in through the opposite corner, leaving a faint trail. Where the welcome screen doesn't animate (`OPENSPEC_NO_ANIMATION`, `NO_COLOR`, a narrow terminal or reduced motion), the glider is shown at rest.
+
 ## 3.0.1
 
 The readme file was updated to the specagile version, and the implemented specs were archived.

@@ -8,7 +8,7 @@ import {
   execFileSync,
   type ExecFileSyncOptionsWithStringEncoding,
 } from 'node:child_process';
-import { WELCOME_ANIMATION } from './ascii-patterns.js';
+import { WELCOME_ANIMATION } from './glider-animation.js';
 import { getOnboardingCommands } from '../core/onboarding-commands.js';
 
 // Minimum terminal width for side-by-side layout
@@ -192,7 +192,8 @@ export async function showWelcomeScreen(
     const staticLines = process.stdin.isTTY
       ? textLines
       : textLines.filter((line) => !line.includes('Press Enter'));
-    const frame = WELCOME_ANIMATION.frames[3]; // Peak frame
+    // SpecAgile: the glider at rest, without its trail.
+    const frame = WELCOME_ANIMATION.staticFrame;
     process.stdout.write('\n' + renderFrame(frame, staticLines) + '\n\n');
     await waitForEnter();
     return;
