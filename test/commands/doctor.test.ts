@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { globalConfigDir, globalConfigFile } from '../helpers/global-folders.js';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
@@ -121,9 +122,9 @@ describe('openspec doctor (3.6)', () => {
 
     // Global-default session: no root, no pointer — provenance must name
     // the machine-level default, not masquerade as a repo pointer.
-    fs.mkdirSync(path.join(tempDir, 'config', 'openspec'), { recursive: true });
+    fs.mkdirSync(globalConfigDir(path.join(tempDir, 'config')), { recursive: true });
     fs.writeFileSync(
-      path.join(tempDir, 'config', 'openspec', 'config.json'),
+      globalConfigFile(path.join(tempDir, 'config')),
       JSON.stringify({ defaultStore: 'team-context' }) + '\n'
     );
     const fallback = await runCLI(['doctor', '--json'], { cwd: mkdir('no-root-here'), env });

@@ -119,7 +119,7 @@ describe('welcome screen', () => {
 
     const output = writtenOutput();
 
-    expect(output).toContain('Welcome to OpenSpec');
+    expect(output).toContain('Welcome to SpecAgile');
     expect(output).not.toContain('Quick start after setup:');
   });
 
@@ -188,7 +188,7 @@ describe('welcome screen', () => {
     // otherwise the keystroke falls through into the tool picker (#1462).
     expect(useKeypressMock).toHaveBeenCalledOnce();
     const output = writtenOutput();
-    expect(output).toContain('Welcome to OpenSpec');
+    expect(output).toContain('Welcome to SpecAgile');
     expect(output).toContain('Press Enter');
     // No cursor-up repaints: the frame is drawn exactly once.
     expect(output).not.toMatch(/\x1b\[\d+A/);
@@ -204,6 +204,19 @@ describe('welcome screen', () => {
     expect(writtenOutput()).not.toMatch(/\x1b\[\d+A/);
   });
 
+  it('shows the glider at rest when it does not animate', async () => {
+    const { showWelcomeScreen } = await import('../../src/ui/welcome-screen.js');
+    const { WELCOME_ANIMATION } = await import('../../src/ui/glider-animation.js');
+    renderStatically();
+
+    await showWelcomeScreen(CORE_WORKFLOWS);
+
+    const output = writtenOutput();
+    for (const line of WELCOME_ANIMATION.staticFrame) {
+      expect(output).toContain(line);
+    }
+  });
+
   it('renders statically when animate is disabled via options', async () => {
     const { showWelcomeScreen } = await import('../../src/ui/welcome-screen.js');
 
@@ -211,7 +224,7 @@ describe('welcome screen', () => {
 
     expect(useKeypressMock).toHaveBeenCalledOnce();
     const output = writtenOutput();
-    expect(output).toContain('Welcome to OpenSpec');
+    expect(output).toContain('Welcome to SpecAgile');
     expect(output).not.toMatch(/\x1b\[\d+A/);
   });
 
@@ -226,7 +239,7 @@ describe('welcome screen', () => {
       await showWelcomeScreen(CORE_WORKFLOWS);
 
       expect(useKeypressMock).toHaveBeenCalledOnce();
-      expect(writtenOutput()).toContain('Welcome to OpenSpec');
+      expect(writtenOutput()).toContain('Welcome to SpecAgile');
     }
   );
 });

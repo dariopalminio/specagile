@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { globalConfigFile } from '../helpers/global-folders.js';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -21,7 +22,7 @@ describe('standalone tip', () => {
   let configHome: string;
   let originalConfigHome: string | undefined;
   let errorSpy: ReturnType<typeof vi.spyOn>;
-  const configPath = () => path.join(configHome, 'openspec', 'config.json');
+  const configPath = () => globalConfigFile(configHome);
   const shown = () => errorSpy.mock.calls.filter((call) => String(call[0]).includes(STANDALONE_TIP_MESSAGE)).length;
 
   beforeEach(() => {

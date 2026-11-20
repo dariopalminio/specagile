@@ -2327,7 +2327,9 @@ describe('InitCommand - profile and detection features', () => {
     expect(await fileExists(proposeSkill)).toBe(false);
   });
 
-  it('should migrate commands-only extend mode to custom profile without injecting propose', async () => {
+  // SpecAgile: no profile is inferred from installed files (see "SpecAgile
+  // identity" in FORK.md), so extend mode keeps the `core` profile.
+  it('should keep the core profile in commands-only extend mode without injecting commands', async () => {
     await fs.mkdir(getToolDir(testDir), { recursive: true });
     await fs.mkdir(path.join(testDir, '.claude', 'commands', 'opsx'), { recursive: true });
     await fs.writeFile(path.join(testDir, '.claude', 'commands', 'opsx', 'explore.md'), '# explore\n');
@@ -2336,10 +2338,9 @@ describe('InitCommand - profile and detection features', () => {
     await initCommand.execute(testDir);
 
     const config = getGlobalConfig();
-    expect(config.profile).toBe('custom');
-    // Migration no longer records a delivery; the default (skills) applies.
+    expect(config.profile).toBe('core');
     expect(config.delivery ?? 'skills').toBe('skills');
-    expect(config.workflows).toEqual(['explore']);
+    expect(config.workflows).toBeUndefined();
 
     // The hand-written command does not match generated output, so it is
     // kept and listed; nothing new is written as a command.
@@ -2349,11 +2350,10 @@ describe('InitCommand - profile and detection features', () => {
     expect(await fileExists(proposeCommand)).toBe(false);
     expect(getConsoleOutput()).toContain('Kept 1 command file that does not match');
 
-    // OpenSpec 2.0 installs the migrated workflow as a skill, and only it.
-    const exploreSkill = path.join(testDir, '.claude', 'skills', 'sa-explore', 'SKILL.md');
-    const proposeSkill = path.join(testDir, '.claude', 'skills', 'sa-propose', 'SKILL.md');
-    expect(await fileExists(exploreSkill)).toBe(true);
-    expect(await fileExists(proposeSkill)).toBe(false);
+    // The core profile's skills, `specify` and `plan` among them.
+    for (const skill of ['sa-explore', 'sa-propose', 'sa-specify', 'sa-plan']) {
+      expect(await fileExists(path.join(testDir, '.claude', 'skills', skill, 'SKILL.md')), skill).toBe(true);
+    }
   });
 
   it('should not prompt for confirmation when applying custom profile in interactive init', async () => {

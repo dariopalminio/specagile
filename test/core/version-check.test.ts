@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { globalConfigDir, globalConfigFile } from '../helpers/global-folders.js';
 import fs from 'fs';
 import http from 'http';
 import https from 'https';
@@ -361,7 +362,7 @@ describe('getAvailableCliUpdate', () => {
     const previousXdg = process.env.XDG_CONFIG_HOME;
     try {
       process.env.XDG_CONFIG_HOME = xdgHome;
-      const configDir = path.join(xdgHome, 'openspec');
+      const configDir = globalConfigDir(xdgHome);
       fs.mkdirSync(configDir, { recursive: true });
       fs.writeFileSync(
         path.join(configDir, 'config.json'),
@@ -386,7 +387,7 @@ describe('getAvailableCliUpdate', () => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
     try {
       process.env.XDG_CONFIG_HOME = xdgHome;
-      const configDir = path.join(xdgHome, 'openspec');
+      const configDir = globalConfigDir(xdgHome);
       fs.mkdirSync(configDir, { recursive: true });
       // A hand-edit typo can hide the opt-out the file holds.
       fs.writeFileSync(
@@ -414,8 +415,8 @@ describe('getAvailableCliUpdate', () => {
         vi.spyOn(console, 'error').mockImplementation(() => {});
         try {
           process.env.XDG_CONFIG_HOME = xdgHome;
-          fs.mkdirSync(path.join(xdgHome, 'openspec'), { recursive: true });
-          fs.writeFileSync(path.join(xdgHome, 'openspec', 'config.json'), contents);
+          fs.mkdirSync(globalConfigDir(xdgHome), { recursive: true });
+          fs.writeFileSync(globalConfigFile(xdgHome), contents);
           await run();
         } finally {
           if (previousXdg === undefined) {
@@ -795,9 +796,9 @@ describe('openspec version --check with telemetry off, in CI', () => {
     await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
     const port = (server.address() as net.AddressInfo).port;
     const xdgHome = fs.mkdtempSync(path.join(os.tmpdir(), 'openspec-vc-cli-'));
-    fs.mkdirSync(path.join(xdgHome, 'openspec'), { recursive: true });
+    fs.mkdirSync(globalConfigDir(xdgHome), { recursive: true });
     fs.writeFileSync(
-      path.join(xdgHome, 'openspec', 'config.json'),
+      globalConfigFile(xdgHome),
       JSON.stringify({ telemetry: { enabled: false } })
     );
 

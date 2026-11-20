@@ -8,6 +8,7 @@ import { fileURLToPath } from 'url';
 import { currentGeneratablePaths, findStaleReleasedFiles } from '../../src/core/released-output-sweep.js';
 import { LEGACY_TOOL_ROOTS } from '../../src/core/migration.js';
 import { CURRENT_SKILL_NAMES, FORMER_SKILL_NAMES, SKILL_NAME_BY_WORKFLOW } from '../../src/core/fork/identity.js';
+import { globalConfigFile } from '../helpers/global-folders.js';
 
 /**
  * Upgrades real projects made by released OpenSpec versions straight to this
@@ -176,6 +177,18 @@ describe.skipIf(!enabled)('upgrading projects from released versions', () => {
     return box;
   }
 
+  /**
+   * SpecAgile: releases save their settings in OpenSpec's config folder, which
+   * this build never reads (test/fork/global-folders.test.ts). A user who
+   * wants the same profile here chooses it again; this writes it as
+   * `specagile config profile` would.
+   */
+  async function chooseInSpecAgile(home: string, config: Record<string, unknown>): Promise<void> {
+    const file = globalConfigFile(path.join(home, '.config'));
+    await fs.mkdir(path.dirname(file), { recursive: true });
+    await fs.writeFile(file, JSON.stringify(config));
+  }
+
   it.each(RELEASES)('upgrades a %s project in one update', async (version) => {
     const box = await initWith(version, `jump-${version}`);
     // A change made with that release, in its openspec/ layout.
@@ -230,6 +243,7 @@ describe.skipIf(!enabled)('upgrading projects from released versions', () => {
   it('matches a fresh install after updating a real 2.0 Claude and Cursor checkout', async () => {
     const profile = { profile: 'custom', workflows: ['propose', 'apply'] };
     const box = await initWith('2.0.0', 'two', 'claude,cursor', profile);
+    await chooseInSpecAgile(box.home, profile);
     const shared = '.agents/skills';
     const edited = path.join(box.project, shared, 'openspec-propose/SKILL.md');
     await fs.appendFile(edited, '\nLocal edit');
@@ -331,13 +345,16 @@ describe.skipIf(!enabled)('upgrading projects from released versions', () => {
     const middle = run(releaseBin('1.13.2'), ['update', '--force'], box);
     expect(middle.status, middle.output).toBe(0);
     const config = path.join(box.home, '.config', 'openspec', 'config.json');
-    const saved = JSON.parse(await fs.readFile(config, 'utf8'));
+    const savedText = await fs.readFile(config, 'utf8');
+    const saved = JSON.parse(savedText);
     expect(saved.profile).toBe('custom');
     expect(saved.workflows).toHaveLength(10);
-    await fs.writeFile(config, JSON.stringify({ ...saved, delivery: 'skills' }));
+    await chooseInSpecAgile(box.home, { ...saved, delivery: 'skills' });
 
     const result = run(currentBin, ['update'], box);
     expect(result.status, result.output).toBe(0);
+    // SpecAgile leaves OpenSpec's config as the release saved it.
+    expect(await fs.readFile(config, 'utf8')).toBe(savedText);
     expect(result.output).not.toMatch(/Kept \d+ command files?/);
     const commands = listFiles(box.project).filter((rel) => /(^|\/)opsx[-/:][^/]+$/.test(rel));
     expect(commands).toEqual([]);

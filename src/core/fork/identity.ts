@@ -16,6 +16,14 @@ import { applyLayoutText } from './layout.js';
 /** The executable users run: `specagile init`, `specagile update`, ... */
 export const CLI_NAME = 'specagile';
 
+/**
+ * The name of SpecAgile's global config and data folders: `specagile` under
+ * `$XDG_CONFIG_HOME`/`%APPDATA%`/`~/.config` and `$XDG_DATA_HOME`/
+ * `%LOCALAPPDATA%`/`~/.local/share`. OpenSpec's `openspec` folders are never
+ * read. See "SpecAgile identity" in FORK.md.
+ */
+export const GLOBAL_FOLDER_NAME = CLI_NAME;
+
 /** The npm package SpecAgile is published as: `npm install -g specagile`. */
 export const PACKAGE_NAME = 'specagile';
 
@@ -186,15 +194,35 @@ export function applyForkNames(text: string): string {
 }
 
 /**
+ * Whole upstream texts that greet the user as OpenSpec in a generated skill,
+ * each with SpecAgile's. Exact texts, no patterns: "OpenSpec" elsewhere in
+ * prose stays as upstream wrote it.
+ */
+export const PRODUCT_TEXT_REPLACEMENTS: ReadonlyArray<readonly [upstream: string, fork: string]> = [
+  // The onboard skill's first screen (src/core/templates/workflows/onboard.ts).
+  ['## Welcome to OpenSpec!', '## Welcome to SpecAgile!'],
+];
+
+/** Rewrites each text in PRODUCT_TEXT_REPLACEMENTS. */
+export function applyProductText(text: string): string {
+  let result = text;
+  for (const [upstream, fork] of PRODUCT_TEXT_REPLACEMENTS) {
+    result = result.split(upstream).join(fork);
+  }
+  return result;
+}
+
+/**
  * Rewrites text written by upstream into SpecAgile's identity: its names
  * (`applyForkNames`), then its layout paths (`applyLayoutText`), so
  * `<planningHome.root>/openspec/specs/` reads `<planningHome.root>/specs/` and
- * `<root.path>/openspec/config.yaml` reads `<root.path>/specagile/config.yaml`.
+ * `<root.path>/openspec/config.yaml` reads `<root.path>/specagile/config.yaml`,
+ * then the greetings in PRODUCT_TEXT_REPLACEMENTS (`applyProductText`).
  * Internal files (`.openspec.yaml`, `.openspec-target`, `.openspec-store/`),
- * the store location `~/openspec/<id>` and "OpenSpec" in prose stay.
+ * the store location `~/openspec/<id>` and any other "OpenSpec" in prose stay.
  *
  * Idempotent: text that already has the fork's identity comes back unchanged.
  */
 export function applyForkIdentity(text: string): string {
-  return applyLayoutText(applyForkNames(text));
+  return applyProductText(applyLayoutText(applyForkNames(text)));
 }

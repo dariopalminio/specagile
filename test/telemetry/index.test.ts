@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { globalConfigDir } from '../helpers/global-folders.js';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
@@ -61,7 +62,7 @@ describe('telemetry/index', () => {
 
   /** Write an isolated global telemetry section for synchronous gate tests. */
   function writeTelemetryConfig(telemetry: Record<string, unknown>): void {
-    const configDir = path.join(tempDir, 'openspec');
+    const configDir = globalConfigDir(tempDir);
     fs.mkdirSync(configDir, { recursive: true });
     fs.writeFileSync(
       path.join(configDir, 'config.json'),

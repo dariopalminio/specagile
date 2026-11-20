@@ -111,7 +111,7 @@ const EXPECTED_GENERATED_SKILL_CONTENT_HASHES: Record<string, string> = {
   'sa-archive': '6a0986164a3fad32f68c912875ac1335ad8d2bc1345d2bf4d722be3b5ad4fb5a',
   'sa-bulk-archive-change': '67bb2aa4376d718cb060db2c2c17e27a708787927039a97004c07b3dcd1482d0',
   'sa-verify': '9be29a01b42140e59dd46cb05e71d2c0e607c0a1450d66038b88d750b4287a6b',
-  'sa-onboard': 'a6b5f242fb0c2183f91247a19facf1920f30bfff6e056f9079a220a7b3f6f257',
+  'sa-onboard': 'fa244d51bdba7a86a5ed1bf5df2db95d9ca2449b3bbe1603fc8f3c1583de2696',
   'sa-propose': '9994fe983d5100c5d6fa4bdeb7ab220d3cc19361a782ea7d41c3b1cb3362e1fb',
   'sa-update-change': '79b2ab90a75a2030efbfb41b30cefc637516ea2e7961c72192c48a9f153755cf',
   'sa-specify': '4b432b3e544bdd35a75a2f486db8d31bac69244752f2a198f87fa4f07f15d723',

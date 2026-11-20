@@ -4,7 +4,9 @@
 
 ## Location
 
-The CLI keeps its machine-level settings at `~/.config/openspec/config.json` on macOS and Linux, and `%APPDATA%\openspec\config.json` on Windows. `$XDG_CONFIG_HOME` wins on every platform when set. The `specagile config` command reads and edits it.
+The CLI keeps its machine-level settings at `~/.config/specagile/config.json` on macOS and Linux, and `%APPDATA%\specagile\config.json` on Windows. `$XDG_CONFIG_HOME` wins on every platform when set. The `specagile config` command reads and edits it.
+
+These are SpecAgile's own settings: OpenSpec's config, in its `openspec` folder, is never read, so an OpenSpec installed on the same machine keeps its settings and SpecAgile starts from the defaults. Without `profile`, the `core` profile applies; SpecAgile never infers one from the skills installed in a project.
 
 ## Fields
 

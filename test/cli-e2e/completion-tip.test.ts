@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { globalConfigFile } from '../helpers/global-folders.js';
 import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
@@ -19,7 +20,7 @@ describe('completions tip in non-interactive runs', () => {
 
   async function tipSeenFlag(configHome: string): Promise<unknown> {
     try {
-      const raw = await fs.readFile(path.join(configHome, 'openspec', 'config.json'), 'utf-8');
+      const raw = await fs.readFile(globalConfigFile(configHome), 'utf-8');
       return JSON.parse(raw).completionTipSeen;
     } catch {
       return undefined;

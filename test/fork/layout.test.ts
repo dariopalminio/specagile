@@ -114,7 +114,6 @@ const ALLOWED_TEXTS: ReadonlyArray<{ file: string; text: RegExp; reason: string 
   { file: 'src/core/references.ts', text: /path\.join\(os\.homedir\(\), 'openspec', id\)/, reason: 'suggested location for a store' },
   { file: 'src/core/command-generation/adapters/costrict.ts', text: /'\.cospec', 'openspec', 'commands'/, reason: "CoStrict's command folder" },
   { file: 'src/core/legacy-cleanup.ts', text: /\.cospec\/openspec\/commands\//, reason: "CoStrict's legacy command folder" },
-  { file: 'src/core/global-config.ts', text: /GLOBAL_(CONFIG|DATA)_DIR_NAME = 'openspec'/, reason: 'the global config and data folder' },
   { file: 'src/commands/install-standalone.ts', text: /'openspec\.exe' : 'openspec'|'Programs', 'openspec'/, reason: "OpenSpec's standalone install; SpecAgile never runs it" },
   { file: 'src/utils/executable-path.ts', text: /\['openspec\.exe', 'openspec\.cmd'\] : \['openspec'\]/, reason: "OpenSpec's executable names" },
   { file: 'src/core/fork/identity.ts', text: /FORMER_CLI_NAME = 'openspec'/, reason: "upstream's executable name" },

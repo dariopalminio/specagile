@@ -10,6 +10,7 @@ import {
   FORMER_SKILL_NAME_BY_WORKFLOW,
   KNOWN_SKILL_NAMES,
   PACKAGE_NAME,
+  PRODUCT_TEXT_REPLACEMENTS,
   REPOSITORY_URL,
   SKILL_NAME_BY_WORKFLOW,
   applyForkIdentity,
@@ -17,7 +18,11 @@ import {
 } from '../../src/core/fork/identity.js';
 import { LAYOUT_TEXT_REPLACEMENTS } from '../../src/core/fork/layout.js';
 import { ALL_WORKFLOWS, type WorkflowId } from '../../src/core/profiles.js';
-import { getCommandTemplates, getSkillTemplates } from '../../src/core/shared/skill-generation.js';
+import {
+  generateSkillContent,
+  getCommandTemplates,
+  getSkillTemplates,
+} from '../../src/core/shared/skill-generation.js';
 import { withUpstreamIdentity } from '../helpers/fork-identity.js';
 
 const EXPECTED_SKILL_NAMES: Record<WorkflowId, [former: string, current: string]> = {
@@ -208,5 +213,39 @@ describe('the layout in generated text', () => {
     for (const [label, text] of templateTexts()) {
       expect(withUpstreamIdentity(applyForkIdentity(text)), label).toBe(text);
     }
+  });
+});
+
+// SpecAgile: the greetings in upstream's text (PRODUCT_TEXT_REPLACEMENTS).
+describe('the greetings in generated text', () => {
+  const onboard = () => {
+    const entry = getSkillTemplates().find(({ workflowId }) => workflowId === 'onboard');
+    if (!entry) throw new Error('no onboard skill');
+    return entry.template;
+  };
+
+  it('translates each entry of the table, and only greets as SpecAgile', () => {
+    for (const [upstream, fork] of PRODUCT_TEXT_REPLACEMENTS) {
+      expect(applyForkIdentity(upstream), upstream).toBe(fork);
+      expect(applyForkIdentity(fork), fork).toBe(fork);
+      expect(fork, upstream).not.toContain('OpenSpec');
+    }
+  });
+
+  it("still matches upstream's text, so a sync that rewords a greeting fails here", () => {
+    const upstreamText = getSkillTemplates()
+      .map(({ template }) => template.instructions)
+      .join('\n');
+    for (const [upstream] of PRODUCT_TEXT_REPLACEMENTS) {
+      expect(upstreamText, upstream).toContain(upstream);
+    }
+  });
+
+  it("greets the user as SpecAgile in the generated onboard skill, from upstream's template", () => {
+    expect(onboard().instructions).toContain('## Welcome to OpenSpec!');
+
+    const generated = generateSkillContent(onboard(), '0.0.0');
+    expect(generated).toContain('## Welcome to SpecAgile!');
+    expect(generated).not.toContain('Welcome to OpenSpec');
   });
 });

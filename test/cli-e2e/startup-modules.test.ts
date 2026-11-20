@@ -1,4 +1,5 @@
 import { afterAll, describe, expect, it } from 'vitest';
+import { globalConfigFile } from '../helpers/global-folders.js';
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync } from 'node:fs';
 import os from 'node:os';
@@ -220,7 +221,7 @@ describe('CLI startup loads only what the command needs', () => {
     // No disclosure written to a stream the completion scripts discard.
     expect(result.stderr).toBe('');
     // And no config file, so neither noticeSeen nor an anonymousId was minted.
-    expect(existsSync(path.join(configHome, 'openspec', 'config.json'))).toBe(false);
+    expect(existsSync(globalConfigFile(configHome))).toBe(false);
   });
 
   it.each([

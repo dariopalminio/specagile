@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { globalDataDir } from '../helpers/global-folders.js';
 import { execFile } from 'child_process';
 import { promises as fs, realpathSync } from 'fs';
 import path from 'path';
@@ -480,7 +481,7 @@ describe('standalone store lifecycle journey', () => {
     // Global state holds only registry/config metadata, no planning files.
     for (const env of [machineA, machineB]) {
       const dataEntries = await listRelativeEntries(
-        path.join(env.XDG_DATA_HOME as string, 'openspec'),
+        globalDataDir(env.XDG_DATA_HOME as string),
         new Set()
       );
       // The standalone binary also keeps its built-in schemas here.

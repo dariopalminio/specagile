@@ -21,11 +21,11 @@ OpenSpec checks three places for that directory. The first match wins.
 | Copy | Directory |
 |---|---|
 | **1. Project** | `<project>/specagile/schemas/<name>/` |
-| **2. User, macOS and Linux** | `~/.local/share/openspec/schemas/<name>/` |
-| **2. User, Windows** | `%LOCALAPPDATA%\openspec\schemas\<name>\` |
+| **2. User, macOS and Linux** | `~/.local/share/specagile/schemas/<name>/` |
+| **2. User, Windows** | `%LOCALAPPDATA%\specagile\schemas\<name>\` |
 | **3. Package** | The schemas installed with the CLI |
 
-If `XDG_DATA_HOME` is set, the user directory moves to `$XDG_DATA_HOME/openspec/schemas/<name>/` on every platform.
+If `XDG_DATA_HOME` is set, the user directory moves to `$XDG_DATA_HOME/specagile/schemas/<name>/` on every platform.
 
 The directory name is the lookup key used by `--schema`, `config.yaml`, and [`.openspec.yaml`](../configuration/change-metadata.md#schema). If the `name` field differs from the directory name, OpenSpec still uses the directory name for lookup.
 

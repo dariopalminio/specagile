@@ -2,6 +2,29 @@
 
 ## Unreleased
 
+### Breaking Changes
+
+- **SpecAgile keeps its global settings and data in folders of its own.** Until now it used OpenSpec's `openspec` folders, so it inherited OpenSpec's settings: a `custom` profile chosen with `openspec config` (for example `propose`, `explore`, `apply` and `archive`) made `specagile init` install only those skills, without `sa-specify` and `sa-plan`, and with no warning. It also worked the other way round. The folders are now named `specagile`:
+
+  | Platform | Settings (`config.json`) | Data |
+  |---|---|---|
+  | With `XDG_CONFIG_HOME` / `XDG_DATA_HOME` | `$XDG_CONFIG_HOME/specagile/` | `$XDG_DATA_HOME/specagile/` |
+  | macOS and Linux | `~/.config/specagile/` | `~/.local/share/specagile/` |
+  | Windows | `%APPDATA%\specagile\` | `%LOCALAPPDATA%\specagile\` |
+
+  The data folder holds the registered stores, the worksets, your global schemas (`schemas/`), the list of known projects and the lock of the global skills. `specagile config path` prints the new location.
+- **Your global settings go back to the defaults after you update.** SpecAgile doesn't read, copy or change the `openspec` folders, so nothing moves over: the profile is `core` (with `specify`, `plan` and `update`), and `defaultStore`, `openers` and the rest start unset. Where to keep a project's skills (`skillsScope`) is asked again. To get the rest back:
+  - Choose your workflows again with `specagile config profile`.
+  - Register each store again with `specagile store register <folder>`. Stores registered with an earlier SpecAgile or with `openspec` are not listed until then.
+  - Move any schema you kept in `~/.local/share/openspec/schemas/` (`%LOCALAPPDATA%\openspec\schemas\` on Windows) to the `schemas/` folder in SpecAgile's data folder.
+- **No profile is inferred from installed skills any more.** When the config has no `profile`, `specagile init` and `specagile update` use `core`: they no longer deduce a `custom` profile from the skills in the project (OpenSpec's `openspec-*` ones included), save it, or print `Migrated: custom profile with N workflows`. A `custom` profile exists only when you choose one with `specagile config profile`.
+- **OpenSpec is not affected.** Its `openspec` folders stay as they were, and `openspec` keeps using them. With both installed on one machine, what one tool saves no longer changes what the other installs.
+
+### Patch Changes
+
+- `specagile init` welcomes you with a glider from Conway's Game of Life instead of OpenSpec's logo. It crosses the screen diagonally and comes back in through the opposite corner, leaving a faint trail. Where the welcome screen doesn't animate (`OPENSPEC_NO_ANIMATION`, `NO_COLOR`, a narrow terminal or reduced motion), the glider is shown at rest.
+- The welcome screen of `specagile init` and the first screen of the `sa-onboard` skill say "Welcome to SpecAgile".
+
 ## 3.0.1
 
 The readme file was updated to the specagile version, and the implemented specs were archived.

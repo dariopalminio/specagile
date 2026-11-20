@@ -174,7 +174,6 @@ Update refreshes the installed instructions from the running CLI, including afte
 `--dry-run` plans the update a non-interactive run would make: the same code path, with every write and delete recorded instead of performed. Every file the real update would touch is listed, including:
 
 - moving OpenSpec files out of a tool's former directory (`.kimi/` to `.kimi-code/`, `.windsurf/` to `.devin/`, `.codex/` and `.agent/` to `.agents/`);
-- saving the global config when an install from before profiles gets one;
 - syncing the GitHub Copilot cloud agent files;
 - with `--force`, setting up tools found only in legacy artifacts and cleaning those artifacts up, including retired global Codex prompts.
 
@@ -185,7 +184,7 @@ specagile update --dry-run
 ```
 2 file(s) would change:
   update  .agents/skills/sa-propose/SKILL.md  (openspec)
-  add     ~/.config/openspec/config.json  (openspec)
+  add     .agents/skills/sa-specify/SKILL.md  (openspec)
 ```
 
 `--dry-run --json` prints the same plan as one JSON document:
@@ -194,7 +193,7 @@ specagile update --dry-run
 {
   "changes": [
     { "path": ".agents/skills/sa-propose/SKILL.md", "action": "update", "tool": "openspec" },
-    { "path": "~/.config/openspec/config.json", "action": "add", "tool": "openspec" }
+    { "path": ".agents/skills/sa-specify/SKILL.md", "action": "add", "tool": "openspec" }
   ],
   "notes": [],
   "failures": []
@@ -203,9 +202,9 @@ specagile update --dry-run
 
 | Field | What it holds |
 |---|---|
-| `changes[].path` | Project-relative path. A file outside the project, such as a global skill or the global config, is shown from your home directory as `~/...`, or as an absolute path when it is outside home too. |
+| `changes[].path` | Project-relative path. A file outside the project, such as a global skill, is shown from your home directory as `~/...`, or as an absolute path when it is outside home too. |
 | `changes[].action` | `add`, `update`, or `delete`. A file whose new bytes match the old ones is not listed. |
-| `changes[].tool` | The configured tool the file belongs to, such as `claude`. Files that belong to no one tool are `openspec`: the shared skills in `.agents/skills/`, the global config, and legacy-artifact cleanup. |
+| `changes[].tool` | The configured tool the file belongs to, such as `claude`. Files that belong to no one tool are `openspec`: the shared skills in `.agents/skills/` and legacy-artifact cleanup. |
 | `notes[]` | `{ code, message }` for a step a terminal user would be asked about or warned of. `legacy-tool-directories`: a move that an interactive run asks about first; `changes` lists it as made. `legacy-artifacts`: files from OpenSpec's older layout were found, such as `openspec-proposal.md` slash commands or OpenSpec marker blocks in `AGENTS.md`. Without `--force` a non-interactive update leaves them alone, so `changes` does too; `--dry-run --force` lists their cleanup. Empty for an ordinary refresh. |
 | `failures[]` | `{ tool, error }` for each tool the real update would fail on, including a write it cannot make: a directory where a file belongs, a file where a directory belongs, or a file or folder without write permission. For that tool, `changes` stops where the real update stops; the other tools are still planned. Failures the disk only reports while writing, such as running out of space, cannot be foreseen. |
 
@@ -267,7 +266,7 @@ specagile config profile               # interactive workflow picker
 | `edit` | Open the config file in `$EDITOR`. |
 | `profile [preset]` | Configure which workflows are installed. |
 
-Config is global to your machine, stored as JSON where `config path` points: `$XDG_CONFIG_HOME/openspec/config.json` if set, else `~/.config/openspec/config.json` (macOS, Linux) or `%APPDATA%\openspec\config.json` (Windows). Every subcommand accepts `--scope <scope>`, but only `global` works today. Any other scope exits 1 with `Error: Project-local config is not yet implemented`.
+Config is global to your machine, stored as JSON where `config path` points: `$XDG_CONFIG_HOME/specagile/config.json` if set, else `~/.config/specagile/config.json` (macOS, Linux) or `%APPDATA%\specagile\config.json` (Windows). OpenSpec's own config, in its `openspec` folder, is never read. Every subcommand accepts `--scope <scope>`, but only `global` works today. Any other scope exits 1 with `Error: Project-local config is not yet implemented`.
 
 ### specagile config path
 
@@ -276,7 +275,7 @@ specagile config path
 ```
 
 ```
-/Users/you/.config/openspec/config.json
+/Users/you/.config/specagile/config.json
 ```
 
 ### specagile config list
@@ -381,7 +380,7 @@ Error: Invalid configuration - profile: Invalid option: expected one of "core"|"
 If the config file exists but does not hold a JSON object, whether because it is not valid JSON at all or because its root is something else such as `null` or an array, `config set`, `config unset` and `config profile` exit 1 and leave the file unchanged. Fix it with `specagile config edit`, or replace it with `specagile config reset --all`:
 
 ```
-Error: /home/you/.config/openspec/config.json could not be parsed, so it was left unchanged.
+Error: /home/you/.config/specagile/config.json could not be parsed, so it was left unchanged.
 Fix it with "specagile config edit", or reset it with "specagile config reset --all".
 ```
 
@@ -1542,7 +1541,7 @@ Schemas resolve from three locations. The first match wins:
 | Source | Location |
 |---|---|
 | `project` | `specagile/schemas/` in the current project. |
-| `user` | `~/.local/share/openspec/schemas/` (`XDG_DATA_HOME` and Windows `%LOCALAPPDATA%` respected). |
+| `user` | `~/.local/share/specagile/schemas/` (`XDG_DATA_HOME` and Windows `%LOCALAPPDATA%` respected). |
 | `package` | The schemas shipped with the CLI. `spec-driven` lives here. |
 
 ### specagile schema which
@@ -1725,7 +1724,7 @@ specagile store register ~/stores/design-system                     # register a
 specagile store list                                                # see what's registered
 ```
 
-Registrations live in a per-machine registry: `~/.local/share/openspec/stores/registry.yaml`, or `$XDG_DATA_HOME/openspec/stores/registry.yaml` when `XDG_DATA_HOME` is set. Every subcommand takes `--json` to print a structured report instead of text. Running `specagile store` with a missing or unknown subcommand exits 1 and lists the subcommands.
+Registrations live in a per-machine registry: `~/.local/share/specagile/stores/registry.yaml` (`%LOCALAPPDATA%\specagile\stores\registry.yaml` on Windows), or `$XDG_DATA_HOME/specagile/stores/registry.yaml` when `XDG_DATA_HOME` is set. Stores registered with OpenSpec are not listed; register them again with `specagile store register <folder>`. Every subcommand takes `--json` to print a structured report instead of text. Running `specagile store` with a missing or unknown subcommand exits 1 and lists the subcommands.
 
 | Subcommand | What it does |
 |---|---|
@@ -1786,7 +1785,7 @@ Share this store by committing and pushing it like any Git repo.
     "metadata_path": "/Users/you/stores/design-system/.openspec-store/store.yaml"
   },
   "registry": {
-    "path": "/Users/you/.local/share/openspec/stores/registry.yaml",
+    "path": "/Users/you/.local/share/specagile/stores/registry.yaml",
     "registered": true,
     "already_registered": false
   },
@@ -2111,7 +2110,7 @@ specagile workset remove checkout --yes
 
 A workset is purely local:
 
-- Its state lives in one folder: `~/.local/share/openspec/worksets/` (`$XDG_DATA_HOME/openspec/worksets/` when set; `%LOCALAPPDATA%\openspec\worksets\` on Windows).
+- Its state lives in one folder: `~/.local/share/specagile/worksets/` (`$XDG_DATA_HOME/specagile/worksets/` when set; `%LOCALAPPDATA%\specagile\worksets\` on Windows).
 - Nothing is written into the member folders, and nothing is committed or shared.
 - Deleting that one folder removes every trace.
 

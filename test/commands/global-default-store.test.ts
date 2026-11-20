@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { globalConfigDir, globalConfigFile } from '../helpers/global-folders.js';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
@@ -43,9 +44,9 @@ describe('global defaultStore fallback (#1359)', () => {
   }
 
   function setDefaultStore(id: string): void {
-    fs.mkdirSync(path.join(tempDir, 'config', 'openspec'), { recursive: true });
+    fs.mkdirSync(globalConfigDir(path.join(tempDir, 'config')), { recursive: true });
     fs.writeFileSync(
-      path.join(tempDir, 'config', 'openspec', 'config.json'),
+      globalConfigFile(path.join(tempDir, 'config')),
       JSON.stringify({ defaultStore: id }) + '\n'
     );
   }

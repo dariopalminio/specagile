@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { globalDataDir as globalDataFolder } from '../../helpers/global-folders.js';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
@@ -242,7 +243,7 @@ describe('store registry facade', () => {
   it('removes only setup-created root files when registry write fails', async () => {
     const originalEnv = { ...process.env };
     const dataHome = mkdir('blocked-data-home');
-    fs.writeFileSync(path.join(dataHome, 'openspec'), 'not a directory\n');
+    fs.writeFileSync(globalDataFolder(dataHome), 'not a directory\n');
     process.env = {
       ...process.env,
       XDG_DATA_HOME: dataHome,

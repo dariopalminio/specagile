@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeAll, beforeEach, afterEach, vi } from 'vitest';
+import { globalConfigFile } from '../helpers/global-folders.js';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
@@ -47,7 +48,7 @@ describe('an unparseable global config', () => {
     delete process.env.DO_NOT_TRACK;
     delete process.env.CI;
 
-    configPath = path.join(tempDir, 'openspec', 'config.json');
+    configPath = globalConfigFile(tempDir);
     fs.mkdirSync(path.dirname(configPath), { recursive: true });
 
     consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});

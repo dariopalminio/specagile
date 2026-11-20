@@ -659,6 +659,13 @@ export function computeProfileMigration(
   tools: AIToolOption[],
   view: FileView = DISK_VIEW
 ): ProfileMigration | null {
+  // SpecAgile: no profile is ever inferred. Its global config lives in its own
+  // folder, so a config without `profile` is a new one, not one from before
+  // profiles existed, and the `core` default applies. Inferring from installed
+  // skills (OpenSpec's `openspec-*` among them) would save a `custom` profile
+  // without `specify` or `plan`. See "SpecAgile identity" in FORK.md.
+  return null;
+
   // A config that cannot be parsed, or is not a JSON object, is never saved
   // over; skip migration rather than fail init or update on it.
   if (isGlobalConfigUnreadable()) {
