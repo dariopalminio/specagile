@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-### Breaking Changes
+### Minor Changes
 
 - **SpecAgile keeps its global settings and data in folders of its own.** Until now it used OpenSpec's `openspec` folders, so it inherited OpenSpec's settings: a `custom` profile chosen with `openspec config` (for example `propose`, `explore`, `apply` and `archive`) made `specagile init` install only those skills, without `sa-specify` and `sa-plan`, and with no warning. It also worked the other way round. The folders are now named `specagile`:
 
