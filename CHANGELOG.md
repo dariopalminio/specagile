@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+### Patch Changes
+
+Fixes from OpenSpec 2.1.1, with `specagile` in place of `openspec` and the `sa-*` skill names. OpenSpec 2.1.1 also installs skills from the npm package instead of cloning them; SpecAgile keeps installing them from its repository's release tag, so Git and access to GitHub are still needed.
+
+- `specagile archive` writes a blank line after `## Purpose` when it creates a new main spec, so the spec passes Prettier and markdownlint (MD022) without a reformat.
+- `sa-archive` checks for an existing archive folder before it writes any main spec.
+- `sa-continue-change` again tells you to apply the change once planning is complete.
+- `specagile validate --strict` no longer fails on a delta spec that starts with a frontmatter block. Archive still leaves that block in the archived change, and now says so by name.
+- Retiring a capability no longer refuses when a wrapped requirement or scenario line starts with `<` and continues as text (such as `<args> are passed on`). Raw HTML, and a tag alone on its line, are still reported as content outside the requirement.
+- `specagile update` finds the skills `npx skills add` put in a project, from SpecAgile's repository or OpenSpec's, and updates them like any other install.
+- `specagile validate <change> --strict` warns when a MODIFIED requirement grows past the 500-character limit relative to its main-spec baseline, so overlong edits are caught before archive.
+
 ## 4.0.0
 
 ### Breaking Changes
