@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-### Minor Changes
+### Breaking Changes
 
 - **SpecAgile keeps its global settings and data in folders of its own.** Until now it used OpenSpec's `openspec` folders, so it inherited OpenSpec's settings: a `custom` profile chosen with `openspec config` (for example `propose`, `explore`, `apply` and `archive`) made `specagile init` install only those skills, without `sa-specify` and `sa-plan`, and with no warning. It also worked the other way round. The folders are now named `specagile`:
 
@@ -23,6 +23,7 @@
 ### Patch Changes
 
 - `specagile init` welcomes you with a glider from Conway's Game of Life instead of OpenSpec's logo. It crosses the screen diagonally and comes back in through the opposite corner, leaving a faint trail. Where the welcome screen doesn't animate (`OPENSPEC_NO_ANIMATION`, `NO_COLOR`, a narrow terminal or reduced motion), the glider is shown at rest.
+- The welcome screen of `specagile init` and the first screen of the `sa-onboard` skill say "Welcome to SpecAgile".
 
 ## 3.0.1
 
