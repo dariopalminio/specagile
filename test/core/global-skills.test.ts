@@ -1,5 +1,6 @@
 import { version } from '../../package.json';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { globalConfigFile } from '../helpers/global-folders.js';
 import { promises as fs } from 'fs';
 import { existsSync, readFileSync } from 'fs';
 import { execFileSync } from 'child_process';
@@ -313,7 +314,7 @@ describe('skills installed for this machine', { timeout: 60_000 }, () => {
         await fs.mkdir(stuck, { recursive: true });
         await fs.writeFile(path.join(stuck, 'SKILL.md'), text);
         await fs.chmod(stuck, 0o500);
-        const configFile = path.join(home, '.config', 'openspec', 'config.json');
+        const configFile = globalConfigFile(path.join(home, '.config'));
         await fs.mkdir(path.dirname(configFile), { recursive: true });
         await fs.writeFile(configFile, JSON.stringify({ profile: 'custom', workflows: [] }));
 
@@ -332,7 +333,7 @@ describe('skills installed for this machine', { timeout: 60_000 }, () => {
     it('clears the global skills when the profile has no workflows', async () => {
       const dir = await project('app');
       await cli(dir, 'init', '--scope', 'global', '--tools', 'claude');
-      const configFile = path.join(home, '.config', 'openspec', 'config.json');
+      const configFile = globalConfigFile(path.join(home, '.config'));
       await fs.mkdir(path.dirname(configFile), { recursive: true });
       await fs.writeFile(configFile, JSON.stringify({ profile: 'custom', workflows: [] }));
 

@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { globalConfigDir, globalConfigFile } from '../helpers/global-folders.js';
 import { promises as fs } from 'fs';
 import os from 'os';
 import path from 'path';
@@ -210,9 +211,9 @@ describe('stale released output', () => {
   it('covers every path the current release writes', async () => {
     const home = path.join(root, 'home');
     const xdg = path.join(home, '.config');
-    await fs.mkdir(path.join(xdg, 'openspec'), { recursive: true });
+    await fs.mkdir(globalConfigDir(xdg), { recursive: true });
     await fs.writeFile(
-      path.join(xdg, 'openspec', 'config.json'),
+      globalConfigFile(xdg),
       JSON.stringify({ profile: 'custom', delivery: 'both', workflows: [
         'propose', 'explore', 'new', 'continue', 'apply', 'update',
         'ff', 'sync', 'archive', 'bulk-archive', 'verify', 'onboard',

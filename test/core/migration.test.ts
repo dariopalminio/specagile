@@ -85,18 +85,6 @@ describe('migration', () => {
     await fsp.rm(configHome, { recursive: true, force: true });
   });
 
-  it('migrates the workflows of managed skills, without a delivery', async () => {
-    await writeSkill(projectDir, 'sa-explore');
-    await writeSkill(projectDir, 'sa-implement');
-
-    migrateIfNeeded(projectDir, [ensureClaudeTool()]);
-
-    const config = readRawConfig();
-    expect(config.profile).toBe('custom');
-    expect(config.delivery).toBeUndefined();
-    expect(config.workflows).toEqual(['explore', 'apply']);
-  });
-
   it('keeps dry-run legacy results aligned with migration timing', async () => {
     await writeSkill(projectDir, 'sa-explore', '.codex');
     await writeSkill(projectDir, 'sa-explore', '.agents');
@@ -110,31 +98,6 @@ describe('migration', () => {
         skillDirs: 1,
       }),
     ]);
-  });
-
-  it('migrates the workflows of a commands-only install, without a delivery', async () => {
-    await writeManagedCommand(projectDir, 'explore');
-    await writeManagedCommand(projectDir, 'archive');
-
-    migrateIfNeeded(projectDir, [ensureClaudeTool()]);
-
-    const config = readRawConfig();
-    expect(config.profile).toBe('custom');
-    // 2.0 installs skills only: no delivery is inferred.
-    expect(config.delivery).toBeUndefined();
-    expect(config.workflows).toEqual(['explore', 'archive']);
-  });
-
-  it('migrates the workflows of skills and commands together, without a delivery', async () => {
-    await writeSkill(projectDir, 'sa-explore');
-    await writeManagedCommand(projectDir, 'apply');
-
-    migrateIfNeeded(projectDir, [ensureClaudeTool()]);
-
-    const config = readRawConfig();
-    expect(config.profile).toBe('custom');
-    expect(config.delivery).toBeUndefined();
-    expect(config.workflows).toEqual(['explore', 'apply']);
   });
 
   it('does not migrate when profile is already explicitly configured', async () => {
@@ -151,22 +114,6 @@ describe('migration', () => {
     expect(config.profile).toBe('core');
     expect(config.delivery).toBe('both');
     expect(config.workflows).toBeUndefined();
-  });
-
-  it('preserves explicit delivery value during migration', async () => {
-    // Raw config has explicit delivery but no profile yet.
-    saveGlobalConfig({
-      featureFlags: {},
-      delivery: 'both',
-    });
-    await writeSkill(projectDir, 'sa-explore');
-
-    migrateIfNeeded(projectDir, [ensureClaudeTool()]);
-
-    const config = readRawConfig();
-    expect(config.profile).toBe('custom');
-    expect(config.delivery).toBe('both');
-    expect(config.workflows).toEqual(['explore']);
   });
 
   it.each(['[]\n', 'null\n', '{ "profile": "custom", }\n'])(
@@ -186,91 +133,6 @@ describe('migration', () => {
     migrateIfNeeded(projectDir, [ensureClaudeTool()]);
 
     expect(fs.existsSync(getGlobalConfigPath())).toBe(false);
-  });
-
-  it('prints the $-prefixed propose reference when migrating a codex-only project', async () => {
-    // Codex is skills-invocable with no slash surface: it invokes skills as
-    // Migration hints target the selected tool, so keep Codex's $<name> form.
-    await writeSkill(projectDir, 'sa-propose', '.codex');
-
-    const message = captureMigrationLogs(projectDir, [requireTool('codex')]).find((entry) =>
-      entry.includes('New in this version')
-    );
-    expect(message).toBeTruthy();
-    expect(message).toContain('$sa-propose');
-    expect(message).not.toContain('/sa-propose');
-    expect(message).not.toContain('/opsx:propose');
-  });
-
-  // A 1.x project upgrading to 2.0 gets skills, never commands, so the upgrade
-  // message names the propose skill the way each tool invokes skills, even for
-  // tools whose 1.x commands used a colon, hyphen, or @ form.
-  it.each([
-    [['qwen']],
-    [['claude']],
-    [['claude', 'qwen']],
-  ])('names the propose skill, never a command, when migrating %j', async (toolIds) => {
-    for (const toolId of toolIds) {
-      await writeManagedCommand(projectDir, 'apply', toolId);
-    }
-
-    const message = captureMigrationLogs(projectDir, toolIds.map(requireTool)).find((entry) =>
-      entry.includes('New in this version')
-    );
-    expect(message).toContain('/sa-propose');
-    expect(message).not.toMatch(/[/@]opsx[:-]propose/);
-  });
-
-  it('prints the documented /skill: propose reference when migrating a kimi-only project', async () => {
-    await writeSkill(projectDir, 'sa-propose', '.kimi-code');
-
-    const message = captureMigrationLogs(projectDir, [requireTool('kimi')]).find((entry) =>
-      entry.includes('New in this version')
-    );
-    expect(message).toContain('/skill:sa-propose');
-    expect(message).not.toContain('/opsx:propose');
-  });
-
-  it('falls back to a syntax-neutral reference when detected tools disagree (codex+kimi)', async () => {
-    await writeSkill(projectDir, 'sa-propose', '.codex');
-    await writeSkill(projectDir, 'sa-propose', '.kimi-code');
-
-    const message = captureMigrationLogs(projectDir, [requireTool('codex'), requireTool('kimi')]).find((entry) =>
-      entry.includes('New in this version')
-    );
-    expect(message).toContain('the sa-propose skill');
-    expect(message).not.toContain('/skill:');
-    expect(message).not.toContain('/opsx:propose');
-  });
-
-  it('falls back to a syntax-neutral reference when command and skill-only tools mix (claude+kimi)', async () => {
-    // Claude will get /opsx:* commands but Kimi cannot invoke them; the one
-    // shared message must not advertise a form that is wrong for either tool
-    await writeManagedCommand(projectDir, 'propose');
-    await writeSkill(projectDir, 'sa-propose', '.kimi-code');
-
-    const message = captureMigrationLogs(projectDir, [ensureClaudeTool(), requireTool('kimi')]).find((entry) =>
-      entry.includes('New in this version')
-    );
-    expect(message).toContain('the sa-propose skill');
-    expect(message).not.toContain('/opsx:propose');
-    expect(message).not.toContain('/skill:');
-  });
-
-  it('does not advertise /opsx:propose when explicit delivery is skills', async () => {
-    // Adapter-backed tool, but the effective delivery will never generate
-    // commands — the message must use the skill reference instead
-    saveGlobalConfig({
-      featureFlags: {},
-      delivery: 'skills',
-    });
-    await writeSkill(projectDir, 'sa-propose');
-
-    const message = captureMigrationLogs(projectDir, [ensureClaudeTool()]).find((entry) =>
-      entry.includes('New in this version')
-    );
-    expect(message).toContain('/sa-propose');
-    expect(message).not.toContain('/opsx:propose');
   });
 
   it('ignores unknown custom skill and command files when scanning workflows', async () => {
@@ -402,19 +264,6 @@ describe('migration', () => {
       }
     });
 
-    it('counts the workflows of command files still under .agent', async () => {
-      // The commands are only findable at the legacy root until migration runs.
-      await writeSkill(projectDir, 'sa-explore', '.agent');
-      const legacyCommand = path.join(projectDir, '.agent', 'workflows', 'opsx-explore.md');
-      await fsp.mkdir(path.dirname(legacyCommand), { recursive: true });
-      await fsp.writeFile(legacyCommand, '# command\n', 'utf-8');
-
-      migrateIfNeeded(projectDir, [requireTool('antigravity')]);
-
-      expect(readRawConfig().workflows).toEqual(['explore']);
-      expect(readRawConfig().delivery).toBeUndefined();
-    });
-
     it('leaves files the user keeps under .agent alone', async () => {
       const userFile = path.join(projectDir, '.agent', 'workflows', 'my-workflow.md');
       await fsp.mkdir(path.dirname(userFile), { recursive: true });
@@ -425,5 +274,71 @@ describe('migration', () => {
 
       expect(fs.existsSync(userFile)).toBe(true);
     });
+  });
+
+  // SpecAgile: computeProfileMigration never infers a profile (see "SpecAgile
+  // identity" in FORK.md). Upstream's cases that expected migrateIfNeeded to
+  // save one, or to print the "Migrated: custom profile" hint, now check that
+  // it saves and prints nothing, whatever the project has installed.
+  describe('SpecAgile: no profile is inferred', () => {
+    const scenarios: Array<[string, string[], (dir: string) => Promise<void>]> = [
+      ['managed skills', ['claude'], async (dir) => {
+        await writeSkill(dir, 'sa-explore');
+        await writeSkill(dir, 'sa-implement');
+      }],
+      ['OpenSpec\'s core skills (openspec-*)', ['claude'], async (dir) => {
+        for (const name of ['openspec-propose', 'openspec-explore', 'openspec-apply-change', 'openspec-archive-change']) {
+          await writeSkill(dir, name);
+        }
+      }],
+      ['a commands-only install', ['claude'], async (dir) => {
+        await writeManagedCommand(dir, 'explore');
+        await writeManagedCommand(dir, 'archive');
+      }],
+      ['skills and commands together', ['claude'], async (dir) => {
+        await writeSkill(dir, 'sa-explore');
+        await writeManagedCommand(dir, 'apply');
+      }],
+      ['a codex-only project', ['codex'], (dir) => writeSkill(dir, 'sa-propose', '.codex')],
+      ['qwen and claude commands', ['claude', 'qwen'], async (dir) => {
+        await writeManagedCommand(dir, 'apply', 'claude');
+        await writeManagedCommand(dir, 'apply', 'qwen');
+      }],
+      ['a kimi-only project', ['kimi'], (dir) => writeSkill(dir, 'sa-propose', '.kimi-code')],
+      ['codex and kimi skills', ['codex', 'kimi'], async (dir) => {
+        await writeSkill(dir, 'sa-propose', '.codex');
+        await writeSkill(dir, 'sa-propose', '.kimi-code');
+      }],
+      ['claude commands and kimi skills', ['claude', 'kimi'], async (dir) => {
+        await writeManagedCommand(dir, 'propose');
+        await writeSkill(dir, 'sa-propose', '.kimi-code');
+      }],
+      ['command files still under .agent', ['antigravity'], async (dir) => {
+        await writeSkill(dir, 'sa-explore', '.agent');
+        const legacyCommand = path.join(dir, '.agent', 'workflows', 'opsx-explore.md');
+        await fsp.mkdir(path.dirname(legacyCommand), { recursive: true });
+        await fsp.writeFile(legacyCommand, '# command\n', 'utf-8');
+      }],
+    ];
+
+    it.each(scenarios)('saves no profile and prints nothing for %s', async (_name, toolIds, setup) => {
+      await setup(projectDir);
+
+      expect(captureMigrationLogs(projectDir, toolIds.map(requireTool))).toEqual([]);
+      expect(fs.existsSync(getGlobalConfigPath())).toBe(false);
+    });
+
+    it.each(['both', 'skills'] as const)(
+      'leaves a config with delivery %s and no profile as it was',
+      async (delivery) => {
+        saveGlobalConfig({ featureFlags: {}, delivery });
+        const before = fs.readFileSync(getGlobalConfigPath(), 'utf-8');
+        await writeSkill(projectDir, 'sa-propose');
+
+        expect(captureMigrationLogs(projectDir, [ensureClaudeTool()])).toEqual([]);
+        expect(fs.readFileSync(getGlobalConfigPath(), 'utf-8')).toBe(before);
+        expect(readRawConfig().profile).toBeUndefined();
+      }
+    );
   });
 });

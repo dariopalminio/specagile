@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { GLOBAL_FOLDER_NAME, globalDataDir } from '../../helpers/global-folders.js';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
@@ -63,9 +64,9 @@ describe('store foundation', () => {
       process.env.XDG_DATA_HOME = tempDir;
       const storeRoot = path.join(tempDir, 'acme-context');
 
-      expect(getStoresDir()).toBe(path.join(tempDir, 'openspec', 'stores'));
+      expect(getStoresDir()).toBe(globalDataDir(tempDir, 'stores'));
       expect(getStoreRegistryPath()).toBe(
-        path.join(tempDir, 'openspec', 'stores', 'registry.yaml')
+        globalDataDir(tempDir, 'stores', 'registry.yaml')
       );
       expect(getStoreMetadataDir(storeRoot)).toBe(
         path.join(storeRoot, '.openspec-store')
@@ -83,10 +84,10 @@ describe('store foundation', () => {
       });
 
       expect(getStoresDir({ globalDataDir: dataDir })).toBe(
-        '/home/tabish/.local/share/openspec/stores'
+        `/home/tabish/.local/share/${GLOBAL_FOLDER_NAME}/stores`
       );
       expect(getStoreRegistryPath({ globalDataDir: dataDir })).toBe(
-        '/home/tabish/.local/share/openspec/stores/registry.yaml'
+        `/home/tabish/.local/share/${GLOBAL_FOLDER_NAME}/stores/registry.yaml`
       );
     });
 

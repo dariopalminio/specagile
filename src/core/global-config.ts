@@ -1,11 +1,13 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
+// SpecAgile: its own global folders (src/core/fork/identity.ts).
+import { GLOBAL_FOLDER_NAME } from './fork/identity.js';
 
 // Constants
-export const GLOBAL_CONFIG_DIR_NAME = 'openspec';
+export const GLOBAL_CONFIG_DIR_NAME = GLOBAL_FOLDER_NAME;
 export const GLOBAL_CONFIG_FILE_NAME = 'config.json';
-export const GLOBAL_DATA_DIR_NAME = 'openspec';
+export const GLOBAL_DATA_DIR_NAME = GLOBAL_FOLDER_NAME;
 
 // TypeScript types
 export type Profile = 'core' | 'custom';

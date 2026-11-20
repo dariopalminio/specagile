@@ -10,7 +10,7 @@ specagile/, else a config-only specagile/config.yaml's store: pointer, else the 
 defaultStore, else error. This page owns the whole ladder including the
 everyday case (nearest specagile/ wins); the section's Overview only links
 here. Locations (store/foundation.ts): registry.yaml at <dataDir>/stores/
-(~/.local/share/openspec/stores/); store.yaml at .openspec-store/store.yaml
+(~/.local/share/specagile/stores/); store.yaml at .openspec-store/store.yaml
 inside each checkout. The glossary's "OpenSpec root" row links here. -->
 
 ## registry.yaml

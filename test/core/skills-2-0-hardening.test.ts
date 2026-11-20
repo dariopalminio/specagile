@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { globalConfigDir, globalConfigFile } from '../helpers/global-folders.js';
 import { promises as fs, readFileSync, lstatSync, readlinkSync } from 'fs';
 import os from 'os';
 import path from 'path';
@@ -49,8 +50,8 @@ describe('OpenSpec 2.0 skills: hardening', () => {
     process.env.USERPROFILE = path.join(root, 'home');
     process.env.CODEX_HOME = path.join(root, 'home', '.codex');
     process.env.XDG_CONFIG_HOME = path.join(root, 'home', '.config');
-    await fs.mkdir(path.join(root, 'home', '.config', 'openspec'), { recursive: true });
-    await fs.writeFile(path.join(root, 'home', '.config', 'openspec', 'config.json'), JSON.stringify({ profile: 'core' }));
+    await fs.mkdir(globalConfigDir(path.join(root, 'home', '.config')), { recursive: true });
+    await fs.writeFile(globalConfigFile(path.join(root, 'home', '.config')), JSON.stringify({ profile: 'core' }));
     logs = [];
     vi.spyOn(console, 'log').mockImplementation((...args: unknown[]) => {
       logs.push(args.map(String).join(' '));
@@ -197,7 +198,7 @@ describe('OpenSpec 2.0 skills: hardening', () => {
   it('removes the untouched skills a profile change drops, and keeps none as the user’s', async () => {
     await new InitCommand({ tools: 'cursor', force: true }).execute(project);
     await fs.writeFile(
-      path.join(root, 'home', '.config', 'openspec', 'config.json'),
+      globalConfigFile(path.join(root, 'home', '.config')),
       JSON.stringify({ profile: 'custom', workflows: ['explore'] })
     );
 
@@ -209,7 +210,7 @@ describe('OpenSpec 2.0 skills: hardening', () => {
   });
 
   const setProfile = (config: object) =>
-    fs.writeFile(path.join(root, 'home', '.config', 'openspec', 'config.json'), JSON.stringify(config));
+    fs.writeFile(globalConfigFile(path.join(root, 'home', '.config')), JSON.stringify(config));
 
   it('removes a file at an excluded built-in skill’s name', async () => {
     await new InitCommand({ tools: 'claude', force: true }).execute(project);
@@ -424,7 +425,7 @@ describe('OpenSpec 2.0 skills: hardening', () => {
   it('never adds the retired delivery key when saving the config', async () => {
     const { configSetCommand } = await import('../../src/commands/config.js');
     configSetCommand('profile', 'custom', {});
-    const saved = JSON.parse(readFileSync(path.join(root, 'home', '.config', 'openspec', 'config.json'), 'utf8'));
+    const saved = JSON.parse(readFileSync(globalConfigFile(path.join(root, 'home', '.config')), 'utf8'));
     expect(saved.profile).toBe('custom');
     expect('delivery' in saved).toBe(false);
   });
@@ -449,17 +450,17 @@ describe('OpenSpec 2.0 skills: hardening', () => {
     expect(logs.join('\n')).not.toContain('prompt file in your home folder');
   });
 
-  it('records a project set up with exactly the core workflows as the core profile, without delivery', async () => {
-    await fs.rm(path.join(root, 'home', '.config', 'openspec', 'config.json'));
+  // SpecAgile: no profile is inferred from installed skills (see "SpecAgile
+  // identity" in FORK.md), so update saves no config and `core` applies.
+  it('saves no profile for a project set up with exactly the core workflows', async () => {
+    const configFile = globalConfigFile(path.join(root, 'home', '.config'));
+    await fs.rm(configFile);
     await new InitCommand({ tools: 'claude', force: true }).execute(project);
 
     logs = [];
     await new UpdateCommand().execute(project);
 
-    const config = JSON.parse(readFileSync(path.join(root, 'home', '.config', 'openspec', 'config.json'), 'utf8'));
-    expect(config.profile).toBe('core');
-    // Never an inferred delivery: at most the default, which changes nothing.
-    expect(config.delivery).toBeUndefined();
+    expect(await fs.access(configFile).then(() => true, () => false)).toBe(false);
     expect(logs.some((line) => line.includes('Migrated: custom profile'))).toBe(false);
   });
 

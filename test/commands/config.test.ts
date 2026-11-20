@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { globalConfigFile } from '../helpers/global-folders.js';
 import { Command } from 'commander';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -49,7 +50,7 @@ describe('config command integration', () => {
   it('should use XDG_CONFIG_HOME for config path', async () => {
     const { getGlobalConfigPath } = await import('../../src/core/global-config.js');
     const configPath = getGlobalConfigPath();
-    expect(configPath).toBe(path.join(tempDir, 'openspec', 'config.json'));
+    expect(configPath).toBe(globalConfigFile(tempDir));
   });
 
   it('should save and load config correctly', async () => {

@@ -11,8 +11,9 @@ import {
   listOpenerChoices,
   mergeOpenerTable,
 } from '../../src/core/openers.js';
+import { GLOBAL_FOLDER_NAME } from '../helpers/global-folders.js';
 
-const CONFIG_PATH = '/home/dev/.config/openspec/config.json';
+const CONFIG_PATH = path.posix.join('/home/dev/.config', GLOBAL_FOLDER_NAME, 'config.json');
 
 describe('openers core', () => {
   describe('built-in table', () => {

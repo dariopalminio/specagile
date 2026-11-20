@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { globalConfigFile } from '../helpers/global-folders.js';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
@@ -138,7 +139,7 @@ describe('specagile CLI output', () => {
   });
 
   it('sends no telemetry and shows no notice, even with telemetry enabled in the config', async () => {
-    const configFile = path.join(env.XDG_CONFIG_HOME!, 'openspec', 'config.json');
+    const configFile = globalConfigFile(env.XDG_CONFIG_HOME!);
     fs.mkdirSync(path.dirname(configFile), { recursive: true });
     const config = JSON.stringify({ telemetry: { enabled: true } });
     fs.writeFileSync(configFile, config);

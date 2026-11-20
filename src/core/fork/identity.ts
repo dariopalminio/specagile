@@ -16,6 +16,14 @@ import { applyLayoutText } from './layout.js';
 /** The executable users run: `specagile init`, `specagile update`, ... */
 export const CLI_NAME = 'specagile';
 
+/**
+ * The name of SpecAgile's global config and data folders: `specagile` under
+ * `$XDG_CONFIG_HOME`/`%APPDATA%`/`~/.config` and `$XDG_DATA_HOME`/
+ * `%LOCALAPPDATA%`/`~/.local/share`. OpenSpec's `openspec` folders are never
+ * read. See "SpecAgile identity" in FORK.md.
+ */
+export const GLOBAL_FOLDER_NAME = CLI_NAME;
+
 /** The npm package SpecAgile is published as: `npm install -g specagile`. */
 export const PACKAGE_NAME = 'specagile';
 

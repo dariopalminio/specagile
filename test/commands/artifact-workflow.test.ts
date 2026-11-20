@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { globalDataDir } from '../helpers/global-folders.js';
 import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
@@ -1307,7 +1308,7 @@ operations:
     it('fallback: requires all artifacts when schema has no apply block', async () => {
       // Create a minimal schema without an apply block in user schemas dir
       const userDataDir = path.join(tempDir, 'user-data');
-      const noApplySchemaDir = path.join(path.join(userDataDir, 'openspec', 'schemas'), 'no-apply');
+      const noApplySchemaDir = path.join(globalDataDir(userDataDir, 'schemas'), 'no-apply');
       const templatesDir = path.join(noApplySchemaDir, 'templates');
       await fs.mkdir(templatesDir, { recursive: true });
 
@@ -1357,7 +1358,7 @@ artifacts:
     it('fallback: ready when all artifacts exist for schema without apply block', async () => {
       // Create a minimal schema without an apply block
       const userDataDir = path.join(tempDir, 'user-data-2');
-      const noApplySchemaDir = path.join(path.join(userDataDir, 'openspec', 'schemas'), 'no-apply-full');
+      const noApplySchemaDir = path.join(globalDataDir(userDataDir, 'schemas'), 'no-apply-full');
       const templatesDir = path.join(noApplySchemaDir, 'templates');
       await fs.mkdir(templatesDir, { recursive: true });
 

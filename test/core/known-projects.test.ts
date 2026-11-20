@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { globalDataDir } from '../helpers/global-folders.js';
 import { promises as fs } from 'fs';
 import { existsSync, readFileSync, realpathSync } from 'fs';
 import os from 'os';
@@ -31,7 +32,7 @@ describe('the list of projects that use OpenSpec', () => {
   };
 
   it('is kept in the global data folder', () => {
-    expect(knownProjectsPath()).toBe(path.join(box, 'data', 'openspec', 'projects.json'));
+    expect(knownProjectsPath()).toBe(globalDataDir(path.join(box, 'data'), 'projects.json'));
   });
 
   it('records a project once, however it is named', async () => {
@@ -174,7 +175,7 @@ describe('local project history', { timeout: 60_000 }, () => {
     return dir;
   };
   const cli = (cwd: string, ...args: string[]) => runCLI(args, { cwd, env, timeoutMs: 60000 });
-  const listFile = () => path.join(home, '.local', 'share', 'openspec', 'projects.json');
+  const listFile = () => globalDataDir(path.join(home, '.local', 'share'), 'projects.json');
   const listed = (): string[] => (existsSync(listFile()) ? JSON.parse(readFileSync(listFile(), 'utf8')).projects : []);
   const NOTE = 'still has its own OpenSpec skills';
 
@@ -206,7 +207,7 @@ describe('local project history', { timeout: 60_000 }, () => {
 
   it('keeps init and update working when the list cannot be written', async () => {
     await fs.mkdir(path.join(home, '.local', 'share'), { recursive: true });
-    await fs.writeFile(path.join(home, '.local', 'share', 'openspec'), 'in the way');
+    await fs.writeFile(globalDataDir(path.join(home, '.local', 'share')), 'in the way');
     const dir = await project('app');
 
     const init = await cli(dir, 'init', '--scope', 'project', '--tools', 'claude');

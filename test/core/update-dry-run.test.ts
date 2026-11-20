@@ -583,9 +583,10 @@ describe('openspec update --dry-run', () => {
     await expectPlanMatchesRealUpdate();
   });
 
-  it('lists the global config the one-time profile migration writes', async () => {
-    // A config written before profiles existed: workflows are installed, but no
-    // `profile` is recorded, so a real update saves one.
+  // SpecAgile: no profile is inferred (see "SpecAgile identity" in FORK.md), so
+  // a config without `profile` is left alone and `core` applies.
+  it('plans no write of a global config that records no profile', async () => {
+    // Workflows are installed, but no `profile` is recorded.
     await writeGlobalConfig({} as GlobalConfig);
 
     const changes = await expectPlanMatchesRealUpdate();
@@ -594,7 +595,7 @@ describe('openspec update --dry-run', () => {
       .relative(testDir, getGlobalConfigPath())
       .split(path.sep)
       .join('/');
-    expect(changes).toContainEqual({ path: configPath, action: 'update', tool: 'openspec' });
+    expect(changes.map((change) => change.path)).not.toContain(configPath);
   });
 
   it('plans the move out of a renamed tool directory, and what the moved tool then gets', async () => {

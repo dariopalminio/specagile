@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { globalConfigDir } from '../helpers/global-folders.js';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
@@ -139,7 +140,7 @@ describe('store root selection for normal commands', () => {
         fs.mkdirSync(getToolDir(appRepo), { recursive: true });
         fs.writeFileSync(getConfigFile(appRepo), 'store: team-context\n');
       } else {
-        const configDir = path.join(tempDir, 'config', 'openspec');
+        const configDir = globalConfigDir(path.join(tempDir, 'config'));
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(path.join(configDir, 'config.json'), JSON.stringify({ defaultStore: 'team-context' }));
       }

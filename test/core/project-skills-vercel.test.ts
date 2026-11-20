@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { globalConfigFile } from '../helpers/global-folders.js';
 import { promises as fs } from 'fs';
 import { closeSync, existsSync, fstatSync, openSync, readFileSync, readdirSync, readlinkSync } from 'fs';
 import os from 'os';
@@ -67,7 +68,7 @@ describe("a project's skills, installed through the skills package", { timeout: 
   const published = (name: string) => readFileSync(path.join(cliProjectRoot, 'skills', name, 'SKILL.md'), 'utf8');
   const lockPath = () => path.join(dir, 'skills-lock.json');
   const setWorkflows = async (workflows: string[]) => {
-    const file = path.join(home, '.config', 'openspec', 'config.json');
+    const file = globalConfigFile(path.join(home, '.config'));
     await fs.mkdir(path.dirname(file), { recursive: true });
     await fs.writeFile(file, JSON.stringify({ profile: 'custom', delivery: 'both', workflows }));
   };

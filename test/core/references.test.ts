@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { globalDataDir as globalDataFolder } from '../helpers/global-folders.js';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
@@ -26,7 +27,7 @@ describe('reference index assembly', () => {
 
   beforeEach(() => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openspec-references-'));
-    globalDataDir = path.join(tempDir, 'data', 'openspec');
+    globalDataDir = globalDataFolder(path.join(tempDir, 'data'));
     // Backstop: store calls below thread `globalDataDir`, but if a future
     // edit forgets one, the path resolver falls back to XDG_DATA_HOME and
     // then to the real ~/.local/share/openspec. Pin XDG at the temp dir so

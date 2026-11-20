@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeAll, beforeEach, afterEach, vi } from 'vitest';
+import { globalConfigFile } from '../helpers/global-folders.js';
 import { Command } from 'commander';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -51,7 +52,7 @@ function makeFixture() {
     tempDir,
     editorDir,
     configHome,
-    configPath: path.join(configHome, 'openspec', 'config.json'),
+    configPath: globalConfigFile(configHome),
     logPath: path.join(tempDir, 'editor-args.json'),
     /** An EDITOR value running the fake editor, with its paths quoted. */
     nodeEditor: (...args: string[]) => [quote(process.execPath), quote(editorScript), ...args].join(' '),

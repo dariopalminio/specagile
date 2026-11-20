@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { globalConfigDir } from '../helpers/global-folders.js';
 import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -36,7 +37,7 @@ describe('profile handoff CLI regressions (#1734)', () => {
   }
 
   it.each(['skills', 'commands', 'both'])('keeps fresh and refreshed core %s on the one generated text', async (delivery) => {
-    const configDir = path.join(env.XDG_CONFIG_HOME!, 'openspec');
+    const configDir = globalConfigDir(env.XDG_CONFIG_HOME!);
     await fs.mkdir(configDir, { recursive: true });
     const configFile = path.join(configDir, 'config.json');
     await fs.writeFile(configFile, JSON.stringify({ profile: 'core', delivery }));

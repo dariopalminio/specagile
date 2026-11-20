@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { globalConfigDir } from '../helpers/global-folders.js';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
@@ -103,7 +104,7 @@ describe('openspec schemas root selection', () => {
   }
 
   function setDefaultStore(id: string): void {
-    const configDir = path.join(env.XDG_CONFIG_HOME as string, 'openspec');
+    const configDir = globalConfigDir(env.XDG_CONFIG_HOME as string);
     fs.mkdirSync(configDir, { recursive: true });
     fs.writeFileSync(
       path.join(configDir, 'config.json'),

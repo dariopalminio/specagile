@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { globalConfigDir, globalDataDir as globalDataFolder } from '../helpers/global-folders.js';
 import { EventEmitter } from 'node:events';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
@@ -86,7 +87,7 @@ describe('specagile workset (7.1)', () => {
   }
 
   function writeOpenersConfig(openers: unknown): void {
-    const configDir = path.join(env.XDG_CONFIG_HOME!, 'openspec');
+    const configDir = globalConfigDir(env.XDG_CONFIG_HOME!);
     fs.mkdirSync(configDir, { recursive: true });
     fs.writeFileSync(
       path.join(configDir, 'config.json'),
@@ -939,7 +940,7 @@ describe('interactive compose cancellation (in-process)', () => {
       expect(errorSpy).toHaveBeenCalledWith('Cancelled.');
       expect(
         fs.existsSync(
-          path.join(process.env.XDG_DATA_HOME!, 'openspec', 'worksets', 'worksets.yaml')
+          globalDataFolder(process.env.XDG_DATA_HOME!, 'worksets', 'worksets.yaml')
         )
       ).toBe(false);
     }
@@ -967,7 +968,7 @@ describe('interactive compose cancellation (in-process)', () => {
     expect(errorSpy).toHaveBeenCalledWith('Cancelled.');
     expect(
       fs.existsSync(
-        path.join(process.env.XDG_DATA_HOME!, 'openspec', 'worksets', 'worksets.yaml')
+        globalDataFolder(process.env.XDG_DATA_HOME!, 'worksets', 'worksets.yaml')
       )
     ).toBe(false);
   });
@@ -992,9 +993,8 @@ describe('interactive compose cancellation (in-process)', () => {
     expect(process.exitCode === undefined || process.exitCode === 0).toBe(
       true
     );
-    const yamlPath = path.join(
+    const yamlPath = globalDataFolder(
       process.env.XDG_DATA_HOME!,
-      'openspec',
       'worksets',
       'worksets.yaml'
     );
@@ -1034,9 +1034,8 @@ describe('interactive compose cancellation (in-process)', () => {
     );
     expect(
       fs.existsSync(
-        path.join(
+        globalDataFolder(
           process.env.XDG_DATA_HOME!,
-          'openspec',
           'worksets',
           'worksets.yaml'
         )
@@ -1081,7 +1080,7 @@ describe('interactive compose cancellation (in-process)', () => {
     expect(errorSpy).toHaveBeenCalledWith('Error: Workset remove cancelled.');
     expect(
       fs.existsSync(
-        path.join(process.env.XDG_DATA_HOME!, 'openspec', 'worksets', 'worksets.yaml')
+        globalDataFolder(process.env.XDG_DATA_HOME!, 'worksets', 'worksets.yaml')
       )
     ).toBe(true);
   });
