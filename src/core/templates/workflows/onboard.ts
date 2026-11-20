@@ -66,7 +66,7 @@ Stop here if not installed.
 Display:
 
 \`\`\`
-## Welcome to SpecAgile!
+## Welcome to OpenSpec!
 
 I'll walk you through a complete change cycle—from idea to implementation—using a real task in your codebase. Along the way, you'll learn the workflow by doing it.
 

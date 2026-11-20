@@ -652,7 +652,7 @@ Guided onboarding through the complete OpenSpec workflow. An interactive tutoria
 ```
 You: /opsx:onboard
 
-AI:  Welcome to SpecAgile!
+AI:  Welcome to OpenSpec!
 
      I'll walk you through the complete workflow using your actual codebase.
      We'll find something small to improve, create a proper change for it,

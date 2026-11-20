@@ -2,6 +2,7 @@ import {
   CLI_NAME,
   CLI_WORDS,
   FORMER_SKILL_NAME_BY_WORKFLOW,
+  PRODUCT_TEXT_REPLACEMENTS,
   SKILL_NAME_BY_WORKFLOW,
   applyForkIdentity,
 } from '../../src/core/fork/identity.js';
@@ -10,15 +11,19 @@ import type { WorkflowId } from '../../src/core/profiles.js';
 
 /**
  * The inverse of `applyForkIdentity` for text generated from upstream
- * templates: the layout paths back to `openspec/…` (the inverse of
- * LAYOUT_TEXT_REPLACEMENTS), `sa-*` names back to `openspec-*`, `specagile
- * <word>` back to `openspec <word>`. Upstream tests that pin a template's wording on a
- * generated skill compare through this, so they stay as upstream wrote them
- * (and merge cleanly on sync); the fork's identity itself is pinned in
- * test/fork/.
+ * templates: the greetings back to OpenSpec's (the inverse of
+ * PRODUCT_TEXT_REPLACEMENTS), the layout paths back to `openspec/…` (the
+ * inverse of LAYOUT_TEXT_REPLACEMENTS), `sa-*` names back to `openspec-*`,
+ * `specagile <word>` back to `openspec <word>`. Upstream tests that pin a
+ * template's wording on a generated skill compare through this, so they stay as
+ * upstream wrote them (and merge cleanly on sync); the fork's identity itself
+ * is pinned in test/fork/.
  */
 export function withUpstreamIdentity(text: string): string {
   let result = text;
+  for (const [upstream, fork] of PRODUCT_TEXT_REPLACEMENTS) {
+    result = result.split(fork).join(upstream);
+  }
   for (const [upstream, fork] of LAYOUT_BY_LENGTH) {
     result = result.split(fork).join(upstream);
   }
