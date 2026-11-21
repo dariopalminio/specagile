@@ -1,0 +1,8 @@
+flowchart TD
+    E["sa-explore"] --> S["sa-specify"]
+    S --> P["sa-plan"]
+    P --> I["sa-implement"]
+    I -. "verificación opcional" .-> V["sa-verify"]
+    I --> A["sa-archive"]
+    V --> A
+    A -. "sincroniza deltas cuando corresponde" .-> Y["sa-sync-specs"]

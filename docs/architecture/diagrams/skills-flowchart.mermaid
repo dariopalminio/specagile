@@ -1,0 +1,53 @@
+flowchart TD
+    IDEA{"Idea o cambio solicitado"}
+    CHANGE{"Cambio activo"}
+    SPEC{"Especificación completa"}
+    READY{"Artefactos listos para implementar"}
+    CODE{"Implementación completada"}
+    MAIN("Specs principales actualizadas")
+    DONE{"Cambio archivado"}
+
+    EXP["sa-explore"]
+    SPECIFY["sa-specify"]
+    PLAN["sa-plan"]
+    PROPOSE["sa-propose"]
+    NEW["sa-new-change"]
+    CONT["sa-continue-change"]
+    FF["sa-ff-change"]
+    UPDATE["sa-update-change"]
+    IMPLEMENT["sa-implement"]
+    VERIFY["sa-verify"]
+    SYNC["sa-sync-specs"]
+    ARCHIVE["sa-archive"]
+    BULK["sa-bulk-archive-change"]
+    ONBOARD["sa-onboard"]
+
+    IDEA -. "aclarar requisitos" .-> EXP
+    EXP -. "orienta" .-> SPECIFY
+    EXP -. "orienta" .-> PROPOSE
+
+    IDEA --> SPECIFY --> SPEC --> PLAN --> READY
+    IDEA --> PROPOSE -->|"crea todos los artefactos"| READY
+
+    IDEA --> NEW -->|"crea el contenedor"| CHANGE
+    CHANGE --> SPECIFY
+    CHANGE --> CONT
+    CONT -->|"un artefacto por vez; repetir"| CONT
+    CONT -->|"plan completo"| READY
+    CHANGE --> FF -->|"crea los artefactos pendientes"| READY
+
+    CHANGE -. "revisar artefactos existentes" .-> UPDATE
+    UPDATE -. "deja el cambio revisado" .-> CHANGE
+
+    READY --> IMPLEMENT --> CODE
+    CODE -. "verificación opcional" .-> VERIFY
+    VERIFY -. "hallazgos por corregir" .-> IMPLEMENT
+
+    SPEC -. "sin archivar" .-> SYNC --> MAIN
+    CODE --> ARCHIVE --> DONE
+    CODE -->|"varios cambios"| BULK --> DONE
+    ARCHIVE -. "sincroniza deltas si corresponde" .-> SYNC
+    BULK -. "sincroniza deltas incluidos" .-> SYNC
+
+    ONBOARD -. "guía un ciclo completo" .-> IDEA
+    ONBOARD -. "hasta el cierre" .-> DONE
