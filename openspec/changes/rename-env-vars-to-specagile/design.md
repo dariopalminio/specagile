@@ -22,6 +22,18 @@ Los textos: la ayuda de `--concurrency` (`src/cli/index.ts`) y su descripción e
 
 La suite pone las variables en su entorno: `vitest.config.ts` (`OPENSPEC_TELEMETRY`, `OPENSPEC_SKILLS_SCOPE=project`, del que dependen todos los tests que instalan skills), `test/helpers/run-cli.ts` (`OPENSPEC_TELEMETRY`, `OPEN_SPEC_INTERACTIVE`) y unos 70 archivos de test más.
 
+`src/commands/install-standalone.ts` es el `openspec install` de upstream. SpecAgile no lo alcanza: su `install` solo indica npm. Lee cuatro variables del usuario (`resolveInstallTarget`: `OPENSPEC_INSTALL_DIR`, `OPENSPEC_INSTALL_NAME`; `installerBase`: `OPENSPEC_DOWNLOAD_URL`, `OPENSPEC_RELEASES_URL`, cuyos nombres también usa en los errores de `checkSource`). Después descarga el instalador de OpenSpec (`INSTALLER_BASE`, la rama `main` de `Fission-AI/OpenSpec`) y lo ejecuta con `process.env` más `OPENSPEC_INSTALL_DIR`, `OPENSPEC_INSTALL_NAME` y `OPENSPEC_VERSION`, y en Windows `OPENSPEC_INSTALLER_URL`. Ese instalador (`scripts/binary/install.sh`, `install.ps1`) lee además `OPENSPEC_DOWNLOAD_URL` y `OPENSPEC_RELEASES_URL` del entorno que hereda.
+
+La suite usa ocho variables propias, que la CLI no lee:
+
+| Variable | Dónde |
+|---|---|
+| `OPENSPEC_TEST_HOME` | `vitest.config.ts` la pone; `vitest.setup.ts` la lee |
+| `OPENSPEC_TEST_BINARY` | `test/helpers/run-cli.ts`; la pone `scripts/binary/e2e.sh` |
+| `OPENSPEC_RELEASE_UPGRADES`, `OPENSPEC_RELEASE_CACHE` | `test/cli-e2e/upgrade-from-releases.test.ts`; la primera la pone el job "Upgrade from releases" de `.github/workflows/ci.yml` |
+| `OPENSPEC_TEST_EDITOR_EXIT`, `_LOG`, `_WRITE` | el editor falso de `test/commands/config-edit.test.ts` |
+| `OPENSPEC_TEST_MODULE_LOG` | `test/helpers/record-loaded-modules.mjs` y `test/cli-e2e/startup-modules.test.ts` |
+
 ## Goals / Non-Goals
 
 **Goals:**
@@ -31,7 +43,7 @@ La suite pone las variables en su entorno: `vitest.config.ts` (`OPENSPEC_TELEMET
 
 **Non-Goals:**
 - Cambiar qué hace cada variable o qué valores acepta.
-- Las variables que solo usa la suite (`OPENSPEC_TEST_HOME`, `OPENSPEC_TEST_BINARY`, `OPENSPEC_RELEASE_UPGRADES`) y las de `install-standalone.ts`.
+- El instalador de OpenSpec y lo que lo prueba (`scripts/binary/install.sh`, `install.ps1`, los pasos de `binaries.yml` que los ejecutan, `test/binary-installer.test.ts`), ni los nombres con los que `install-standalone.ts` le habla (decisión 9).
 - Reescribir el aviso de telemetría de `src/telemetry/index.ts`, que SpecAgile nunca muestra.
 
 ## Decisions
@@ -40,9 +52,9 @@ La suite pone las variables en su entorno: `vitest.config.ts` (`OPENSPEC_TELEMET
 
 Se agrega a `src/core/fork/identity.ts`:
 
-- El tipo `EnvSetting`: `'skillsScope' | 'concurrency' | 'noUpdateCheck' | 'telemetry' | 'noCompletions' | 'noAutoConfig' | 'noAnimation' | 'enableCliAgentOpeners' | 'interactive'`.
+- El tipo `EnvSetting`: `'skillsScope' | 'concurrency' | 'noUpdateCheck' | 'telemetry' | 'noCompletions' | 'noAutoConfig' | 'noAnimation' | 'enableCliAgentOpeners' | 'interactive' | 'installDir' | 'installName' | 'downloadUrl' | 'releasesUrl'`.
 - `ENV_VAR_NAMES: Readonly<Record<EnvSetting, string>>`, con cada nombre `SPECAGILE_*` escrito entero.
-- `FORMER_ENV_VAR_NAMES: Readonly<Record<EnvSetting, string>>`, con los nueve nombres de OpenSpec. Solo la usan los tests y la documentación: el código no los lee.
+- `FORMER_ENV_VAR_NAMES: Readonly<Record<EnvSetting, string>>`, con los trece nombres de OpenSpec. El código no los lee del entorno. La usan los tests, la documentación y `install-standalone.ts`, que con ella le pasa los valores al instalador de OpenSpec (decisión 9).
 
 Cada lectura pasa a `process.env[ENV_VAR_NAMES.<setting>]`, y cada texto arma el nombre con la tabla (`` `defaults to env ${ENV_VAR_NAMES.concurrency} or 6` ``).
 
@@ -66,7 +78,7 @@ SpecAgile no lee los nombres anteriores, ni como respaldo ni para avisar. Es lo 
 
 ### 5. Comentarios
 
-Los comentarios que nombran una de las variables están en los mismos archivos que se editan (`completion-tip.ts`, `completions/factory.ts`, `interactive.ts`, `openers.ts`, `opt-out.ts`). Pasan al nombre nuevo, para que nadie siga una instrucción que ya no funciona. Fuera de la tabla de `identity.ts` y de `src/telemetry/index.ts`, ningún archivo de `src/` nombra una de las nueve variables anteriores.
+Los comentarios que nombran una de las variables están en los mismos archivos que se editan (`completion-tip.ts`, `completions/factory.ts`, `interactive.ts`, `openers.ts`, `opt-out.ts`, `install-standalone.ts`). Pasan al nombre nuevo, para que nadie siga una instrucción que ya no funciona. Fuera de la tabla de `identity.ts` y de `src/telemetry/index.ts`, ningún archivo de `src/` nombra una de las trece variables anteriores.
 
 ### 6. Tests con los nombres literales
 
@@ -75,6 +87,7 @@ Los tests escriben `SPECAGILE_*` literal, no la tabla: fijan el nombre que escri
 Excepciones, donde el proceso es OpenSpec:
 - `test/cli-e2e/upgrade-from-releases.test.ts` ejecuta versiones publicadas de OpenSpec y SpecAgile con el mismo entorno: tiene los dos nombres (`OPENSPEC_TELEMETRY` y `SPECAGILE_TELEMETRY`).
 - `scripts/capture-released-fingerprints.mjs` solo ejecuta OpenSpec: queda igual.
+- `test/binary-installer.test.ts` y los pasos de `binaries.yml` que ejecutan `install.sh`/`install.ps1` prueban el instalador de OpenSpec: quedan igual.
 
 Para cada variable, el test que hoy cubre su efecto pasa al nombre nuevo, y se le suma un caso con el nombre anterior que no tiene efecto:
 - `version-check.test.ts`: las tablas de casos (variable, valor) → búsqueda apagada pasan a `SPECAGILE_*`, y se suma una tabla con los nombres anteriores, que no la apagan.
@@ -84,10 +97,10 @@ Para cada variable, el test que hoy cubre su efecto pasa al nombre nuevo, y se l
 
 `test/fork/environment-variables.test.ts`:
 
-1. Las dos tablas tienen las mismas claves, cada nombre actual empieza con `SPECAGILE_`, y `FORMER_ENV_VAR_NAMES` tiene exactamente los nueve nombres de la proposal.
-2. Ningún archivo de `src/` contiene un nombre de `FORMER_ENV_VAR_NAMES`, salvo `identity.ts` y `src/telemetry/index.ts`. Busca cada nombre de la lista, no un patrón.
-3. Ningún archivo de `src/` lee una variable `OPENSPEC_*` u `OPEN_SPEC_*` del entorno (`env.X`, `env['X']`, `env["X"]`), salvo `src/commands/install-standalone.ts`. Acá sí hace falta un patrón: tiene que encontrar una variable que upstream agregue y que todavía no está en la tabla. Es el mismo tipo de guarda que `test/fork/layout.test.ts`.
-4. Ni `vitest.config.ts` ni ningún archivo de `test/` contiene un nombre de `FORMER_ENV_VAR_NAMES`, salvo `upgrade-from-releases.test.ts` y este mismo test. Si no, un test nuevo de upstream con `OPEN_SPEC_INTERACTIVE=0` quedaría interactivo sin que nadie lo note.
+1. Las dos tablas tienen las mismas claves, cada nombre actual empieza con `SPECAGILE_`, y `FORMER_ENV_VAR_NAMES` tiene exactamente los trece nombres de la proposal.
+2. Ningún archivo de `src/` contiene un nombre de `FORMER_ENV_VAR_NAMES`, salvo `identity.ts` y `src/telemetry/index.ts`. Busca cada nombre de la lista, no un patrón. `install-standalone.ts` no es excepción: nombra al instalador con la tabla.
+3. Ningún archivo de `src/` lee una variable `OPENSPEC_*` u `OPEN_SPEC_*` del entorno (`env.X`, `env['X']`, `env["X"]`). Acá sí hace falta un patrón: tiene que encontrar una variable que upstream agregue y que todavía no está en la tabla. Es el mismo tipo de guarda que `test/fork/layout.test.ts`. Las claves de un objeto de entorno (`{ OPENSPEC_VERSION: … }`) y el `$env:OPENSPEC_INSTALLER_URL` del comando de PowerShell no son lecturas de la CLI: son el protocolo del instalador de OpenSpec.
+4. Ni `vitest.config.ts`, ni `vitest.setup.ts`, ni ningún archivo de `test/` contiene un nombre de `FORMER_ENV_VAR_NAMES` o de los ocho de la suite (decisión 10, fijados en el propio test). Excepciones por archivo y nombre: `upgrade-from-releases.test.ts` con `OPENSPEC_TELEMETRY`, `binary-installer.test.ts` con los cuatro del instalador, y este mismo test. Si no, un test nuevo de upstream con `OPEN_SPEC_INTERACTIVE=0` quedaría interactivo sin que nadie lo note.
 5. Con la CLI compilada (`runCLI`): `validate --help` nombra `SPECAGILE_CONCURRENCY`; `init` con `SPECAGILE_SKILLS_SCOPE=everywhere` falla con el mensaje nuevo; y con `OPENSPEC_SKILLS_SCOPE=everywhere`, sin `SPECAGILE_SKILLS_SCOPE` y con `--scope project`, termina bien sin nombrar la variable anterior.
 
 ### 8. Documentación
@@ -95,11 +108,34 @@ Para cada variable, el test que hoy cubre su efecto pasa al nombre nuevo, y se l
 - `docs-lab/reference/configuration/environment-variables.md`: los títulos pasan a `SPECAGILE_*` y la página suma las variables que no tenía (`SPECAGILE_NO_UPDATE_CHECK`, `SPECAGILE_CONCURRENCY`, `SPECAGILE_INTERACTIVE`, `SPECAGILE_NO_COMPLETIONS`, `SPECAGILE_NO_AUTO_CONFIG`, `SPECAGILE_NO_ANIMATION`). Una sección final dice que SpecAgile ignora los nombres de OpenSpec y muestra la equivalencia. El ancla `#openspec_skills_scope` pasa a `#specagile_skills_scope`, y `docs-lab/start/setup.md` enlaza la nueva.
 - `docs-lab/reference/cli.md` y `docs-lab/reference/configuration/config-json.md`: los nombres nuevos.
 - `docs-lab/help/upgrade-to-2.md` describe `openspec update` y queda igual. También quedan igual `docs/`, `SECURITY.md` y `README_OLD.md`, que describen OpenSpec.
-- `FORK.md`, "SpecAgile identity": un párrafo de variables de entorno; `ENV_VAR_NAMES` en "Where it lives"; los archivos editados; y en "When a sync touches the identity", qué hacer con una variable nueva de upstream.
-- `CHANGELOG.md`: entrada **BREAKING** con la tabla de equivalencias.
+- `FORK.md`, "SpecAgile identity": un párrafo de variables de entorno; `ENV_VAR_NAMES` en "Where it lives"; los archivos editados; y en "When a sync touches the identity", qué hacer con una variable nueva de upstream. El ítem "No standalone install" suma que `install-standalone.ts` lee `SPECAGILE_*` y le habla al instalador de OpenSpec con sus nombres. La mención de `upgrade-from-releases.test.ts` en "Migrating projects with the former skills" pasa a `SPECAGILE_RELEASE_UPGRADES=1`. Las filas anteriores de "Verification record" quedan con el nombre con que se corrieron.
+- `CHANGELOG.md`: entrada **BREAKING** con la tabla de equivalencias. No nombra las variables del instalador ni las de la suite, que no cambian nada para el usuario.
+
+### 9. El instalador standalone: SpecAgile lee sus nombres, el instalador recibe los suyos
+
+`install-standalone.ts` separa dos cosas:
+
+- **Lo que lee del usuario**: `resolveInstallTarget` e `installerBase` leen `ENV_VAR_NAMES.installDir`, `installName`, `downloadUrl` y `releasesUrl`, y `checkSource` recibe esos nombres como etiqueta, así un error dice `SPECAGILE_DOWNLOAD_URL must use https…`.
+- **Lo que le pasa al instalador**: el instalador es el de OpenSpec y lee `OPENSPEC_*`. Una función nueva y exportada, `installerEnv(env, target, version)`, arma su entorno: `env` sin los cuatro nombres de `FORMER_ENV_VAR_NAMES` heredados, más `FORMER_ENV_VAR_NAMES.installDir`/`installName` con el destino resuelto, `FORMER_ENV_VAR_NAMES.downloadUrl`/`releasesUrl` con los valores de `SPECAGILE_*` cuando están, y `OPENSPEC_VERSION` como hoy. Así un `OPENSPEC_RELEASES_URL` puesto para OpenSpec no cambia de dónde instalaría SpecAgile, y un `SPECAGILE_DOWNLOAD_URL` llega al instalador. `installStandalone` usa esa función en lugar del objeto que arma hoy.
+
+`OPENSPEC_INSTALLER_URL` (el comando de PowerShell) y `OPENSPEC_VERSION` quedan: no son variables del usuario, son el protocolo del instalador.
+
+- *Alternativa: renombrar también dentro de `install.sh` e `install.ps1`.* La descartó el usuario. El instalador del repo dejaría de coincidir con el que descarga `INSTALLER_BASE` (el de OpenSpec), seguiría leyendo otros `OPENSPEC_*` y `binaries.yml` tendría más conflictos con upstream.
+- *Alternativa: pasar `SPECAGILE_*` al instalador.* Se descarta: el instalador de OpenSpec no los lee, así que perdería el destino y el espejo.
+
+`scripts/binary/install-check.sh` ejecuta `specagile install` y pasa a `SPECAGILE_INSTALL_DIR`/`SPECAGILE_INSTALL_NAME`. Las dos líneas de `binaries.yml` que lo ejecutan le pasan `SPECAGILE_DOWNLOAD_URL`, porque configuran lo que lee SpecAgile.
+
+### 10. Variables de la suite
+
+Pasan a `SPECAGILE_TEST_HOME`, `SPECAGILE_TEST_BINARY`, `SPECAGILE_RELEASE_UPGRADES`, `SPECAGILE_RELEASE_CACHE`, `SPECAGILE_TEST_EDITOR_EXIT`, `SPECAGILE_TEST_EDITOR_LOG`, `SPECAGILE_TEST_EDITOR_WRITE` y `SPECAGILE_TEST_MODULE_LOG`. Se escriben literales donde se ponen y donde se leen (`vitest.config.ts`, `vitest.setup.ts`, `test/helpers/`, los tests, `scripts/binary/e2e.sh`, `.github/workflows/ci.yml`). No van a `identity.ts`, que es la identidad de la CLI: `src/` no las lee. El test de `test/fork/` fija los ocho nombres anteriores para el guard 4.
+
+Cada una cambia en el mismo paso en que se pone y en que se lee. Si cambia solo un lado, el test se saltea o pierde su carpeta aislada sin fallar.
 
 ## Risks / Trade-offs
 
+- [El job "Upgrade from releases" de CI pone el nombre anterior y las pruebas de versiones publicadas se saltean sin fallar] → `ci.yml` cambia en el mismo paso que el test. En el pull request se revisa que el job ejecute sus casos en vez de saltearlos.
+- [Un mantenedor con `OPENSPEC_RELEASE_UPGRADES=1` en su shell deja de correr esas pruebas sin aviso] → `FORK.md` nombra la variable nueva donde explica cómo correrlas.
+- [Una sincronización trae cambios en los pasos de `binaries.yml` o en `ci.yml`] → Solo cambian las dos líneas de `install-check.sh` y la del job de versiones publicadas. Los pasos del instalador de OpenSpec quedan como en upstream.
 - [Un CI con `OPENSPEC_SKILLS_SCOPE=project` pasa a instalar los skills para la máquina] → Es la primera línea de la entrada de `CHANGELOG.md`. La página de variables de entorno muestra el ejemplo de CI con `SPECAGILE_SKILLS_SCOPE`.
 - [Quien apagó la búsqueda de versiones con `OPENSPEC_NO_UPDATE_CHECK` (sin red o sin acceso a npm) ve a SpecAgile consultar el registro] → La consulta ya tolera no tener red: tiene un tiempo límite y un error no interrumpe `update`. `CHANGELOG.md` lo nombra.
 - [Un archivo de test que quedó con el nombre anterior se vuelve interactivo o instala skills para la máquina] → El guard 4 lo detecta antes de que el test cuelgue o escriba fuera de su carpeta.
