@@ -116,6 +116,7 @@ const ALLOWED_TEXTS: ReadonlyArray<{ file: string; text: RegExp; reason: string 
   { file: 'src/core/legacy-cleanup.ts', text: /\.cospec\/openspec\/commands\//, reason: "CoStrict's legacy command folder" },
   { file: 'src/commands/install-standalone.ts', text: /'openspec\.exe' : 'openspec'|'Programs', 'openspec'/, reason: "OpenSpec's standalone install; SpecAgile never runs it" },
   { file: 'src/utils/executable-path.ts', text: /\['openspec\.exe', 'openspec\.cmd'\] : \['openspec'\]/, reason: "OpenSpec's executable names" },
+  { file: 'src/core/version-check.ts', text: /segment === 'cellar' && segments\[index \+ 1\] === 'openspec'/, reason: "Homebrew's Cellar folder for the openspec formula, not a project path" },
   { file: 'src/core/fork/identity.ts', text: /FORMER_CLI_NAME = 'openspec'/, reason: "upstream's executable name" },
   { file: 'src/commands/spec.ts', text: /format: 'openspec'/, reason: 'spec metadata format, not a path' },
   { file: 'src/core/parsers/markdown-parser.ts', text: /format: 'openspec'/, reason: 'spec metadata format, not a path' },
