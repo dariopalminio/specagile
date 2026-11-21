@@ -68,7 +68,7 @@ Se agrega la entrada `[FORMER_CHANGE_METADATA_FILE_NAME, CHANGE_METADATA_FILE_NA
 
 Consecuencias:
 
-- **Parity.** Los hashes de parity no cambian, porque comparan a través del inverso.
+- **Parity.** Los hashes de parity si cambian, porque comparan a través del inverso.
 - **Skills anteriores.** `former-skills.ts` compara `applyForkIdentity(contenido)`, así que un skill escrito por OpenSpec o por SpecAgile 4.0.0 se sigue reconociendo como salida propia.
 - **Test de identidad.** En `test/fork/identity.test.ts`, `.openspec.yaml` sale de la lista de textos intactos y pasa a un caso que verifica la traducción.
 - **Distribución.** `skills/` se regenera con `pnpm generate:skills`. El diff esperado es solo `.openspec.yaml` → `.specagile.yaml` en los ocho skills que lo nombran.
