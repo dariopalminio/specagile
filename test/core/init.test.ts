@@ -11,6 +11,7 @@ import { ALL_WORKFLOWS } from '../../src/core/profiles.js';
 import { getCommandContents } from '../../src/core/shared/skill-generation.js';
 import { CommandAdapterRegistry, generateCommands } from '../../src/core/command-generation/index.js';
 import { releasedCodexPrompt } from '../helpers/released-codex-prompt.js';
+import { SPECAGILE_4_0_0_AGENT } from '../helpers/copilot-cloud.js';
 import { SPECAGILE_BANNER } from '../../src/core/fork/identity.js';
 import { RELATIVE_CHANGES_DIR, RELATIVE_CONFIG_FILE, RELATIVE_SPECS_DIR, RELATIVE_TOOL_DIR, createFormerLayout, getArchiveDir, getChangesDir, getConfigFile, getConfigYmlFile, getSpecsDir, getToolDir } from '../helpers/layout.js';
 
@@ -1806,7 +1807,7 @@ describe('InitCommand', () => {
         fs.stat(path.join(testDir, '.github', 'workflows', 'copilot-setup-steps.yml'))
       ).rejects.toMatchObject({ code: 'ENOENT' });
       await expect(
-        fs.stat(path.join(testDir, '.github', 'agents', 'openspec.agent.md'))
+        fs.stat(path.join(testDir, '.github', 'agents', 'specagile.agent.md'))
       ).rejects.toMatchObject({ code: 'ENOENT' });
       // An undecided run leaves config untouched (no githubCopilot key).
       const config = await fs.readFile(getConfigFile(testDir), 'utf8');
@@ -2196,6 +2197,14 @@ describe('InitCommand - profile and detection features', () => {
     expect(confirmMock).toHaveBeenCalledWith(
       expect.objectContaining({ message: expect.stringContaining('copilot-setup-steps.yml') })
     );
+    // SpecAgile: the question names the agent's path, POSIX form on every platform.
+    expect(confirmMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: expect.stringContaining(
+          '.github/workflows/copilot-setup-steps.yml and .github/agents/specagile.agent.md.'
+        ),
+      })
+    );
   });
 
   it('interactive init: declining the cloud prompt writes no cloud files but keeps local ones', async () => {
@@ -2316,7 +2325,7 @@ describe('InitCommand - profile and detection features', () => {
 
   it('opting in over a user-owned cloud file never claims that file was written', async () => {
     const setupRel = path.join('.github', 'workflows', 'copilot-setup-steps.yml');
-    const agentRel = path.join('.github', 'agents', 'openspec.agent.md');
+    const agentRel = path.join('.github', 'agents', 'specagile.agent.md');
     const setupStepsPath = path.join(testDir, setupRel);
     await fs.mkdir(path.dirname(setupStepsPath), { recursive: true });
     await fs.writeFile(setupStepsPath, 'name: my own workflow\n');
@@ -2330,6 +2339,59 @@ describe('InitCommand - profile and detection features', () => {
     expect(out).toContain(`Left your existing ${setupRel} untouched`);
     // And the user's own file is preserved verbatim.
     await expect(fs.readFile(setupStepsPath, 'utf8')).resolves.toBe('name: my own workflow\n');
+  });
+
+  // SpecAgile: the agent at .github/agents/openspec.agent.md (OpenSpec, SpecAgile up to 4.0.0).
+  describe('the former Copilot agent', () => {
+    const formerRel = path.join('.github', 'agents', 'openspec.agent.md');
+    const agentRel = path.join('.github', 'agents', 'specagile.agent.md');
+
+    async function writeFormer(content: string): Promise<void> {
+      await fs.mkdir(path.join(testDir, '.github', 'agents'), { recursive: true });
+      await fs.writeFile(path.join(testDir, formerRel), content);
+    }
+
+    it('writes specagile.agent.md, named SpecAgile, in a new project', async () => {
+      await new InitCommand({ tools: 'github-copilot', force: true, copilotCloud: true }).execute(testDir);
+
+      const agent = await fs.readFile(path.join(testDir, agentRel), 'utf8');
+      expect(agent).toMatch(/^---\nname: SpecAgile\n/);
+      expect(agent).toContain('\n# SpecAgile Agent\n');
+      expect(await fileExists(path.join(testDir, formerRel))).toBe(false);
+      const out = vi.mocked(console.log).mock.calls.flat().join('\n');
+      expect(out).toContain(agentRel);
+    });
+
+    it('replaces the one SpecAgile 4.0.0 wrote', async () => {
+      await writeFormer(SPECAGILE_4_0_0_AGENT);
+
+      await new InitCommand({ tools: 'github-copilot', force: true, copilotCloud: true }).execute(testDir);
+
+      expect(await fileExists(path.join(testDir, formerRel))).toBe(false);
+      expect(await fileExists(path.join(testDir, agentRel))).toBe(true);
+      expect((await fs.readdir(path.join(testDir, '.github', 'agents'))).sort()).toEqual(['specagile.agent.md']);
+    });
+
+    it('keeps an edited one and says so', async () => {
+      const edited = `${SPECAGILE_4_0_0_AGENT}\nOur own note.\n`;
+      await writeFormer(edited);
+
+      await new InitCommand({ tools: 'github-copilot', force: true, copilotCloud: true }).execute(testDir);
+
+      await expect(fs.readFile(path.join(testDir, formerRel), 'utf8')).resolves.toBe(edited);
+      expect(await fileExists(path.join(testDir, agentRel))).toBe(true);
+      const out = vi.mocked(console.log).mock.calls.flat().join('\n');
+      expect(out).toContain(`Kept ${formerRel}: you edited it. SpecAgile's Copilot agent is now ${agentRel}.`);
+    });
+
+    it('removes a generated one with --no-copilot-cloud', async () => {
+      await writeFormer(SPECAGILE_4_0_0_AGENT);
+
+      await new InitCommand({ tools: 'github-copilot', force: true, copilotCloud: false }).execute(testDir);
+
+      expect(await fileExists(path.join(testDir, formerRel))).toBe(false);
+      expect(await fileExists(path.join(testDir, agentRel))).toBe(false);
+    });
   });
 
   it('should respect custom profile from global config', async () => {

@@ -103,7 +103,7 @@ import {
   type UpdateFileOps,
   type UpdatePlan,
 } from './update-plan.js';
-import { includesGitHubCopilot, writeCopilotCloudFiles, removeCopilotCloudFiles, isCopilotCloudEnabled, readCopilotCloudOptIn, findUnmanagedCloudFiles, type CopilotCloudFileOps } from './github-copilot/cloud-agent.js';
+import { includesGitHubCopilot, writeCopilotCloudFiles, removeCopilotCloudFiles, isCopilotCloudEnabled, readCopilotCloudOptIn, findUnmanagedCloudFiles, findKeptFormerCopilotAgent, formerCopilotAgentKeptMessage, type CopilotCloudFileOps } from './github-copilot/cloud-agent.js';
 
 const require = createRequire(import.meta.url);
 const { version: OPENSPEC_VERSION } = require('../../package.json');
@@ -962,6 +962,13 @@ export class UpdateCommand {
                   `install step by hand so the Copilot cloud agent can run openspec.`
               )
             );
+          }
+          // SpecAgile: an edited agent at the former path stays; say so.
+          const keptFormerAgent = await findKeptFormerCopilotAgent(projectPath);
+          if (keptFormerAgent) {
+            const message = formerCopilotAgentKeptMessage(keptFormerAgent);
+            this.log(chalk.yellow(message));
+            this.recorder?.addNote('kept-former-copilot-agent', message);
           }
           return;
         }

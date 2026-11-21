@@ -17,6 +17,12 @@ import { applyLayoutText } from './layout.js';
 export const CLI_NAME = 'specagile';
 
 /**
+ * The product's name where a tool shows it, such as the GitHub Copilot cloud
+ * agent (`name: SpecAgile`). See "SpecAgile identity" in FORK.md.
+ */
+export const PRODUCT_NAME = 'SpecAgile';
+
+/**
  * The name of SpecAgile's global config and data folders: `specagile` under
  * `$XDG_CONFIG_HOME`/`%APPDATA%`/`~/.config` and `$XDG_DATA_HOME`/
  * `%LOCALAPPDATA%`/`~/.local/share`. OpenSpec's `openspec` folders are never

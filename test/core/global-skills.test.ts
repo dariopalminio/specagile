@@ -12,6 +12,7 @@ import { generateSkillContent, getCommandContents, getSkillTemplates } from '../
 import { transformToSharedSkillReferences } from '../../src/utils/command-references.js';
 import { FORMER_SKILL_NAME_BY_WORKFLOW } from '../../src/core/fork/identity.js';
 import { withUpstreamIdentity } from '../helpers/fork-identity.js';
+import { SPECAGILE_4_0_0_AGENT } from '../helpers/copilot-cloud.js';
 import { stripVolatileFrontmatter } from '../../scripts/skillssh-shared.mjs';
 import { RELATIVE_CHANGES_DIR, RELATIVE_CONFIG_FILE, RELATIVE_SPECS_DIR, RELATIVE_TOOL_DIR, getToolDir } from '../helpers/layout.js';
 
@@ -442,7 +443,7 @@ describe('skills installed for this machine', { timeout: 60_000 }, () => {
     it('keeps Copilot and project skills when one of the requested global targets fails, and retries', async () => {
       const dir = await project('partial');
       await cli(dir, 'init', '--scope', 'project', '--tools', 'claude,github-copilot', '--copilot-cloud');
-      const files = [RELATIVE_CONFIG_FILE, '.github/workflows/copilot-setup-steps.yml', '.github/agents/openspec.agent.md',
+      const files = [RELATIVE_CONFIG_FILE, '.github/workflows/copilot-setup-steps.yml', '.github/agents/specagile.agent.md',
         '.agents/skills/.openspec-target', ...CORE_SKILLS.map(name => `.agents/skills/${name}/SKILL.md`)];
       const before = files.map(file => readFileSync(path.join(dir, file), 'utf8'));
       await fs.mkdir(path.join(home, '.claude'));
@@ -476,6 +477,26 @@ describe('skills installed for this machine', { timeout: 60_000 }, () => {
       expect(await globalSkills()).toEqual(CORE_SKILLS);
     });
 
+    // SpecAgile: a project whose only cloud file is the agent SpecAgile 4.0.0 wrote.
+    it('refuses to move a project with only the former Copilot agent, unless the cloud files are turned off', async () => {
+      const dir = await project('app');
+      await cli(dir, 'init', '--scope', 'project', '--tools', 'github-copilot');
+      const formerAgent = path.join(dir, '.github', 'agents', 'openspec.agent.md');
+      await fs.mkdir(path.dirname(formerAgent), { recursive: true });
+      await fs.writeFile(formerAgent, SPECAGILE_4_0_0_AGENT);
+
+      const refused = await cli(dir, 'init', '--scope', 'global');
+      expect(refused.exitCode).toBe(1);
+      expect(refused.stderr).toContain('This project has the GitHub Copilot cloud files set up');
+      expect(existsSync(path.join(dir, '.agents', 'skills', 'sa-propose', 'SKILL.md'))).toBe(true);
+      expect(existsSync(formerAgent)).toBe(true);
+
+      const moved = await cli(dir, 'init', '--scope', 'global', '--no-copilot-cloud');
+      expect(moved.exitCode, moved.stderr).toBe(0);
+      expect(existsSync(path.join(dir, '.agents'))).toBe(false);
+      expect(existsSync(formerAgent)).toBe(false);
+    });
+
     it.skipIf(process.platform === 'win32')('stops the move when the Copilot cloud files cannot be removed', async () => {
       const dir = await project('app');
       await cli(dir, 'init', '--scope', 'project', '--tools', 'github-copilot', '--copilot-cloud');
@@ -490,7 +511,7 @@ describe('skills installed for this machine', { timeout: 60_000 }, () => {
 
       expect(result.exitCode).toBe(1);
       expect(existsSync(path.join(dir, '.agents', 'skills', 'sa-propose', 'SKILL.md'))).toBe(true);
-      expect(existsSync(path.join(workflows, 'openspec.agent.md'))).toBe(true);
+      expect(existsSync(path.join(workflows, 'specagile.agent.md'))).toBe(true);
       expect(existsSync(path.join(dir, '.github/workflows/copilot-setup-steps.yml'))).toBe(true);
       expect(readFileSync(path.join(dir, RELATIVE_CONFIG_FILE), 'utf8')).toContain('cloudAgent: true');
       expect(await globalSkills()).toEqual(CORE_SKILLS);

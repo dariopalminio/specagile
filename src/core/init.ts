@@ -108,6 +108,9 @@ import {
   removeCopilotCloudFiles,
   findUnmanagedCloudFiles,
   listManagedCloudFiles,
+  COPILOT_CLOUD_FILES,
+  findKeptFormerCopilotAgent,
+  formerCopilotAgentKeptMessage,
 } from './github-copilot/cloud-agent.js';
 
 const require = createRequire(import.meta.url);
@@ -384,6 +387,8 @@ export class InitCommand {
     const wroteCloud = copilotDecision.write && copilotSucceeded;
     const copilotPresent = wroteCloud ? await listManagedCloudFiles(projectPath) : [];
     const copilotCollisions = wroteCloud ? await findUnmanagedCloudFiles(projectPath) : [];
+    // SpecAgile: an edited agent at the former path stays, and is reported.
+    const copilotKeptFormerAgent = wroteCloud ? await findKeptFormerCopilotAgent(projectPath) : null;
 
     rememberProject(projectPath);
 
@@ -393,6 +398,7 @@ export class InitCommand {
       skippedUndecided: copilotDecision.skippedUndecided,
       present: copilotPresent,
       collisions: copilotCollisions,
+      keptFormerAgent: copilotKeptFormerAgent,
       removed: copilotRemoved,
     });
     if (results.failedTools.length > 0) {
@@ -555,7 +561,7 @@ export class InitCommand {
         removedSkillCount: 0,
       },
       configStatus,
-      { write: false, skippedUndecided: false, present: [], collisions: [], removed: 0 },
+      { write: false, skippedUndecided: false, present: [], collisions: [], keptFormerAgent: null, removed: 0 },
       globalSkills
     );
     return true;
@@ -692,7 +698,8 @@ export class InitCommand {
         message:
           'Set up GitHub Copilot cloud coding-agent files? This is for the GitHub-hosted ' +
           'Copilot coding agent (github.com), not Copilot in your editor. It writes two files: ' +
-          '.github/workflows/copilot-setup-steps.yml and .github/agents/openspec.agent.md.',
+          // SpecAgile: the agent's path comes from COPILOT_CLOUD_FILES, in POSIX form.
+          `.github/workflows/copilot-setup-steps.yml and ${COPILOT_CLOUD_FILES.agent.split(path.sep).join('/')}.`,
         default: false,
       });
       return { write: answer, persist: answer, optedOut: !answer, skippedUndecided: false };
@@ -1414,6 +1421,7 @@ export class InitCommand {
       skippedUndecided: boolean;
       present: string[];
       collisions: string[];
+      keptFormerAgent: string | null;
       removed: number;
     },
     globalSkills?: { count: number }
@@ -1485,6 +1493,9 @@ export class InitCommand {
               `install step by hand so the Copilot cloud agent can run openspec.`
           )
         );
+      }
+      if (copilot.keptFormerAgent) {
+        console.log(chalk.yellow(formerCopilotAgentKeptMessage(copilot.keptFormerAgent)));
       }
     } else if (copilotSucceeded && copilot.removed > 0) {
       console.log(

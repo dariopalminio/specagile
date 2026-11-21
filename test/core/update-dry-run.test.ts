@@ -15,6 +15,7 @@ import {
 } from '../../src/core/github-copilot/cloud-agent.js';
 import { releasedCodexPrompt } from '../helpers/released-codex-prompt.js';
 import { RELATIVE_TOOL_DIR, getToolDir } from '../helpers/layout.js';
+import { SPECAGILE_4_0_0_AGENT } from '../helpers/copilot-cloud.js';
 
 const { confirmMock } = vi.hoisted(() => ({ confirmMock: vi.fn() }));
 
@@ -368,9 +369,54 @@ describe('openspec update --dry-run', () => {
     const changes = await expectPlanMatchesRealUpdate({ force: true });
 
     expect(changes).toContainEqual({
-      path: '.github/agents/openspec.agent.md',
+      path: '.github/agents/specagile.agent.md',
       action: 'delete',
       tool: 'github-copilot',
+    });
+  });
+
+  // SpecAgile: the agent SpecAgile 4.0.0 wrote at .github/agents/openspec.agent.md.
+  describe('the former Copilot agent', () => {
+    async function writeFormer(content: string): Promise<void> {
+      const formerPath = path.join(testDir, '.github', 'agents', 'openspec.agent.md');
+      await fs.mkdir(path.dirname(formerPath), { recursive: true });
+      await fs.writeFile(formerPath, content);
+    }
+
+    it('plans its move to specagile.agent.md', async () => {
+      await new InitCommand({ tools: 'github-copilot', force: true }).execute(testDir);
+      await writeFormer(SPECAGILE_4_0_0_AGENT);
+
+      const plan = await expectFullPlanMatchesRealUpdate();
+
+      expect(plan.changes).toContainEqual({
+        path: '.github/agents/openspec.agent.md',
+        action: 'delete',
+        tool: 'github-copilot',
+      });
+      expect(plan.changes).toContainEqual({
+        path: '.github/agents/specagile.agent.md',
+        action: 'add',
+        tool: 'github-copilot',
+      });
+      expect(plan.notes.map((note) => note.code)).not.toContain('kept-former-copilot-agent');
+    });
+
+    it('notes an edited one it keeps', async () => {
+      await new InitCommand({ tools: 'github-copilot', force: true, copilotCloud: true }).execute(
+        testDir
+      );
+      await writeFormer(`${SPECAGILE_4_0_0_AGENT}\nOur own note.\n`);
+
+      const plan = await expectFullPlanMatchesRealUpdate({ force: true });
+
+      expect(plan.changes.map((change) => change.path)).not.toContain(
+        '.github/agents/openspec.agent.md'
+      );
+      expect(plan.notes).toContainEqual({
+        code: 'kept-former-copilot-agent',
+        message: `Kept ${path.join('.github', 'agents', 'openspec.agent.md')}: you edited it. SpecAgile's Copilot agent is now ${path.join('.github', 'agents', 'specagile.agent.md')}.`,
+      });
     });
   });
 

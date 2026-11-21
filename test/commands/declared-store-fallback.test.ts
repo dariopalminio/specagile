@@ -201,7 +201,7 @@ describe('declared store fallback (3.2)', () => {
       'workflows',
       'copilot-setup-steps.yml'
     );
-    const agentPath = path.join(pointerRepo, '.github', 'agents', 'openspec.agent.md');
+    const agentPath = path.join(pointerRepo, '.github', 'agents', 'specagile.agent.md');
     const before = fs.readFileSync(configPath, 'utf8');
 
     const enabled = await runCLI(
