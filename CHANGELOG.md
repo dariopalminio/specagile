@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Breaking Changes
+
+- **Each change keeps its metadata in `.specagile.yaml`.** `specagile new change`, and the skills that create a change (`sa-specify`, `sa-propose`, `sa-new-change`), write `changes/<change>/.specagile.yaml` instead of `.openspec.yaml`, with the same content (`schema`, `created` and the optional keys). `specagile new change --json` names it in `metadataPath`. Messages, the generated skills and the `spec-driven` schema's instructions name `.specagile.yaml` too.
+- **Run `specagile update` in each project and each store, then commit the renames.** It renames `.openspec.yaml` to `.specagile.yaml` in each active change, without changing its content, and prints each rename (`specagile init` does the same). `specagile update --dry-run` shows them first. Archived changes keep `.openspec.yaml`. A change that already has both files keeps both, with a warning: `.specagile.yaml` is the one used. A file another program holds open stays as it is and is named in the output; close it and run `specagile update` again.
+- **Changes with `.openspec.yaml` keep working.** In a change that has no `.specagile.yaml`, SpecAgile reads `.openspec.yaml` with the same effect: the schema, `skip_specs`, `retire_capabilities`, `initiative` and `x-` keys. That covers changes made with OpenSpec or with SpecAgile 4.0.0 or earlier, archived ones included. When a change has both files, only `.specagile.yaml` is read, even if it is invalid.
+- **Teammates on SpecAgile 4.0.0 or earlier** don't read `.specagile.yaml`: for their CLI, those changes have no metadata (the default schema, no `skip_specs`, no `retire_capabilities`). Update SpecAgile on every machine before committing the renames.
+- **Tools and scripts that read `.openspec.yaml`**, for example to read your `x-` keys, need to read `.specagile.yaml`, falling back to `.openspec.yaml` for changes that don't have it.
+
 ### Patch Changes
 
 Fixes from OpenSpec 2.1.1, with `specagile` in place of `openspec` and the `sa-*` skill names. OpenSpec 2.1.1 also installs skills from the npm package instead of cloning them; SpecAgile keeps installing them from its repository's release tag, so Git and access to GitHub are still needed.

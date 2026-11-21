@@ -151,7 +151,7 @@ All of these are in the default profile. If you want the expanded workflow (`sa-
 
 These are skills. Most tools invoke them as `/sa-propose` and Codex as `$sa-propose`, or you can ask for the work in plain words. `specagile init` prints the right form for the tools you picked — see [Supported Tools](docs-lab/reference/supported-tools.md). Coming from 1.x and its `/opsx:*` commands? See [Upgrade to 2.0](docs-lab/help/upgrade-to-2.md).
 
-**Coming from OpenSpec?** In a project set up with `openspec init`, run `specagile update`. It installs the `sa-*` skills and removes the `openspec-*` skills OpenSpec wrote, as long as they are unchanged; a skill you edited stays where it is and is listed in the output. It also moves the project's `openspec/` folder to the SpecAgile layout, with `specs/`, `changes/` and `specagile/` at the root; commit the move (see [Move to the SpecAgile layout](docs-lab/help/move-to-the-specagile-layout.md)). After that, use `specagile` in that project: OpenSpec no longer finds its planning there.
+**Coming from OpenSpec?** In a project set up with `openspec init`, run `specagile update`. It installs the `sa-*` skills and removes the `openspec-*` skills OpenSpec wrote, as long as they are unchanged; a skill you edited stays where it is and is listed in the output. It also moves the project's `openspec/` folder to the SpecAgile layout, with `specs/`, `changes/` and `specagile/` at the root, and renames each active change's `.openspec.yaml` to `.specagile.yaml`; commit the move (see [Move to the SpecAgile layout](docs-lab/help/move-to-the-specagile-layout.md)). After that, use `specagile` in that project: OpenSpec no longer finds its planning there.
 
 ## Documentation
 

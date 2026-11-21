@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { runCLI } from '../helpers/run-cli.js';
-import { getChangesDir, getSpecsDir, getToolDir } from '../helpers/layout.js';
+import { CHANGE_METADATA_FILE_NAME, getChangesDir, getSpecsDir, getToolDir } from '../helpers/layout.js';
 
 describe('top-level validate command', () => {
   const projectRoot = process.cwd();
@@ -101,7 +101,7 @@ describe('top-level validate command', () => {
 
     const result = await runCLI(['validate', 'marked-invalid', '--type', 'change'], { cwd: testDir });
     expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain('Fix .openspec.yaml so the skip_specs marker can be honored');
+    expect(result.stderr).toContain(`Fix ${CHANGE_METADATA_FILE_NAME} so the skip_specs marker can be honored`);
     expect(result.stderr).not.toContain('delete the files under specs/');
   });
 

@@ -221,11 +221,12 @@ export function applyProductText(text: string): string {
 /**
  * Rewrites text written by upstream into SpecAgile's identity: its names
  * (`applyForkNames`), then its layout paths (`applyLayoutText`), so
- * `<planningHome.root>/openspec/specs/` reads `<planningHome.root>/specs/` and
- * `<root.path>/openspec/config.yaml` reads `<root.path>/specagile/config.yaml`,
- * then the greetings in PRODUCT_TEXT_REPLACEMENTS (`applyProductText`).
- * Internal files (`.openspec.yaml`, `.openspec-target`, `.openspec-store/`),
- * the store location `~/openspec/<id>` and any other "OpenSpec" in prose stay.
+ * `<planningHome.root>/openspec/specs/` reads `<planningHome.root>/specs/`,
+ * `<root.path>/openspec/config.yaml` reads `<root.path>/specagile/config.yaml`
+ * and a change's `.openspec.yaml` reads `.specagile.yaml`, then the greetings
+ * in PRODUCT_TEXT_REPLACEMENTS (`applyProductText`). Internal files
+ * (`.openspec-target`, `.openspec-store/`), the store location
+ * `~/openspec/<id>` and any other "OpenSpec" in prose stay.
  *
  * Idempotent: text that already has the fork's identity comes back unchanged.
  */

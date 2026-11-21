@@ -62,7 +62,8 @@ Upstream (2.1.0) no trae `specify` ni `plan`. Estado del fork:
   `plan`. No renombrar `apply-change.ts` (es de upstream) ni sumar ids a
   `COMMAND_IDS`.
 - Ya los trae upstream, no son cambios del fork: `archive --skip-specs` y
-  `skip_specs: true` en `.openspec.yaml`.
+  `skip_specs: true` en los metadatos del change (`.specagile.yaml` en el fork;
+  upstream lo llama `.openspec.yaml`).
 - Paquete npm propio: `specagile` (`npm install -g specagile`), versión 2.1.0.
   Sin instalación standalone (`specagile install` solo indica npm) y sin
   telemetría; los enlaces y `feedback` van a `github.com/dariopalminio/specagile`.
@@ -79,11 +80,19 @@ Upstream (2.1.0) no trae `specify` ni `plan`. Estado del fork:
   `test/fork/cli-name.test.ts` falla si queda un `openspec <comando>`. No renombrar
   `src/`, la carpeta `openspec/` de este repositorio (se opera con la CLI de
   OpenSpec upstream), los ids de workflow ni los archivos internos
-  (`.openspec-target`).
+  (`.openspec-target`, `.openspec-store/`).
 - Layout de proyecto (`specs/`, `changes/` y `specagile/` en la raíz): la fuente
   única es `src/core/fork/layout.ts`, y la migración del layout `openspec/`
   anterior, `src/core/fork/layout-migration.ts`; ver "Project layout" en
   `FORK.md`. Las rutas del layout en `src/` se arman con ese módulo:
   `test/fork/layout.test.ts` falla si se arma una a mano. Los tests usan
   `test/helpers/layout.ts`, y `createFormerLayout` para el layout anterior.
+- Metadatos de cada change en `.specagile.yaml` (`CHANGE_METADATA_FILE_NAME` en
+  `layout.ts`). Se lee también `.openspec.yaml` si el change no tiene
+  `.specagile.yaml` (`getChangeMetadataFile`), y `update`/`init` lo renombran en
+  los changes activos (`src/core/fork/change-metadata-migration.ts`). Las
+  lecturas usan `getChangeMetadataFile`, nunca `path.join(changeDir,
+  METADATA_FILENAME)`; las guardas de `test/fork/` fallan con un literal
+  `.openspec.yaml` en `src/` o con un uso nuevo de `METADATA_FILENAME`. Los
+  `.openspec.yaml` de la carpeta `openspec/` de este repositorio no se tocan.
   

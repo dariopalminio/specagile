@@ -102,20 +102,20 @@ const EXPECTED_FUNCTION_HASHES: Record<string, string> = {
 };
 
 const EXPECTED_GENERATED_SKILL_CONTENT_HASHES: Record<string, string> = {
-  'sa-explore': '5d15f16d8ccad4e3a860d8d254ba3aebb2c2550341f958e40cf328943a8862ea',
+  'sa-explore': 'fa39e2f6058957e29ba691017316c71055fc9305467360ab224aeaa1322edd7b',
   'sa-new-change': 'bd70bff38fd52c4048c4de89c32150b70e45a07503d79e680537227b790a3205',
   'sa-continue-change': '3b0494e312f342b08dc3478c846c59f0857c264d4de8250058529d39be8c305c',
   'sa-implement': '365c4b880a0a4a5aa7ae409e07d0d12bbc2934afc3a885bccfdef42451c485f9',
-  'sa-ff-change': '0706b27e4a951780219d9cfe198cad039d0c031abb5954ede526f7daf116e2ed',
-  'sa-sync-specs': '60ab82f691874b852b5967ffa9b8b18690682db343286e6d04d1577827eccde0',
-  'sa-archive': 'ce4976ab5aa6e26cde1e2a9549d09fb857ea325a07768d08bb301d3bf6230688',
-  'sa-bulk-archive-change': '67bb2aa4376d718cb060db2c2c17e27a708787927039a97004c07b3dcd1482d0',
+  'sa-ff-change': 'f15eb39b443459ec9e72a73239fa7145100909592e9d3bbda27cdf6d4af7dc0f',
+  'sa-sync-specs': '1015e9da32e670dc6f45736536c3ad74c623779b322e593d62c6d777564ef798',
+  'sa-archive': 'd4c33dcf22e849d0441248aeeecb602b787a03d34291450249cc3f719107481f',
+  'sa-bulk-archive-change': '9cbfa7a1a4d13f7c83fca50e560d9f8b719a2526fad52c7a9676855e5a29d0ae',
   'sa-verify': '9be29a01b42140e59dd46cb05e71d2c0e607c0a1450d66038b88d750b4287a6b',
   'sa-onboard': 'fa244d51bdba7a86a5ed1bf5df2db95d9ca2449b3bbe1603fc8f3c1583de2696',
-  'sa-propose': '9994fe983d5100c5d6fa4bdeb7ab220d3cc19361a782ea7d41c3b1cb3362e1fb',
+  'sa-propose': 'cf98a1546f7e3c3541d705ee33f431d24916c4db964b6dfcee051be14c80df9c',
   'sa-update-change': '79b2ab90a75a2030efbfb41b30cefc637516ea2e7961c72192c48a9f153755cf',
-  'sa-specify': '4b432b3e544bdd35a75a2f486db8d31bac69244752f2a198f87fa4f07f15d723',
-  'sa-plan': '129f657cfde000800890b9f55945012a6ad5571a5e9ac8221ea75e6de51c94f9',
+  'sa-specify': 'cb14b4e68c2765f18a6d4927e1898a89f7a0af042fb6b8c01d8ab6499d8be8c2',
+  'sa-plan': '175e8c1139e5f6d0ec2b96751e78a7536830dc682d36be817c642aa48b97a477',
 };
 
 // Intentionally excludes getFeedbackSkillTemplate: this list only models templates

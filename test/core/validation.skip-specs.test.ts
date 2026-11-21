@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { Validator } from '../../src/core/validation/validator.js';
-import { getChangesDir, getProjectSchemasDir } from '../helpers/layout.js';
+import { CHANGE_METADATA_FILE_NAME, getChangesDir, getProjectSchemasDir } from '../helpers/layout.js';
 
 const PROPOSAL = `# Test Change
 
@@ -72,7 +72,7 @@ describe('Validator skip_specs handling', () => {
 
     expect(report.valid).toBe(false);
     const msg = report.issues.map(i => i.message).join('\n');
-    expect(msg).toContain('skip_specs is set in .openspec.yaml but spec files exist under specs/');
+    expect(msg).toContain(`skip_specs is set in ${CHANGE_METADATA_FILE_NAME} but spec files exist under specs/`);
   });
 
   it('treats skip_specs plus a delta file with no parseable deltas as a conflict, not acceptance', async () => {
@@ -89,7 +89,7 @@ describe('Validator skip_specs handling', () => {
 
     expect(report.valid).toBe(false);
     const messages = report.issues.map(i => i.message).join('\n');
-    expect(messages).toContain('skip_specs is set in .openspec.yaml but spec files exist under specs/');
+    expect(messages).toContain(`skip_specs is set in ${CHANGE_METADATA_FILE_NAME} but spec files exist under specs/`);
     expect(report.issues.some(i => i.level === 'INFO')).toBe(false);
   });
 
@@ -106,7 +106,7 @@ describe('Validator skip_specs handling', () => {
 
     expect(report.valid).toBe(false);
     const messages = report.issues.map(i => i.message).join('\n');
-    expect(messages).toContain('skip_specs is set in .openspec.yaml but spec files exist under specs/');
+    expect(messages).toContain(`skip_specs is set in ${CHANGE_METADATA_FILE_NAME} but spec files exist under specs/`);
   });
 
   it('treats skip_specs plus a stray non-spec file under specs/ as a conflict', async () => {
@@ -125,7 +125,7 @@ describe('Validator skip_specs handling', () => {
 
     expect(report.valid).toBe(false);
     const messages = report.issues.map(i => i.message).join('\n');
-    expect(messages).toContain('skip_specs is set in .openspec.yaml but spec files exist under specs/');
+    expect(messages).toContain(`skip_specs is set in ${CHANGE_METADATA_FILE_NAME} but spec files exist under specs/`);
     expect(report.issues.some(i => i.level === 'INFO')).toBe(false);
   });
 
@@ -140,7 +140,7 @@ describe('Validator skip_specs handling', () => {
 
     expect(report.valid).toBe(false);
     const messages = report.issues.map(i => i.message).join('\n');
-    expect(messages).toContain('skip_specs is set but .openspec.yaml is not valid change metadata');
+    expect(messages).toContain(`skip_specs is set but ${CHANGE_METADATA_FILE_NAME} is not valid change metadata`);
     expect(messages).toContain('not valid YAML');
   });
 
@@ -154,7 +154,7 @@ describe('Validator skip_specs handling', () => {
 
     expect(report.valid).toBe(false);
     const msg = report.issues.map(i => i.message).join('\n');
-    expect(msg).toContain('skip_specs is set but .openspec.yaml is not valid change metadata');
+    expect(msg).toContain(`skip_specs is set but ${CHANGE_METADATA_FILE_NAME} is not valid change metadata`);
     expect(msg).toContain('Change must have at least one delta');
   });
 
@@ -172,7 +172,7 @@ describe('Validator skip_specs handling', () => {
 
     expect(report.valid).toBe(false);
     const msg = report.issues.map(i => i.message).join('\n');
-    expect(msg).toContain('skip_specs is set but .openspec.yaml is not valid change metadata');
+    expect(msg).toContain(`skip_specs is set but ${CHANGE_METADATA_FILE_NAME} is not valid change metadata`);
     expect(msg).toContain("unknown schema 'does-not-exist'");
     expect(msg).toContain('Change must have at least one delta');
   });
@@ -230,7 +230,7 @@ describe('Validator skip_specs handling', () => {
 
     expect(report.valid).toBe(false);
     const msg = report.issues.map(i => i.message).join('\n');
-    expect(msg).toContain('skip_specs is set but .openspec.yaml is not valid change metadata');
+    expect(msg).toContain(`skip_specs is set but ${CHANGE_METADATA_FILE_NAME} is not valid change metadata`);
     expect(msg).toContain('schema');
   });
 
@@ -254,7 +254,7 @@ describe('Validator skip_specs handling', () => {
 
     expect(report.valid).toBe(false);
     const msg = report.issues.map(i => i.message).join('\n');
-    expect(msg).toContain('skip_specs is set but .openspec.yaml is not valid change metadata');
+    expect(msg).toContain(`skip_specs is set but ${CHANGE_METADATA_FILE_NAME} is not valid change metadata`);
   });
 
   it('rejects a schema name that only resolves via extension normalization', async () => {
@@ -314,7 +314,7 @@ describe('Validator skip_specs handling', () => {
 
     expect(report.valid).toBe(false);
     const msg = report.issues.map(i => i.message).join('\n');
-    expect(msg).toContain('skip_specs is set in .openspec.yaml but spec files exist under specs/');
+    expect(msg).toContain(`skip_specs is set in ${CHANGE_METADATA_FILE_NAME} but spec files exist under specs/`);
   });
 
   it('fails closed when the metadata file exists but cannot be read', async () => {
@@ -328,7 +328,7 @@ describe('Validator skip_specs handling', () => {
 
     expect(report.valid).toBe(false);
     const msg = report.issues.map(i => i.message).join('\n');
-    expect(msg).toContain('skip_specs is set but .openspec.yaml is not valid change metadata');
+    expect(msg).toContain(`skip_specs is set but ${CHANGE_METADATA_FILE_NAME} is not valid change metadata`);
     expect(msg).toContain('cannot be read');
   });
 
@@ -359,7 +359,7 @@ describe('Validator skip_specs handling', () => {
     const msg = report.issues.map(i => i.message).join('\n');
     expect(msg).toContain('Change must have at least one delta');
     // Both validate paths explain why the marker was not honored.
-    expect(msg).toContain('skip_specs is set but .openspec.yaml is not valid change metadata');
+    expect(msg).toContain(`skip_specs is set but ${CHANGE_METADATA_FILE_NAME} is not valid change metadata`);
   });
 
   it('still rejects zero deltas when metadata is malformed', async () => {
@@ -384,7 +384,7 @@ describe('Validator skip_specs handling', () => {
 
     expect(report.valid).toBe(false);
     const msg = report.issues.map(i => i.message).join('\n');
-    expect(msg).toContain('skip_specs is set but .openspec.yaml is not valid change metadata');
+    expect(msg).toContain(`skip_specs is set but ${CHANGE_METADATA_FILE_NAME} is not valid change metadata`);
   });
 
   it('does not crash when specs is a regular file instead of a directory', async () => {
@@ -404,7 +404,7 @@ describe('Validator skip_specs handling', () => {
     );
     const marked = await validator.validateChangeDeltaSpecs(testDir);
     expect(marked.valid).toBe(false);
-    expect(marked.issues.map(i => i.message).join('\n')).toContain('skip_specs is set in .openspec.yaml but spec files exist under specs/');
+    expect(marked.issues.map(i => i.message).join('\n')).toContain(`skip_specs is set in ${CHANGE_METADATA_FILE_NAME} but spec files exist under specs/`);
   });
 
   it('ignores dot-files under specs/ just like every other code path', async () => {

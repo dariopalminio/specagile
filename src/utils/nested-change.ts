@@ -2,9 +2,14 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { artifactOutputExists } from '../core/artifact-graph/outputs.js';
 import { resolveSchema } from '../core/artifact-graph/resolver.js';
-import { METADATA_FILENAME, resolveSchemaForChange } from './change-metadata.js';
+import { resolveSchemaForChange } from './change-metadata.js';
 import { hasAnyFileUnder } from './spec-discovery.js';
-import { RELATIVE_CHANGES_DIR, RELATIVE_SPECS_DIR, getRootOfChangesDir } from '../core/fork/layout.js';
+import {
+  CHANGE_METADATA_FILE_NAMES,
+  RELATIVE_CHANGES_DIR,
+  RELATIVE_SPECS_DIR,
+  getRootOfChangesDir,
+} from '../core/fork/layout.js';
 
 /**
  * Files that only ever sit at the root of a change directory. Their presence
@@ -21,7 +26,7 @@ import { RELATIVE_CHANGES_DIR, RELATIVE_SPECS_DIR, getRootOfChangesDir } from '.
  * way round.
  */
 const CHANGE_ROOT_MARKERS = [
-  METADATA_FILENAME,
+  ...CHANGE_METADATA_FILE_NAMES,
   'proposal.md',
   'tasks.md',
   'design.md',

@@ -9,7 +9,7 @@ import { formatLocalDate } from '../../src/utils/date.js';
 import { constants as fsConstants, promises as fs, realpathSync } from 'fs';
 import path from 'path';
 import os from 'os';
-import { RELATIVE_CHANGES_DIR, RELATIVE_SPECS_DIR, getArchiveDir, getChangesDir, getProjectSchemasDir, getSpecsDir, getToolDir } from '../helpers/layout.js';
+import { CHANGE_METADATA_FILE_NAME, RELATIVE_CHANGES_DIR, RELATIVE_SPECS_DIR, getArchiveDir, getChangesDir, getProjectSchemasDir, getSpecsDir, getToolDir } from '../helpers/layout.js';
 
 // SpecAgile: path suffixes of the layout's folders (src/core/fork/layout.ts),
 // for the fs spies below that match a path by its end.
@@ -2632,7 +2632,7 @@ New feature description.
       await archiveCommand.execute(changeName, { yes: true });
 
       expect(console.log).toHaveBeenCalledWith(
-        expect.stringContaining('skip_specs is set in .openspec.yaml but spec files exist under specs/')
+        expect.stringContaining(`skip_specs is set in ${CHANGE_METADATA_FILE_NAME} but spec files exist under specs/`)
       );
       expect(process.exitCode).toBe(1);
       // Change must not have moved.
@@ -2652,7 +2652,7 @@ New feature description.
       await archiveCommand.execute(changeName, { yes: true });
 
       expect(console.log).toHaveBeenCalledWith(
-        expect.stringContaining('skip_specs is set but .openspec.yaml is not valid change metadata')
+        expect.stringContaining(`skip_specs is set but ${CHANGE_METADATA_FILE_NAME} is not valid change metadata`)
       );
       expect(process.exitCode).toBe(1);
       const archives = await fs.readdir(getArchiveDir(tempDir));
@@ -2674,7 +2674,7 @@ New feature description.
       await archiveCommand.execute(changeName, { yes: true });
 
       expect(console.log).toHaveBeenCalledWith(
-        expect.stringContaining('skip_specs is set but .openspec.yaml is not valid change metadata')
+        expect.stringContaining(`skip_specs is set but ${CHANGE_METADATA_FILE_NAME} is not valid change metadata`)
       );
       expect(process.exitCode).toBe(1);
       const archives = await fs.readdir(getArchiveDir(tempDir));
@@ -2692,7 +2692,7 @@ New feature description.
       await archiveCommand.execute(changeName, { yes: true });
 
       expect(console.log).toHaveBeenCalledWith(
-        expect.stringContaining('skip_specs is set but .openspec.yaml is not valid change metadata')
+        expect.stringContaining(`skip_specs is set but ${CHANGE_METADATA_FILE_NAME} is not valid change metadata`)
       );
       expect(process.exitCode).toBe(1);
       const archives = await fs.readdir(getArchiveDir(tempDir));

@@ -22,6 +22,7 @@ import { findRepoPlanningRootSync } from './planning-home.js';
 import { resolveOpenSpecRoot } from './root-selection.js';
 import { ANCHORED_OPENSPEC_DIRS, ensureDirectoryAnchor } from './openspec-root.js';
 import { describeLayoutMigration, migrateFormerLayout } from './fork/layout-migration.js';
+import { describeChangeMetadataMigration, migrateChangeMetadata } from './fork/change-metadata-migration.js';
 import {
   RELATIVE_CONFIG_FILE,
   RELATIVE_CONFIG_FILES,
@@ -264,6 +265,15 @@ export class InitCommand {
         '--language cannot update an external store through a pointer repo. ' +
         'Run init in the store root, or edit the store config directly.'
       );
+    }
+
+    // SpecAgile: each active change's .openspec.yaml becomes .specagile.yaml
+    // (src/core/fork/change-metadata-migration.ts). A pointer repo has no
+    // changes/ of its own.
+    if (!integrationsOnly) {
+      const metadata = describeChangeMetadataMigration(await migrateChangeMetadata(projectPath));
+      for (const line of metadata.info) console.log(chalk.dim(line));
+      for (const line of metadata.warnings) console.log(chalk.yellow(line));
     }
 
     const detectedTools = getAvailableTools(projectPath);

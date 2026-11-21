@@ -196,9 +196,21 @@ describe('the layout in generated text', () => {
     }
   });
 
+  it("translates a change's metadata file, and nothing that only resembles it", () => {
+    expect(applyForkIdentity('changes/<name>/.openspec.yaml')).toBe('changes/<name>/.specagile.yaml');
+    expect(applyForkIdentity("the change's `.openspec.yaml` declares `retire_capabilities: true`")).toBe(
+      "the change's `.specagile.yaml` declares `retire_capabilities: true`"
+    );
+    expect(applyForkIdentity('Preserve .openspec.yaml when moving to archive')).toBe(
+      'Preserve .specagile.yaml when moving to archive'
+    );
+    for (const text of ['.openspec-store/store.yaml', '.agents/skills/.openspec-target', 'openspec.yaml', '.openspec.yml']) {
+      expect(applyForkIdentity(text), text).toBe(text);
+    }
+  });
+
   it('leaves internal files, the store location and the npm package alone', () => {
     const untouched = [
-      'changes/<name>/.openspec.yaml',
       '.agents/skills/.openspec-target',
       '<store>/.openspec-store/store.yaml',
       'specagile store setup team --path ~/openspec/team',

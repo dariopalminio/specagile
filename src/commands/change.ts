@@ -15,7 +15,13 @@ import {
 } from '../utils/nested-change.js';
 import { getTaskProgressForChange } from '../utils/task-progress.js';
 import { FileSystemUtils } from '../utils/file-system.js';
-import { getChangesDir, getRootOfChangesDir, getSpecsDir, relativeSpecFile } from '../core/fork/layout.js';
+import {
+  CHANGE_METADATA_FILE_NAME,
+  getChangesDir,
+  getRootOfChangesDir,
+  getSpecsDir,
+  relativeSpecFile,
+} from '../core/fork/layout.js';
 import { assertDiscoveredSpecFile } from '../utils/spec-path-containment.js';
 import { discoverSpecFiles } from '../utils/spec-discovery.js';
 import {
@@ -592,11 +598,11 @@ export class ChangeCommand {
       i.message.includes(VALIDATION_MESSAGES.CHANGE_SKIP_SPECS_INVALID_METADATA)
     );
     if (conflictIssue) {
-      bullets.push('- This change declares skip_specs (no spec deltas): delete the files under specs/, or remove skip_specs from .openspec.yaml if requirements do change');
-      bullets.push('- skip_specs is only honored when .openspec.yaml is valid change metadata (schema: <name> is required)');
+      bullets.push(`- This change declares skip_specs (no spec deltas): delete the files under specs/, or remove skip_specs from ${CHANGE_METADATA_FILE_NAME} if requirements do change`);
+      bullets.push(`- skip_specs is only honored when ${CHANGE_METADATA_FILE_NAME} is valid change metadata (schema: <name> is required)`);
     } else if (invalidMarkerIssue) {
-      bullets.push('- Fix .openspec.yaml so the skip_specs marker can be honored (schema: <name> is required)');
-      bullets.push('- Or remove skip_specs from .openspec.yaml and add delta specs instead');
+      bullets.push(`- Fix ${CHANGE_METADATA_FILE_NAME} so the skip_specs marker can be honored (schema: <name> is required)`);
+      bullets.push(`- Or remove skip_specs from ${CHANGE_METADATA_FILE_NAME} and add delta specs instead`);
     } else {
       bullets.push('- Ensure change has deltas in specs/: use headers ## ADDED/MODIFIED/REMOVED/RENAMED Requirements');
       bullets.push('- Each requirement MUST include at least one #### Scenario: block');

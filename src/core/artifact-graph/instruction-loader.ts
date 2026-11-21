@@ -15,7 +15,7 @@ import {
   resolveSchemaForChange,
 } from '../../utils/change-metadata.js';
 import { FileSystemUtils } from '../../utils/file-system.js';
-import { getChangesDir } from '../fork/layout.js';
+import { CHANGE_METADATA_FILE_NAME, getChangesDir } from '../fork/layout.js';
 import {
   buildActionContext,
   buildNextSteps,
@@ -132,8 +132,8 @@ export interface ArtifactInstructions {
  * the same do-not-create signal as the text output.
  */
 export const SKIP_SPECS_INSTRUCTIONS_WARNING =
-  'This change declares skip_specs: true in .openspec.yaml (no spec-level behavior changes), so this artifact is skipped.\n' +
-  'Do not create spec files - they will conflict with that marker. If requirements now change, remove skip_specs from .openspec.yaml and rerun this command.';
+  `This change declares skip_specs: true in ${CHANGE_METADATA_FILE_NAME} (no spec-level behavior changes), so this artifact is skipped.\n` +
+  `Do not create spec files - they will conflict with that marker. If requirements now change, remove skip_specs from ${CHANGE_METADATA_FILE_NAME} and rerun this command.`;
 
 /**
  * Dependency information including path and description.

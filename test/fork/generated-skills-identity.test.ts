@@ -55,6 +55,8 @@ const FORMER_CLI_INVOCATION = new RegExp(
 );
 // `openspec/` as a folder: not `.openspec-store/` or `~/openspec/<id>` (a store's suggested place).
 const FORMER_LAYOUT_PATH = /(?<![\w.~-])openspec\//;
+// A change's metadata file is `.specagile.yaml`: `.openspec.yaml` is the former name.
+const FORMER_METADATA_FILE = /\.openspec\.yaml/;
 const FORMER_NAME = new RegExp(
   `(?<![\\w.-])(${FORMER_NAMES.map(escapeForRegExp).join('|')})(?![\\w-])`
 );
@@ -83,6 +85,7 @@ describe.each(TARGETS)('skills generated for $label', ({ transformer, specifyRef
       expect(content.match(FORMER_CLI_INVOCATION)?.[0], 'invokes the former CLI').toBeUndefined();
       // SpecAgile: the layout of src/core/fork/layout.ts; internal names stay.
       expect(content.match(FORMER_LAYOUT_PATH)?.[0], 'names a path under openspec/').toBeUndefined();
+      expect(content.match(FORMER_METADATA_FILE)?.[0], 'names the former change metadata file').toBeUndefined();
     }
   );
 
@@ -111,6 +114,14 @@ describe('propose skill commands', () => {
     const sync = getSkillTemplates().find((entry) => entry.workflowId === 'sync')!;
     const content = generateSkillContent(sync.template, '9.9.9-test', transformToSharedSkillReferences);
     expect(content).toContain('<planningHome.root>/specs/<capability-path>/spec.md');
+  });
+
+  it('specify names .specagile.yaml as the metadata new change creates and where skip_specs goes', () => {
+    const specify = getSkillTemplates().find((entry) => entry.workflowId === 'specify')!;
+    const content = generateSkillContent(specify.template, '9.9.9-test', transformToSharedSkillReferences);
+    expect(content).toContain('resolved by the CLI with `.specagile.yaml`');
+    expect(content).toContain('declares `skip_specs: true` in its `.specagile.yaml`');
+    expect(content).not.toContain('.openspec.yaml');
   });
 
   it('names the "specagile implement" trigger phrase for the implement skill', () => {
@@ -146,17 +157,24 @@ describe('the skills/ distribution', () => {
     }
   }
 
-  it('names no path under openspec/', () => {
+  function linesMatching(pattern: RegExp): string[] {
     const found: string[] = [];
     for (const file of filesUnder(skillsRoot)) {
       const rel = path.relative(skillsRoot, file).split(path.sep).join('/');
       fs.readFileSync(file, 'utf-8')
         .split(/\r?\n/)
         .forEach((line, index) => {
-          const match = line.match(FORMER_LAYOUT_PATH);
-          if (match) found.push(`skills/${rel}:${index + 1}`);
+          if (pattern.test(line)) found.push(`skills/${rel}:${index + 1}`);
         });
     }
-    expect(found).toEqual([]);
+    return found;
+  }
+
+  it('names no path under openspec/', () => {
+    expect(linesMatching(FORMER_LAYOUT_PATH)).toEqual([]);
+  });
+
+  it('names no .openspec.yaml (run pnpm generate:skills)', () => {
+    expect(linesMatching(FORMER_METADATA_FILE)).toEqual([]);
   });
 });

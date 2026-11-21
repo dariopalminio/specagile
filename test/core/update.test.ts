@@ -22,7 +22,7 @@ import fs from 'fs/promises';
 import os from 'os';
 import { execFileSync } from 'node:child_process';
 import { isolatedGitEnv } from '../helpers/store-git.js';
-import { RELATIVE_CONFIG_FILE, RELATIVE_TOOL_DIR, createFormerLayout, getToolDir } from '../helpers/layout.js';
+import { CHANGE_METADATA_FILE_NAME, RELATIVE_CONFIG_FILE, RELATIVE_TOOL_DIR, createFormerLayout, getToolDir } from '../helpers/layout.js';
 import { snapshotDirectory } from '../helpers/fs-snapshot.js';
 import { readStorePointer } from '../../src/core/project-config.js';
 import { listSchemas } from '../../src/core/artifact-graph/resolver.js';
@@ -4426,7 +4426,9 @@ content
 
       await updateCommand.execute(testDir);
 
-      expect(await read('changes', 'add-login', '.openspec.yaml')).toBe('schema: spec-driven\nskip_specs: true\n');
+      // Moved with the layout, then renamed to the current name in the same run.
+      expect(await read('changes', 'add-login', CHANGE_METADATA_FILE_NAME)).toBe('schema: spec-driven\nskip_specs: true\n');
+      await expect(read('changes', 'add-login', '.openspec.yaml')).rejects.toThrow();
     });
   });
 

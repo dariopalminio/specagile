@@ -1110,7 +1110,7 @@ specagile new change add-caching                                # metadata only
 specagile new change add-search --goal "Users can search docs"  # record a goal
 ```
 
-`new` has one subcommand, `new change <name>`. It creates `changes/<name>/` containing a single [`.openspec.yaml` metadata file](configuration/change-metadata.md):
+`new` has one subcommand, `new change <name>`. It creates `changes/<name>/` containing a single [`.specagile.yaml` metadata file](configuration/change-metadata.md):
 
 ```yaml
 schema: spec-driven
@@ -1130,7 +1130,7 @@ Artifacts (proposal, specs, design, tasks) aren't scaffolded here. You write the
 | Flag | Effect |
 |---|---|
 | `--description <text>` | Also create a `README.md` in the change directory with this text. |
-| `--goal <text>` | Store a `goal:` line in `.openspec.yaml`. |
+| `--goal <text>` | Store a `goal:` line in `.specagile.yaml`. |
 | `--schema <name>` | Workflow schema for the change. Default: `spec-driven`, the only schema that ships. |
 | `--json` | Print the created change as JSON instead of text. |
 | `--store <id>` | Use a registered store as the OpenSpec root instead of the current project. |
@@ -1163,7 +1163,7 @@ With `--json`, in a project that already has `specagile/`:
   "change": {
     "id": "add-caching",
     "path": "/Users/you/projects/my-app/changes/add-caching",
-    "metadataPath": "/Users/you/projects/my-app/changes/add-caching/.openspec.yaml",
+    "metadataPath": "/Users/you/projects/my-app/changes/add-caching/.specagile.yaml",
     "schema": "spec-driven"
   },
   "root": {

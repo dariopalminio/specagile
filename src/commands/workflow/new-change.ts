@@ -11,6 +11,7 @@ import chalk from 'chalk';
 import type { Ora } from 'ora';
 import path from 'path';
 import { createChange, validateChangeName } from '../../utils/change-utils.js';
+import { METADATA_FILENAME } from '../../utils/change-metadata.js';
 import { formatChangeLocation } from '../../core/planning-home.js';
 import {
   resolveRootForCommand,
@@ -185,7 +186,7 @@ export async function newChangeCommand(name: string | undefined, options: NewCha
       change: {
         id: name,
         path: result.changeDir,
-        metadataPath: path.join(result.changeDir, '.openspec.yaml'),
+        metadataPath: path.join(result.changeDir, METADATA_FILENAME),
         schema: result.schema,
       },
       root: toRootOutput(root),

@@ -137,7 +137,7 @@ the page or rewriting the goal in both places, never letting them drift.
 | [Schemas › spec-driven](reference/schemas/spec-driven/index.md) | The default workflow's artifacts: their order, their formats, and the change folder they produce. |
 | [Configuration](reference/configuration/index.md) | Every file and setting that changes how OpenSpec behaves, and where each lives. |
 | [Configuration › Project configuration (config.yaml)](reference/configuration/config-yaml.md) | Every field of specagile/config.yaml: the schema, context, and rules this project plans with. |
-| [Configuration › Change metadata (.openspec.yaml)](reference/configuration/change-metadata.md) | The supported fields and validation rules for the metadata stored with each change. |
+| [Configuration › Change metadata (.specagile.yaml)](reference/configuration/change-metadata.md) | The supported fields and validation rules for the metadata stored with each change. |
 | [Configuration › CLI settings (config.json)](reference/configuration/config-json.md) | Every field of config.json: how the openspec CLI behaves on your machine. |
 | [Configuration › Environment variables](reference/configuration/environment-variables.md) | Every environment variable OpenSpec reads. |
 | [Configuration › Stores](reference/configuration/stores.md) | The files behind multi-repo stores: registry.yaml and store.yaml, and which root a command uses. |

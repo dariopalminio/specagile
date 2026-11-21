@@ -4,7 +4,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
 import { runCLI } from '../helpers/run-cli.js';
-import { getChangesDir, getConfigFile, getConfigYmlFile, getProjectSchemasDir, getSpecsDir, getToolDir } from '../helpers/layout.js';
+import { CHANGE_METADATA_FILE_NAME, getChangesDir, getConfigFile, getConfigYmlFile, getProjectSchemasDir, getSpecsDir, getToolDir } from '../helpers/layout.js';
 
 async function runSchemaCommand(args: string[]): Promise<void> {
   const { registerSchemaCommand } = await import('../../src/cli/commands/schema.js');
@@ -469,7 +469,7 @@ artifacts:
       expect(created.exitCode).toBe(0);
       expect(
         fs.readFileSync(
-          path.join(getChangesDir(tempDir), 'uses-default', '.openspec.yaml'),
+          path.join(getChangesDir(tempDir), 'uses-default', CHANGE_METADATA_FILE_NAME),
           'utf-8'
         )
       ).toContain('schema: my-workflow');
@@ -498,7 +498,7 @@ artifacts:
       expect(created.stdout).toContain('Schema: my-workflow');
       expect(
         fs.readFileSync(
-          path.join(getChangesDir(tempDir), 'progress-schema', '.openspec.yaml'),
+          path.join(getChangesDir(tempDir), 'progress-schema', CHANGE_METADATA_FILE_NAME),
           'utf-8'
         )
       ).toContain('schema: my-workflow');
@@ -530,7 +530,7 @@ artifacts:
       expect(created.stdout).toContain('Schema: my-workflow');
       expect(
         fs.readFileSync(
-          path.join(getChangesDir(tempDir), 'empty-schema', '.openspec.yaml'),
+          path.join(getChangesDir(tempDir), 'empty-schema', CHANGE_METADATA_FILE_NAME),
           'utf-8'
         )
       ).toContain('schema: my-workflow');

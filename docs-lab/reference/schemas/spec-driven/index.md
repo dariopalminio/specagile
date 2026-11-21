@@ -28,7 +28,7 @@ Proposal comes first. Specs and design follow in either order, and tasks needs b
 Two artifacts can be skipped:
 
 - **`design`**: when none of [its conditions](#designmd) apply, the agent leaves it out and drafts `tasks` anyway.
-- **`specs`**: set [`skip_specs: true`](../../configuration/change-metadata.md#skip_specs) in the change's `.openspec.yaml`.
+- **`specs`**: set [`skip_specs: true`](../../configuration/change-metadata.md#skip_specs) in the change's `.specagile.yaml`.
 
 ## Example change folder
 
@@ -36,7 +36,7 @@ A change named `add-user-auth`, with every artifact drafted:
 
 ```text
 changes/add-user-auth/
-├── .openspec.yaml      change metadata, written when the change is created
+├── .specagile.yaml     change metadata, written when the change is created
 ├── proposal.md
 ├── specs/
 │   └── user-auth/
@@ -81,7 +81,7 @@ The template the agent receives as the output format ([templates/proposal.md](ht
      Use the exact existing path of its living spec, under <planningHome.root>/specs/
      (not the change's own specs/). Leave empty if no requirement changes.
      A change with no capabilities at all (pure refactor, tooling, docs)
-     must set `skip_specs: true` in its .openspec.yaml - specagile validate rejects
+     must set `skip_specs: true` in its .specagile.yaml - specagile validate rejects
      a zero-delta change without that marker. Do not invent a requirement just to
      satisfy validation. -->
 - `<existing-capability-path>`: <what requirement is changing>
@@ -124,7 +124,7 @@ Each capability listed here will need a corresponding spec file.
 
 Every change must either declare at least one capability (new or
 modified) or explicitly opt out of specs: `specagile validate` rejects a
-change with zero deltas unless the change's `.openspec.yaml` sets
+change with zero deltas unless the change's `.specagile.yaml` sets
 `skip_specs: true`. Use `skip_specs: true` only when no spec-level
 behavior changes (pure refactor, tooling, docs) - specs describe
 behavior, so if behavior does not change, no spec should change either.
@@ -203,7 +203,7 @@ interrupted run keeps the files it already wrote:
   before writing the first.
 - Stop when every capability the proposal lists has its file.
 
-There must be at least one spec file unless the change's `.openspec.yaml`
+There must be at least one spec file unless the change's `.specagile.yaml`
 sets `skip_specs: true` (no spec-level behavior change) - `specagile validate`
 rejects a zero-delta change without that marker. If the proposal lists no
 capabilities and `skip_specs` is not set, revisit the proposal first.

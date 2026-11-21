@@ -28,6 +28,11 @@ import {
   planLayoutOps,
 } from './fork/layout-migration.js';
 import {
+  describeChangeMetadataMigration,
+  describeChangeMetadataPlan,
+  migrateChangeMetadata,
+} from './fork/change-metadata-migration.js';
+import {
   getToolSkillStatus,
   getToolVersionStatus,
   getToolsWithSkillsDir,
@@ -840,20 +845,27 @@ export class UpdateCommand {
    * SpecAgile: moves the former openspec/ layout to the one of
    * src/core/fork/layout.ts, once per run, and reports it like the other
    * migrations. A dry run plans it on the recorder; a blocked migration fails
-   * the real update and is recorded as the plan's failure.
+   * the real update and is recorded as the plan's failure. Then, unless the
+   * layout is blocked, each active change's `.openspec.yaml` is renamed to
+   * `.specagile.yaml` (src/core/fork/change-metadata-migration.ts).
    */
   private async migrateLayout(projectPath: string): Promise<'none' | 'unused' | 'migrated' | 'blocked'> {
     if (this.layoutMigrationRan) return 'none';
     this.layoutMigrationRan = true;
+    const ops = this.recorder ? planLayoutOps(this.recorder) : DISK_LAYOUT_OPS;
+    // The recorder keeps one note per code: the layout's and the metadata's
+    // accounts of a dry run go into the one `layout-migration` note.
+    const notes: string[] = [];
+    let status: 'none' | 'unused' | 'migrated';
     try {
-      const result = await migrateFormerLayout(projectPath, this.recorder ? planLayoutOps(this.recorder) : DISK_LAYOUT_OPS);
+      const result = await migrateFormerLayout(projectPath, ops);
+      status = result.status;
       if (result.status === 'unused') {
-        if (this.recorder) this.recorder.addNote('layout-migration', result.warning);
+        if (this.recorder) notes.push(result.warning);
         else this.log(chalk.yellow(result.warning));
       } else if (result.status === 'migrated') {
         if (this.recorder) {
-          this.recorder.addNote(
-            'layout-migration',
+          notes.push(
             `Update would move the former layout: ${result.moves.map((move) => `${move.from} → ${move.to}`).join(', ')}.`
           );
         } else {
@@ -861,7 +873,6 @@ export class UpdateCommand {
           if (result.warning) this.log(chalk.yellow(result.warning));
         }
       }
-      return result.status;
     } catch (error) {
       if (this.recorder && error instanceof LayoutMigrationError) {
         this.recorder.addFailure('specagile', error.message);
@@ -869,6 +880,21 @@ export class UpdateCommand {
       }
       throw error;
     }
+
+    // Only on a root with the layout: a folder that just has a changes/ is not a project.
+    if (status === 'migrated' || this.view.isDirectory(getToolDir(projectPath))) {
+      const metadata = await migrateChangeMetadata(projectPath, ops);
+      if (this.recorder) {
+        const plan = describeChangeMetadataPlan(metadata);
+        if (plan) notes.push(plan);
+      } else {
+        const { info, warnings } = describeChangeMetadataMigration(metadata);
+        for (const line of info) this.log(chalk.dim(line));
+        for (const line of warnings) this.log(chalk.yellow(line));
+      }
+    }
+    if (this.recorder && notes.length > 0) this.recorder.addNote('layout-migration', notes.join(' '));
+    return status;
   }
 
   private get view(): FileView {
