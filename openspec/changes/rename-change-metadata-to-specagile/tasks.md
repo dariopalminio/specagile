@@ -79,7 +79,7 @@
 - [x] 6.1 Ejecutar `pnpm build` y `pnpm lint`. Verificar que terminan sin errores.
 - [x] 6.2 Correr en Windows (PowerShell) `pnpm exec vitest run test/fork test/utils test/commands test/core` y después la suite completa. Verificar que los únicos fallos son los de la línea base conocida, y anotarlo en "Verification record" de `FORK.md`.
 - [x] 6.3 Correr la suite completa en Linux (Docker `node:22-bookworm`, checkout con LF). Verificar que no hay fallos y anotarlo en "Verification record" de `FORK.md`.
-- [ ] 6.4 Verificar que la CI del PR pasa en la matriz completa: `ubuntu-latest`, `macos-latest` y `windows-latest` con PowerShell (`windows-pwsh`).
+- [x] 6.4 Verificar que la CI del PR pasa en la matriz completa: `ubuntu-latest`, `macos-latest` y `windows-latest` con PowerShell (`windows-pwsh`).
 - [x] 6.5 Prueba manual en una carpeta temporal **fuera del repo**, con `node bin/specagile.js` y en PowerShell. Verificar que la salida coincide con los escenarios del spec:
   - `init --tools claude`;
   - `new change add-login` crea `.specagile.yaml`;
