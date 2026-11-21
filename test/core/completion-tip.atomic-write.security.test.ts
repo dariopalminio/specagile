@@ -25,7 +25,7 @@ describe('core/completion-tip atomic write', () => {
     process.env.USERPROFILE = tempDir;
     process.env.SHELL = '/bin/zsh';
     delete process.env.CI;
-    delete process.env.OPENSPEC_NO_COMPLETIONS;
+    delete process.env.SPECAGILE_NO_COMPLETIONS;
     errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
   });
 

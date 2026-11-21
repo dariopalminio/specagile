@@ -6,6 +6,7 @@ import { generateSkillContent } from '../../../src/core/shared/skill-generation.
 import { STORE_SELECTION_GUIDANCE } from '../../../src/core/templates/workflows/store-selection.js';
 import { PROJECT_ROOT_GUARD } from '../../../src/core/templates/workflows/project-root.js';
 import { applyForkIdentity } from '../../../src/core/fork/identity.js';
+import { CHANGE_METADATA_FILE_NAME } from '../../helpers/layout.js';
 
 // The plan skill is the planning stage of the fork's three-step flow. These
 // guards pin its contract (specs/opsx-plan-skill/spec.md) in the text an agent
@@ -131,7 +132,7 @@ describe('plan skill template', () => {
 
     it('counts a change that declares skip_specs as complete', () => {
       expect(completeness(withAll)).toContain(
-        '`specs` reads `skipped` - the change declares `skip_specs: true` in `.openspec.yaml`, which counts as complete'
+        `\`specs\` reads \`skipped\` - the change declares \`skip_specs: true\` in \`${CHANGE_METADATA_FILE_NAME}\`, which counts as complete`
       );
     });
 

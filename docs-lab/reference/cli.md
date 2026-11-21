@@ -112,7 +112,7 @@ Running init from a subdirectory exits 1 and tells you to run it from the reposi
 | `--copilot-cloud`, `--no-copilot-cloud` | Write, or don't write, the files GitHub's hosted Copilot agent needs. They need the skills in the project. See [GitHub Copilot](supported-tools.md#github-copilot). |
 | `--scope <scope>` | Install skills for this machine (`global`) or commit them with the repo (`project`). |
 
-Without `--scope`, existing repo skills stay in the project. `--scope global` in such a repo installs the skills on your machine and removes the repo copies without asking. For new setups, `--scope` takes precedence over `OPENSPEC_SKILLS_SCOPE`, then the machine’s `skillsScope` setting. The default is global unless a requested tool needs project scope or you request hosted Copilot.
+Without `--scope`, existing repo skills stay in the project. `--scope global` in such a repo installs the skills on your machine and removes the repo copies without asking. For new setups, `--scope` takes precedence over `SPECAGILE_SKILLS_SCOPE`, then the machine’s `skillsScope` setting. The default is global unless a requested tool needs project scope or you request hosted Copilot.
 
 **Output**
 
@@ -139,7 +139,7 @@ With the skills on this machine, the summary line reads `8 skills in ~/.agents/s
 **Exit codes**
 
 - `0`: setup completed.
-- `1`: invalid `--tools`, `--profile` or `--scope` value (or `OPENSPEC_SKILLS_SCOPE`), a non-interactive run with no tools detected and no `--tools`, a global install that failed or that none of the selected tools can use, or an invalid store-only invocation.
+- `1`: invalid `--tools`, `--profile` or `--scope` value (or `SPECAGILE_SKILLS_SCOPE`), a non-interactive run with no tools detected and no `--tools`, a global install that failed or that none of the selected tools can use, or an invalid store-only invocation.
 
 ## specagile update
 
@@ -153,7 +153,7 @@ specagile update --dry-run   # list what an update would change, and change noth
 
 Run update in a terminal to switch an existing project to global skills. Enter keeps the project skills. After the maintainer commits the removals, teammates run update in their checkouts to set up their tools. Runs without a terminal keep the current scope.
 
-Update refreshes the installed instructions from the running CLI, including after a downgrade. A pending global refresh appears as a note in the dry-run plan. Set `OPENSPEC_NO_UPDATE_CHECK=1` to skip the CLI upgrade offer.
+Update refreshes the installed instructions from the running CLI, including after a downgrade. A pending global refresh appears as a note in the dry-run plan. Set `SPECAGILE_NO_UPDATE_CHECK=1` to skip the CLI upgrade offer.
 
 **Arguments**
 
@@ -785,7 +785,7 @@ With no name and no bulk flag, validate prompts you to pick items. Outside an in
 | `--type <change\|spec>` | Pick the type when a change and a spec share a name. |
 | `--json` | Print a structured report instead of text. |
 | `--report <mode>` | Bulk output: `full` (default) or `findings`. Requires an explicit bulk scope. |
-| `--concurrency <n>` | Max parallel validations in bulk runs. Default: `OPENSPEC_CONCURRENCY`, else 6. |
+| `--concurrency <n>` | Max parallel validations in bulk runs. Default: `SPECAGILE_CONCURRENCY`, else 6. |
 | `--no-interactive` | Never prompt: a missing or ambiguous name becomes an error. |
 | `--store <id>` | Use a registered store as the OpenSpec root instead of the current project. |
 
@@ -1110,7 +1110,7 @@ specagile new change add-caching                                # metadata only
 specagile new change add-search --goal "Users can search docs"  # record a goal
 ```
 
-`new` has one subcommand, `new change <name>`. It creates `changes/<name>/` containing a single [`.openspec.yaml` metadata file](configuration/change-metadata.md):
+`new` has one subcommand, `new change <name>`. It creates `changes/<name>/` containing a single [`.specagile.yaml` metadata file](configuration/change-metadata.md):
 
 ```yaml
 schema: spec-driven
@@ -1130,7 +1130,7 @@ Artifacts (proposal, specs, design, tasks) aren't scaffolded here. You write the
 | Flag | Effect |
 |---|---|
 | `--description <text>` | Also create a `README.md` in the change directory with this text. |
-| `--goal <text>` | Store a `goal:` line in `.openspec.yaml`. |
+| `--goal <text>` | Store a `goal:` line in `.specagile.yaml`. |
 | `--schema <name>` | Workflow schema for the change. Default: `spec-driven`, the only schema that ships. |
 | `--json` | Print the created change as JSON instead of text. |
 | `--store <id>` | Use a registered store as the OpenSpec root instead of the current project. |
@@ -1163,7 +1163,7 @@ With `--json`, in a project that already has `specagile/`:
   "change": {
     "id": "add-caching",
     "path": "/Users/you/projects/my-app/changes/add-caching",
-    "metadataPath": "/Users/you/projects/my-app/changes/add-caching/.openspec.yaml",
+    "metadataPath": "/Users/you/projects/my-app/changes/add-caching/.specagile.yaml",
     "schema": "spec-driven"
   },
   "root": {
@@ -2327,10 +2327,10 @@ Update status values:
 |---|---|
 | `available` | A safe version newer than the running version can be installed. |
 | `current` | The check completed and found no newer version. |
-| `disabled` | `OPENSPEC_NO_UPDATE_CHECK` is set, or (npm installs only) a registry override was rejected. `latest` is `null`. |
+| `disabled` | `SPECAGILE_NO_UPDATE_CHECK` is set, or (npm installs only) a registry override was rejected. `latest` is `null`. |
 | `offline` | The registry was unavailable, refused the request (for example a rate limit), or returned an unusable response. `latest` is `null`. |
 
-Because `--check` is an explicit request, it runs even when `DO_NOT_TRACK`, `OPENSPEC_TELEMETRY=0` or `telemetry.enabled: false` is set, and in CI. (SpecAgile sends no telemetry; these settings only turn off the background check.) It is turned off only by `OPENSPEC_NO_UPDATE_CHECK`, or, for npm installs, by a rejected non-HTTPS registry override. The background check in `specagile update` still stays off for all of these. Disabled and offline checks still exit 0 because update availability is advisory. This command never upgrades OpenSpec; `canSelfUpgrade` only reports whether the existing `specagile update` path could safely upgrade this copy.
+Because `--check` is an explicit request, it runs even when `DO_NOT_TRACK`, `SPECAGILE_TELEMETRY=0` or `telemetry.enabled: false` is set, and in CI. (SpecAgile sends no telemetry; these settings only turn off the background check.) It is turned off only by `SPECAGILE_NO_UPDATE_CHECK`, or, for npm installs, by a rejected non-HTTPS registry override. The background check in `specagile update` still stays off for all of these. Disabled and offline checks still exit 0 because update availability is advisory. This command never upgrades OpenSpec; `canSelfUpgrade` only reports whether the existing `specagile update` path could safely upgrade this copy.
 
 **Exit codes**
 

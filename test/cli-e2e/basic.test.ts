@@ -142,7 +142,7 @@ describe('openspec CLI e2e basics', () => {
 
     it('reports a disabled update check as data and exits successfully', async () => {
       const result = await runCLI(['version', '--check', '--json'], {
-        env: { OPENSPEC_NO_UPDATE_CHECK: '1' },
+        env: { SPECAGILE_NO_UPDATE_CHECK: '1' },
       });
 
       expectJsonOnlyOutput(result);
@@ -159,7 +159,7 @@ describe('openspec CLI e2e basics', () => {
 
     it('renders the disabled check for people', async () => {
       const result = await runCLI(['version', '--check'], {
-        env: { OPENSPEC_NO_UPDATE_CHECK: '1' },
+        env: { SPECAGILE_NO_UPDATE_CHECK: '1' },
       });
 
       expect(result.exitCode).toBe(0);

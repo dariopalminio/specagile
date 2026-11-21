@@ -1,5 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ALL_WORKFLOWS, CORE_WORKFLOWS } from '../../src/core/profiles.js';
+import { FORMER_ENV_VAR_NAMES } from '../../src/core/fork/identity.js';
+
+// OpenSpec's name for the variable, which SpecAgile ignores.
+const FORMER_NO_ANIMATION = FORMER_ENV_VAR_NAMES.noAnimation;
 
 const { useKeypressMock, execFileSyncMock } = vi.hoisted(() => ({
   useKeypressMock: vi.fn(),
@@ -28,7 +32,8 @@ vi.mock('@inquirer/core', () => ({
 
 describe('welcome screen', () => {
   const originalNoColor = process.env.NO_COLOR;
-  const originalNoAnimation = process.env.OPENSPEC_NO_ANIMATION;
+  const originalNoAnimation = process.env.SPECAGILE_NO_ANIMATION;
+  const originalFormerNoAnimation = process.env[FORMER_NO_ANIMATION];
   const originalStdinIsTTY = process.stdin.isTTY;
   const originalStdoutIsTTY = process.stdout.isTTY;
   const originalColumns = process.stdout.columns;
@@ -44,7 +49,8 @@ describe('welcome screen', () => {
 
   beforeEach(() => {
     delete process.env.NO_COLOR;
-    delete process.env.OPENSPEC_NO_ANIMATION;
+    delete process.env.SPECAGILE_NO_ANIMATION;
+    delete process.env[FORMER_NO_ANIMATION];
     Object.defineProperty(process.stdin, 'isTTY', { value: true, configurable: true });
     Object.defineProperty(process.stdout, 'isTTY', { value: true, configurable: true });
     Object.defineProperty(process.stdout, 'columns', { value: 100, configurable: true });
@@ -65,9 +71,14 @@ describe('welcome screen', () => {
       process.env.NO_COLOR = originalNoColor;
     }
     if (originalNoAnimation === undefined) {
-      delete process.env.OPENSPEC_NO_ANIMATION;
+      delete process.env.SPECAGILE_NO_ANIMATION;
     } else {
-      process.env.OPENSPEC_NO_ANIMATION = originalNoAnimation;
+      process.env.SPECAGILE_NO_ANIMATION = originalNoAnimation;
+    }
+    if (originalFormerNoAnimation === undefined) {
+      delete process.env[FORMER_NO_ANIMATION];
+    } else {
+      process.env[FORMER_NO_ANIMATION] = originalFormerNoAnimation;
     }
     Object.defineProperty(process.stdin, 'isTTY', { value: originalStdinIsTTY, configurable: true });
     Object.defineProperty(process.stdout, 'isTTY', { value: originalStdoutIsTTY, configurable: true });
@@ -178,9 +189,9 @@ describe('welcome screen', () => {
     }
   });
 
-  it('renders statically when OPENSPEC_NO_ANIMATION is set', async () => {
+  it('renders statically when SPECAGILE_NO_ANIMATION is set', async () => {
     const { showWelcomeScreen } = await import('../../src/ui/welcome-screen.js');
-    process.env.OPENSPEC_NO_ANIMATION = '1';
+    process.env.SPECAGILE_NO_ANIMATION = '1';
 
     await showWelcomeScreen(CORE_WORKFLOWS);
 
@@ -194,14 +205,24 @@ describe('welcome screen', () => {
     expect(output).not.toMatch(/\x1b\[\d+A/);
   });
 
-  it('honors OPENSPEC_NO_ANIMATION even when set to an empty value', async () => {
+  it('honors SPECAGILE_NO_ANIMATION even when set to an empty value', async () => {
     const { showWelcomeScreen } = await import('../../src/ui/welcome-screen.js');
-    process.env.OPENSPEC_NO_ANIMATION = '';
+    process.env.SPECAGILE_NO_ANIMATION = '';
 
     await showWelcomeScreen(CORE_WORKFLOWS);
 
     expect(useKeypressMock).toHaveBeenCalledOnce();
     expect(writtenOutput()).not.toMatch(/\x1b\[\d+A/);
+  });
+
+  it("still animates with OpenSpec's variable set and no SPECAGILE_NO_ANIMATION", async () => {
+    const { showWelcomeScreen } = await import('../../src/ui/welcome-screen.js');
+    process.env[FORMER_NO_ANIMATION] = '1';
+
+    await showWelcomeScreen(CORE_WORKFLOWS);
+
+    // Only the animated path moves the cursor up, to clear its frames.
+    expect(writtenOutput()).toMatch(/\x1b\[\d+A/);
   });
 
   it('shows the glider at rest when it does not animate', async () => {

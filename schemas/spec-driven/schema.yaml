@@ -35,7 +35,7 @@ artifacts:
 
       Every change must either declare at least one capability (new or
       modified) or explicitly opt out of specs: `specagile validate` rejects a
-      change with zero deltas unless the change's `.openspec.yaml` sets
+      change with zero deltas unless the change's `.specagile.yaml` sets
       `skip_specs: true`. Use `skip_specs: true` only when no spec-level
       behavior changes (pure refactor, tooling, docs) - specs describe
       behavior, so if behavior does not change, no spec should change either.
@@ -88,7 +88,7 @@ artifacts:
         before writing the first.
       - Stop when every capability the proposal lists has its file.
 
-      There must be at least one spec file unless the change's `.openspec.yaml`
+      There must be at least one spec file unless the change's `.specagile.yaml`
       sets `skip_specs: true` (no spec-level behavior change) - `specagile validate`
       rejects a zero-delta change without that marker. If the proposal lists no
       capabilities and `skip_specs` is not set, revisit the proposal first.

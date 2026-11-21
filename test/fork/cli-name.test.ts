@@ -85,7 +85,7 @@ describe('specagile CLI output', () => {
       LOCALAPPDATA: path.join(dir, 'localappdata'),
       HOME: path.join(dir, 'home'),
       USERPROFILE: path.join(dir, 'home'),
-      OPENSPEC_TELEMETRY: '0',
+      SPECAGILE_TELEMETRY: '0',
     };
   });
 
@@ -146,7 +146,7 @@ describe('specagile CLI output', () => {
 
     const result = await runCLI(['config', 'path'], {
       cwd: dir,
-      env: { ...env, OPENSPEC_TELEMETRY: '1', DO_NOT_TRACK: '0', CI: 'false' },
+      env: { ...env, SPECAGILE_TELEMETRY: '1', DO_NOT_TRACK: '0', CI: 'false' },
     });
 
     expect(result.exitCode, result.stderr).toBe(0);

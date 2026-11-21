@@ -362,7 +362,7 @@ describe('openspec init with a legacy command folder', () => {
       XDG_CONFIG_HOME: path.join(home, '.config'),
       XDG_DATA_HOME: path.join(home, '.local', 'share'),
       CODEX_HOME: path.join(home, '.codex'),
-      OPENSPEC_NO_ANIMATION: '1',
+      SPECAGILE_NO_ANIMATION: '1',
     };
     const init = (extraArgs: string[]) =>
       runCLI(['init', '--tools', 'claude', ...extraArgs], { cwd: project, env, timeoutMs: 60_000 });

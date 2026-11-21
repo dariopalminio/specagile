@@ -24,7 +24,8 @@ import { getTaskProgressDetailForChange, type SchemaGlobCache } from '../utils/t
 import { FileSystemUtils } from '../utils/file-system.js';
 import { folderStyleNameProblem } from '../core/id.js';
 import { readConfigParseError } from '../core/project-config.js';
-import { RELATIVE_CHANGES_DIR } from '../core/fork/layout.js';
+import { CHANGE_METADATA_FILE_NAME, RELATIVE_CHANGES_DIR } from '../core/fork/layout.js';
+import { ENV_VAR_NAMES } from '../core/fork/identity.js';
 
 type ItemType = 'change' | 'spec';
 
@@ -415,11 +416,11 @@ export class ValidateCommand {
       bullets.push(`- Move each nested change directly under ${RELATIVE_CHANGES_DIR}/, folding the namespace into its name`);
       bullets.push('- Only specs may be nested by domain; change directories are always flat');
     } else if (type === 'change' && conflictIssue) {
-      bullets.push('- This change declares skip_specs (no spec deltas): delete the files under specs/, or remove skip_specs from .openspec.yaml if requirements do change');
-      bullets.push('- skip_specs is only honored when .openspec.yaml is valid change metadata (schema: <name> naming a known schema is required)');
+      bullets.push(`- This change declares skip_specs (no spec deltas): delete the files under specs/, or remove skip_specs from ${CHANGE_METADATA_FILE_NAME} if requirements do change`);
+      bullets.push(`- skip_specs is only honored when ${CHANGE_METADATA_FILE_NAME} is valid change metadata (schema: <name> naming a known schema is required)`);
     } else if (type === 'change' && invalidMarkerIssue) {
-      bullets.push('- Fix .openspec.yaml so the skip_specs marker can be honored (schema: <name> naming a known schema is required)');
-      bullets.push('- Or remove skip_specs from .openspec.yaml and add delta specs instead');
+      bullets.push(`- Fix ${CHANGE_METADATA_FILE_NAME} so the skip_specs marker can be honored (schema: <name> naming a known schema is required)`);
+      bullets.push(`- Or remove skip_specs from ${CHANGE_METADATA_FILE_NAME} and add delta specs instead`);
     } else if (type === 'change') {
       bullets.push('- Ensure change has deltas in specs/: use headers ## ADDED/MODIFIED/REMOVED/RENAMED Requirements');
       bullets.push('- Each requirement MUST include at least one #### Scenario: block');
@@ -477,7 +478,7 @@ export class ValidateCommand {
 
     const DEFAULT_CONCURRENCY = 6;
     const maxSuggestions = 5; // used by nearestMatches
-    const concurrency = normalizeConcurrency(opts.concurrency) ?? normalizeConcurrency(process.env.OPENSPEC_CONCURRENCY) ?? DEFAULT_CONCURRENCY;
+    const concurrency = normalizeConcurrency(opts.concurrency) ?? normalizeConcurrency(process.env[ENV_VAR_NAMES.concurrency]) ?? DEFAULT_CONCURRENCY;
     const validator = new Validator(opts.strict);
     const queue: Array<() => Promise<BulkItemResult>> = [];
 

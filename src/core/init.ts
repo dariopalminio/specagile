@@ -22,6 +22,7 @@ import { findRepoPlanningRootSync } from './planning-home.js';
 import { resolveOpenSpecRoot } from './root-selection.js';
 import { ANCHORED_OPENSPEC_DIRS, ensureDirectoryAnchor } from './openspec-root.js';
 import { describeLayoutMigration, migrateFormerLayout } from './fork/layout-migration.js';
+import { describeChangeMetadataMigration, migrateChangeMetadata } from './fork/change-metadata-migration.js';
 import {
   RELATIVE_CONFIG_FILE,
   RELATIVE_CONFIG_FILES,
@@ -33,7 +34,7 @@ import {
   getToolDir,
 } from './fork/layout.js';
 import { getSkillReferenceTransformer, transformToSkillReferences, usesNaturalLanguageSkillReferences } from '../utils/command-references.js';
-import { REPOSITORY_URL, applyForkIdentity } from './fork/identity.js';
+import { ENV_VAR_NAMES, REPOSITORY_URL, SPECAGILE_BANNER, applyForkIdentity } from './fork/identity.js';
 import { formerSkillsKeptMessage, migrateFormerSkills } from './fork/former-skills.js';
 import {
   installerAgent,
@@ -107,6 +108,9 @@ import {
   removeCopilotCloudFiles,
   findUnmanagedCloudFiles,
   listManagedCloudFiles,
+  COPILOT_CLOUD_FILES,
+  findKeptFormerCopilotAgent,
+  formerCopilotAgentKeptMessage,
 } from './github-copilot/cloud-agent.js';
 
 const require = createRequire(import.meta.url);
@@ -266,6 +270,15 @@ export class InitCommand {
       );
     }
 
+    // SpecAgile: each active change's .openspec.yaml becomes .specagile.yaml
+    // (src/core/fork/change-metadata-migration.ts). A pointer repo has no
+    // changes/ of its own.
+    if (!integrationsOnly) {
+      const metadata = describeChangeMetadataMigration(await migrateChangeMetadata(projectPath));
+      for (const line of metadata.info) console.log(chalk.dim(line));
+      for (const line of metadata.warnings) console.log(chalk.yellow(line));
+    }
+
     const detectedTools = getAvailableTools(projectPath);
     this.resolveProfileOverride();
     const canPrompt = this.canPromptInteractively();
@@ -374,6 +387,8 @@ export class InitCommand {
     const wroteCloud = copilotDecision.write && copilotSucceeded;
     const copilotPresent = wroteCloud ? await listManagedCloudFiles(projectPath) : [];
     const copilotCollisions = wroteCloud ? await findUnmanagedCloudFiles(projectPath) : [];
+    // SpecAgile: an edited agent at the former path stays, and is reported.
+    const copilotKeptFormerAgent = wroteCloud ? await findKeptFormerCopilotAgent(projectPath) : null;
 
     rememberProject(projectPath);
 
@@ -383,6 +398,7 @@ export class InitCommand {
       skippedUndecided: copilotDecision.skippedUndecided,
       present: copilotPresent,
       collisions: copilotCollisions,
+      keptFormerAgent: copilotKeptFormerAgent,
       removed: copilotRemoved,
     });
     if (results.failedTools.length > 0) {
@@ -403,10 +419,10 @@ export class InitCommand {
     if (this.toolsArg?.trim().toLowerCase() === 'none') return 'project';
     if (this.scopeOption) return this.scopeOption;
     if (projectHasOwnSkills(projectPath)) return 'project';
-    const fromEnv = process.env.OPENSPEC_SKILLS_SCOPE?.trim();
+    const fromEnv = process.env[ENV_VAR_NAMES.skillsScope]?.trim();
     if (fromEnv) {
       if (!(SKILL_SCOPES as readonly string[]).includes(fromEnv)) {
-        throw new Error(`Invalid OPENSPEC_SKILLS_SCOPE "${fromEnv}". Use global or project.`);
+        throw new Error(`Invalid ${ENV_VAR_NAMES.skillsScope} "${fromEnv}". Use global or project.`);
       }
       return fromEnv as SkillScope;
     }
@@ -545,7 +561,7 @@ export class InitCommand {
         removedSkillCount: 0,
       },
       configStatus,
-      { write: false, skippedUndecided: false, present: [], collisions: [], removed: 0 },
+      { write: false, skippedUndecided: false, present: [], collisions: [], keptFormerAgent: null, removed: 0 },
       globalSkills
     );
     return true;
@@ -682,7 +698,8 @@ export class InitCommand {
         message:
           'Set up GitHub Copilot cloud coding-agent files? This is for the GitHub-hosted ' +
           'Copilot coding agent (github.com), not Copilot in your editor. It writes two files: ' +
-          '.github/workflows/copilot-setup-steps.yml and .github/agents/openspec.agent.md.',
+          // SpecAgile: the agent's path comes from COPILOT_CLOUD_FILES, in POSIX form.
+          `.github/workflows/copilot-setup-steps.yml and ${COPILOT_CLOUD_FILES.agent.split(path.sep).join('/')}.`,
         default: false,
       });
       return { write: answer, persist: answer, optedOut: !answer, skippedUndecided: false };
@@ -939,8 +956,9 @@ export class InitCommand {
       .filter((toolId) => configuredToolIds.has(toolId))
       .map((toolId) => AI_TOOLS.find((t) => t.value === toolId)?.name || toolId);
 
+    console.log(SPECAGILE_BANNER);
     if (configuredNames.length > 0) {
-      console.log(`OpenSpec configured: ${configuredNames.join(', ')} (pre-selected)`);
+      console.log(`SpecAgile configured: ${configuredNames.join(', ')} (pre-selected)`);
     }
 
     const detectedOnlyNames = detectedTools
@@ -1403,6 +1421,7 @@ export class InitCommand {
       skippedUndecided: boolean;
       present: string[];
       collisions: string[];
+      keptFormerAgent: string | null;
       removed: number;
     },
     globalSkills?: { count: number }
@@ -1474,6 +1493,9 @@ export class InitCommand {
               `install step by hand so the Copilot cloud agent can run openspec.`
           )
         );
+      }
+      if (copilot.keptFormerAgent) {
+        console.log(chalk.yellow(formerCopilotAgentKeptMessage(copilot.keptFormerAgent)));
       }
     } else if (copilotSucceeded && copilot.removed > 0) {
       console.log(

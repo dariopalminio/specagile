@@ -10,7 +10,7 @@ import { isTelemetryOptedOutByEnv } from '../telemetry/opt-out.js';
 import { FileSystemUtils } from '../utils/file-system.js';
 import { getGlobalConfig, isGlobalConfigUnreadable } from './global-config.js';
 import { findCopiesOnPath, samePath } from '../utils/executable-path.js';
-import { CLI_NAME } from './fork/identity.js';
+import { CLI_NAME, ENV_VAR_NAMES } from './fork/identity.js';
 
 const require = createRequire(import.meta.url);
 const { name: PACKAGE_NAME, version: OPENSPEC_VERSION } = require('../../package.json');
@@ -70,7 +70,7 @@ function standaloneUpgradeCommand(): string | null {
  * to it. Only the update-check opt-out and the test guard still stop it.
  */
 function isCheckEnabled(requested: boolean): boolean {
-  if (process.env.OPENSPEC_NO_UPDATE_CHECK !== undefined) return false;
+  if (process.env[ENV_VAR_NAMES.noUpdateCheck] !== undefined) return false;
   if (process.env.NODE_ENV === 'test') return false;
   if (requested) return true;
   if (isCiEnvironment()) return false;
@@ -1047,10 +1047,10 @@ export async function rerunUpdateWithUpgradedCli(
         ...process.env,
         // The child must not offer the upgrade again: if PATH still resolves
         // to the old binary, prompting would loop forever.
-        OPENSPEC_NO_UPDATE_CHECK: '1',
+        [ENV_VAR_NAMES.noUpdateCheck]: '1',
         // This is a continuation of the command the user already ran, and the
         // parent recorded it; counting it twice would overstate usage.
-        OPENSPEC_TELEMETRY: '0',
+        [ENV_VAR_NAMES.telemetry]: '0',
       },
     });
     child.on('error', () => {

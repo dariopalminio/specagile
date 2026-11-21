@@ -46,10 +46,10 @@ Si el proyecto tiene `.github/agents/specagile.md`, que Copilot identifica igual
 - **THEN** se crea `.github/agents/specagile.agent.md` y `.github/agents/openspec.md` no cambia
 
 ### Requirement: El agente anterior se migra a `specagile.agent.md`
-Con Copilot en la nube activado, `specagile update` y `specagile init` SHALL quitar un `.github/agents/openspec.agent.md` cuyo contenido sea exactamente un texto que escribió OpenSpec o SpecAgile hasta la 3.0.1, comparado contra una lista explícita de esos textos e ignorando los finales de línea. Uno con otro contenido SHALL conservarse, y la salida SHALL informarlo junto con la ruta del agente nuevo.
+Con Copilot en la nube activado, `specagile update` y `specagile init` SHALL quitar un `.github/agents/openspec.agent.md` cuyo contenido sea exactamente un texto que escribió OpenSpec o SpecAgile hasta la 4.0.0, comparado contra una lista explícita de esos textos e ignorando los finales de línea. Uno con otro contenido SHALL conservarse, y la salida SHALL informarlo junto con la ruta del agente nuevo.
 
 #### Scenario: Agente anterior sin cambios
-- **GIVEN** `.github/agents/openspec.agent.md` tal como lo escribió SpecAgile 3.0.1
+- **GIVEN** `.github/agents/openspec.agent.md` tal como lo escribió SpecAgile 4.0.0
 - **WHEN** el usuario ejecuta `specagile update` con Copilot en la nube activado
 - **THEN** ya no existe `.github/agents/openspec.agent.md` y existe `.github/agents/specagile.agent.md` con el agente de SpecAgile
 
@@ -59,17 +59,17 @@ Con Copilot en la nube activado, `specagile update` y `specagile init` SHALL qui
 - **THEN** ya no existe `.github/agents/openspec.agent.md` y existe `.github/agents/specagile.agent.md`
 
 #### Scenario: Agente anterior con finales de línea de Windows
-- **GIVEN** `.github/agents/openspec.agent.md` con el texto que escribió SpecAgile 3.0.1 y finales de línea `CRLF`, como lo deja Git con `core.autocrlf=true`
+- **GIVEN** `.github/agents/openspec.agent.md` con el texto que escribió SpecAgile 4.0.0 y finales de línea `CRLF`, como lo deja Git con `core.autocrlf=true`
 - **WHEN** el usuario ejecuta `specagile update` con Copilot en la nube activado
 - **THEN** el archivo se reconoce como generado y se migra a `.github/agents/specagile.agent.md`
 
 #### Scenario: Agente anterior editado
-- **GIVEN** `.github/agents/openspec.agent.md` con el texto de SpecAgile 3.0.1 más una nota del usuario
+- **GIVEN** `.github/agents/openspec.agent.md` con el texto de SpecAgile 4.0.0 más una nota del usuario
 - **WHEN** el usuario ejecuta `specagile update` con Copilot en la nube activado
 - **THEN** `.github/agents/openspec.agent.md` no cambia, se crea `.github/agents/specagile.agent.md` y la salida informa que se conservó `openspec.agent.md` por estar editado
 
 #### Scenario: Simular la migración
-- **GIVEN** `.github/agents/openspec.agent.md` tal como lo escribió SpecAgile 3.0.1
+- **GIVEN** `.github/agents/openspec.agent.md` tal como lo escribió SpecAgile 4.0.0
 - **WHEN** el usuario ejecuta `specagile update --dry-run`
 - **THEN** la salida lista el borrado de `.github/agents/openspec.agent.md` y el alta de `.github/agents/specagile.agent.md`, y ningún archivo cambia
 
@@ -77,16 +77,16 @@ Con Copilot en la nube activado, `specagile update` y `specagile init` SHALL qui
 Un `.github/agents/openspec.agent.md` generado SHALL contar como archivo de Copilot en la nube de SpecAgile: un proyecto que solo tiene ese archivo y no guardó la opción SHALL mantener los archivos al actualizar. Al desactivarlos o dejar de usar Copilot, SpecAgile SHALL quitarlo y conservar uno editado.
 
 #### Scenario: Proyecto anterior sin la opción guardada
-- **GIVEN** un proyecto con GitHub Copilot, sin `githubCopilot.cloudAgent` en la config y con `.github/agents/openspec.agent.md` tal como lo escribió SpecAgile 3.0.1
+- **GIVEN** un proyecto con GitHub Copilot, sin `githubCopilot.cloudAgent` en la config y con `.github/agents/openspec.agent.md` tal como lo escribió SpecAgile 4.0.0
 - **WHEN** el usuario ejecuta `specagile update` sin terminal interactiva
 - **THEN** existen `.github/agents/specagile.agent.md` y `.github/workflows/copilot-setup-steps.yml`, y ya no existe `.github/agents/openspec.agent.md`
 
 #### Scenario: Desactivar Copilot en la nube
-- **GIVEN** `.github/agents/openspec.agent.md` tal como lo escribió SpecAgile 3.0.1
+- **GIVEN** `.github/agents/openspec.agent.md` tal como lo escribió SpecAgile 4.0.0
 - **WHEN** el usuario ejecuta `specagile init --tools github-copilot --no-copilot-cloud`
 - **THEN** ya no existe `.github/agents/openspec.agent.md` y no se crea `.github/agents/specagile.agent.md`
 
 #### Scenario: Dejar de usar Copilot con el agente anterior editado
-- **GIVEN** `.github/agents/openspec.agent.md` con el texto de SpecAgile 3.0.1 más una nota del usuario
+- **GIVEN** `.github/agents/openspec.agent.md` con el texto de SpecAgile 4.0.0 más una nota del usuario
 - **WHEN** el usuario ejecuta `specagile update` en un proyecto que ya no tiene GitHub Copilot configurado
 - **THEN** `.github/agents/openspec.agent.md` no cambia

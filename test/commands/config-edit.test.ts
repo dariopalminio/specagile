@@ -18,11 +18,11 @@ import { runCLI } from '../helpers/run-cli.js';
 const FAKE_EDITOR = [
   "const fs = require('fs');",
   'const args = process.argv.slice(2);',
-  'fs.writeFileSync(process.env.OPENSPEC_TEST_EDITOR_LOG, JSON.stringify(args));',
-  'if (process.env.OPENSPEC_TEST_EDITOR_WRITE !== undefined) {',
-  '  fs.writeFileSync(args[args.length - 1], process.env.OPENSPEC_TEST_EDITOR_WRITE);',
+  'fs.writeFileSync(process.env.SPECAGILE_TEST_EDITOR_LOG, JSON.stringify(args));',
+  'if (process.env.SPECAGILE_TEST_EDITOR_WRITE !== undefined) {',
+  '  fs.writeFileSync(args[args.length - 1], process.env.SPECAGILE_TEST_EDITOR_WRITE);',
   '}',
-  "process.exit(Number(process.env.OPENSPEC_TEST_EDITOR_EXIT || '0'));",
+  "process.exit(Number(process.env.SPECAGILE_TEST_EDITOR_EXIT || '0'));",
   '',
 ].join('\n');
 
@@ -80,11 +80,11 @@ describe('config edit', () => {
     process.exitCode = undefined;
 
     process.env.XDG_CONFIG_HOME = fixture.configHome;
-    process.env.OPENSPEC_TEST_EDITOR_LOG = fixture.logPath;
+    process.env.SPECAGILE_TEST_EDITOR_LOG = fixture.logPath;
     delete process.env.EDITOR;
     delete process.env.VISUAL;
-    delete process.env.OPENSPEC_TEST_EDITOR_EXIT;
-    delete process.env.OPENSPEC_TEST_EDITOR_WRITE;
+    delete process.env.SPECAGILE_TEST_EDITOR_EXIT;
+    delete process.env.SPECAGILE_TEST_EDITOR_WRITE;
 
     consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
@@ -150,7 +150,7 @@ describe('config edit', () => {
 
   it('reports an editor that exits non-zero instead of throwing', async () => {
     process.env.EDITOR = fixture.nodeEditor('--wait');
-    process.env.OPENSPEC_TEST_EDITOR_EXIT = '3';
+    process.env.SPECAGILE_TEST_EDITOR_EXIT = '3';
 
     await expect(runConfigCommand(['edit'])).resolves.toBeUndefined();
 
@@ -160,7 +160,7 @@ describe('config edit', () => {
 
   it('still validates the file once the editor closes', async () => {
     process.env.EDITOR = fixture.nodeEditor('--wait');
-    process.env.OPENSPEC_TEST_EDITOR_WRITE = '{ not json';
+    process.env.SPECAGILE_TEST_EDITOR_WRITE = '{ not json';
 
     await runConfigCommand(['edit']);
 
@@ -177,7 +177,7 @@ describe('config edit', () => {
 
   it.skipIf(process.platform === 'win32')('still runs an unquoted absolute editor path with spaces', async () => {
     const editor = path.join(fixture.editorDir, 'ed');
-    fs.writeFileSync(editor, '#!/bin/sh\nprintf \'%s\\n\' "$@" > "$OPENSPEC_TEST_EDITOR_LOG"\n', { mode: 0o755 });
+    fs.writeFileSync(editor, '#!/bin/sh\nprintf \'%s\\n\' "$@" > "$SPECAGILE_TEST_EDITOR_LOG"\n', { mode: 0o755 });
     process.env.EDITOR = editor;
 
     await runConfigCommand(['edit']);
@@ -307,7 +307,7 @@ describe('openspec config edit (end to end)', () => {
 
   const env = (editor: string) => ({
     XDG_CONFIG_HOME: fixture.configHome,
-    OPENSPEC_TEST_EDITOR_LOG: fixture.logPath,
+    SPECAGILE_TEST_EDITOR_LOG: fixture.logPath,
     EDITOR: editor,
     VISUAL: '',
   });

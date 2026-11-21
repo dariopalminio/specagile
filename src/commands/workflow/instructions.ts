@@ -52,7 +52,7 @@ import {
   type ArchiveInstructions,
 } from './shared.js';
 import { parseLocatedTaskLines, type ParsedTask } from '../../utils/task-progress.js';
-import { METADATA_FILENAME } from '../../utils/change-metadata.js';
+import { CHANGE_METADATA_FILE_NAME, getChangeMetadataFile } from '../../core/fork/layout.js';
 
 // -----------------------------------------------------------------------------
 // Types
@@ -229,7 +229,7 @@ export function printInstructionsText(instructions: ArtifactInstructions, isBloc
   // validate then rejects as conflicting with the marker.
   if (instructions.skipped) {
     console.log('<warning>');
-    console.log(instructions.warning ?? 'This artifact is skipped (skip_specs is set in .openspec.yaml).');
+    console.log(instructions.warning ?? `This artifact is skipped (skip_specs is set in ${CHANGE_METADATA_FILE_NAME}).`);
     console.log('</warning>');
     console.log();
     console.log('</artifact>');
@@ -507,7 +507,7 @@ async function collectApplyWarnings(input: {
   );
   if (hasDeltas) return warnings;
 
-  const metadataPath = path.join(changeDir, METADATA_FILENAME);
+  const metadataPath = getChangeMetadataFile(changeDir);
   // The command names the artifact this schema actually declares, never the
   // literal `specs`. A schema whose spec-producing artifact is `contracts` was
   // told to run `openspec instructions specs`, an artifact it does not have,

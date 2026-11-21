@@ -9,6 +9,7 @@ import {
   type ExecFileSyncOptionsWithStringEncoding,
 } from 'node:child_process';
 import { WELCOME_ANIMATION } from './glider-animation.js';
+import { ENV_VAR_NAMES } from '../core/fork/identity.js';
 import { getOnboardingCommands } from '../core/onboarding-commands.js';
 
 // Minimum terminal width for side-by-side layout
@@ -133,7 +134,7 @@ function canAnimate(): boolean {
 
   // Manual override for users who need reduced motion (#722). Presence is
   // what counts: even an empty value disables the animation.
-  if (process.env.OPENSPEC_NO_ANIMATION !== undefined) return false;
+  if (process.env[ENV_VAR_NAMES.noAnimation] !== undefined) return false;
 
   // Check terminal width
   const columns = process.stdout.columns || 80;

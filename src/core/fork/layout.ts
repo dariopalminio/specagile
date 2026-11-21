@@ -37,6 +37,21 @@ export const SCHEMAS_DIR_NAME = 'schemas';
 /** The folder OpenSpec and SpecAgile 2.1 kept everything in. Detection and migration only. */
 export const FORMER_TOOL_DIR_NAME = 'openspec';
 
+/** A change's metadata file: the one the CLI writes and names in messages. */
+export const CHANGE_METADATA_FILE_NAME = '.specagile.yaml';
+
+/**
+ * The metadata file OpenSpec and SpecAgile 4.0.0 wrote. Reading, detection and
+ * migration only: the CLI never writes it.
+ */
+export const FORMER_CHANGE_METADATA_FILE_NAME = '.openspec.yaml';
+
+/** A change's metadata file names, in reading order: the first that exists rules. */
+export const CHANGE_METADATA_FILE_NAMES = [
+  CHANGE_METADATA_FILE_NAME,
+  FORMER_CHANGE_METADATA_FILE_NAME,
+] as const;
+
 /**
  * The layout in force, as path segments from the root: the folder that holds
  * `specs/` and `changes/` (empty for the root itself) and the tool folder.
@@ -98,6 +113,22 @@ export function getConfigFilePaths(root: string): string[] {
 /** `<root>/specagile/schemas`: the project's own schemas. */
 export function getProjectSchemasDir(root: string): string {
   return path.join(getToolDir(root), SCHEMAS_DIR_NAME);
+}
+
+/**
+ * The metadata file of the change in `changeDir`: the first of
+ * CHANGE_METADATA_FILE_NAMES that exists there, or `.specagile.yaml` when none
+ * does (where a new one is written, and the one errors name). Precedence goes
+ * by existence, not validity: an invalid `.specagile.yaml` never falls back to
+ * `.openspec.yaml`, so a former file can't authorize what the current one does
+ * not declare.
+ */
+export function getChangeMetadataFile(changeDir: string): string {
+  for (const name of CHANGE_METADATA_FILE_NAMES) {
+    const candidate = path.join(changeDir, name);
+    if (fs.existsSync(candidate)) return candidate;
+  }
+  return path.join(changeDir, CHANGE_METADATA_FILE_NAME);
 }
 
 // -----------------------------------------------------------------------------
@@ -249,6 +280,9 @@ export const LAYOUT_TEXT_REPLACEMENTS: ReadonlyArray<readonly [upstream: string,
     ['- `openspec/config.yaml` — Project configuration', `- ${code(CONFIG)} — Project configuration`],
     ['- `openspec/explorations/` — Exploration documents', `- ${code(`${TOOL}explorations/`)} — Exploration documents`],
     ['under `openspec/changes/<change-name>/`', `under ${code(`${CHANGES}<change-name>/`)}`],
+    // A change's metadata file. `.specagile.yaml` is in no upstream text, so the
+    // name alone is enough context.
+    [FORMER_CHANGE_METADATA_FILE_NAME, CHANGE_METADATA_FILE_NAME],
   ] as const
 )
   .slice()

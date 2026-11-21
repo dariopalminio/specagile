@@ -41,7 +41,7 @@ function machineEnv(home: string, gitConfigGlobal: string): NodeJS.ProcessEnv {
     XDG_DATA_HOME: path.join(home, 'data'),
     XDG_STATE_HOME: path.join(home, 'state'),
     XDG_CACHE_HOME: path.join(home, 'cache'),
-    OPENSPEC_TELEMETRY: '0',
+    SPECAGILE_TELEMETRY: '0',
     GIT_CONFIG_GLOBAL: gitConfigGlobal,
     GIT_CONFIG_SYSTEM: emptyGitConfig,
     GIT_AUTHOR_NAME: 'Journey Tester',
@@ -543,8 +543,8 @@ describe('migrating a store with the former layout', () => {
     env = {
       XDG_CONFIG_HOME: path.join(box, 'config'),
       XDG_DATA_HOME: path.join(box, 'data'),
-      OPENSPEC_TELEMETRY: '0',
-      OPEN_SPEC_INTERACTIVE: '0',
+      SPECAGILE_TELEMETRY: '0',
+      SPECAGILE_INTERACTIVE: '0',
     };
   });
 

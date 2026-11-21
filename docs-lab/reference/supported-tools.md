@@ -191,6 +191,15 @@ left alone.
   an IDE, restart it.
 - **Old prompt files**: the `.github/prompts/opsx-*.prompt.md` files OpenSpec wrote
   before 2.0 are removed on update.
+- **Cloud files** (`--copilot-cloud`): for the GitHub-hosted Copilot coding agent,
+  not Copilot in your editor. `specagile init --copilot-cloud` writes
+  `.github/workflows/copilot-setup-steps.yml`, which installs `specagile`, and
+  `.github/agents/specagile.agent.md`, the agent Copilot lists as **SpecAgile**. A
+  file you edited is kept as it is. If you keep your own agent in
+  `.github/agents/specagile.md`, SpecAgile writes none. `specagile update` replaces
+  the `.github/agents/openspec.agent.md` that OpenSpec, or SpecAgile up to 4.0.0,
+  wrote. If you edited that file, it is kept and `update` says so; delete it once
+  you no longer need it. Commit the rename.
 
 ### GSD
 

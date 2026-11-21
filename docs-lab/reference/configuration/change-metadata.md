@@ -1,10 +1,19 @@
-# Change metadata (.openspec.yaml)
+# Change metadata (.specagile.yaml)
 
 > The supported fields and validation rules for the metadata stored with each change.
 
 ## Location
 
-Each change keeps its metadata at `changes/<change-name>/.openspec.yaml`, next to its artifacts. Creating a change writes the file with `schema` and `created` filled in.
+Each change keeps its metadata at `changes/<change-name>/.specagile.yaml`, next to its artifacts. Creating a change writes the file with `schema` and `created` filled in.
+
+### Changes with `.openspec.yaml`
+
+OpenSpec and SpecAgile 4.0.0 and earlier wrote the same metadata to `.openspec.yaml`. A change that has no `.specagile.yaml` is read from its `.openspec.yaml` with the same effect: the schema, `skip_specs`, `retire_capabilities`, `initiative` and extension keys all keep working, in active and archived changes, in a project or a store.
+
+- **Which file is read**: if a change has `.specagile.yaml`, only that file is read, even when it is invalid; `.openspec.yaml` beside it is ignored. Otherwise `.openspec.yaml` is read.
+- **Migration**: `specagile update` and `specagile init` rename `.openspec.yaml` to `.specagile.yaml` in each active change, without changing its content. Archived changes keep `.openspec.yaml`. See [Move to the SpecAgile layout](../../help/move-to-the-specagile-layout.md).
+- **Messages** name `.specagile.yaml`, also for a change that still has `.openspec.yaml`.
+- **Tools and scripts** that read `.openspec.yaml`, for example to read your extension keys, need to read `.specagile.yaml`, and fall back to `.openspec.yaml` for changes that have no `.specagile.yaml`. A teammate on SpecAgile 4.0.0 or earlier does not read `.specagile.yaml`: for that CLI those changes have no metadata.
 
 ## Fields
 
@@ -62,7 +71,7 @@ x-owner:
 
 ## Example
 
-A filled-in .openspec.yaml:
+A filled-in .specagile.yaml:
 
 ```yaml
 schema: spec-driven

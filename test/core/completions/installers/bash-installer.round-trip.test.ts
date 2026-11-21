@@ -146,7 +146,7 @@ describe('openspec completion install/uninstall bash (end to end)', () => {
       USERPROFILE: home,
       XDG_CONFIG_HOME: path.join(home, '.config'),
       XDG_DATA_HOME: path.join(home, '.local', 'share'),
-      OPENSPEC_NO_ANIMATION: '1',
+      SPECAGILE_NO_ANIMATION: '1',
     };
     const rc = path.join(home, '.bashrc');
     const original = 'export PATH="$HOME/bin:$PATH"\nalias ll="ls -la"\n';

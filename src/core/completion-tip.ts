@@ -11,7 +11,7 @@
  *
  * The tip is suppressed when:
  * - CI is set (any value npm/telemetry would treat as CI)
- * - OPENSPEC_NO_COMPLETIONS=1
+ * - SPECAGILE_NO_COMPLETIONS=1
  * - completions are already installed, or the shell is one the installer would
  *   reject
  * - the caller passes `silent` — JSON runs, `openspec completion ...`, and
@@ -22,6 +22,7 @@ import { getGlobalConfigPath } from './global-config.js';
 import { writeFileAtomically } from './file-state.js';
 import { isCiEnvironment } from '../utils/ci.js';
 import { detectShell } from '../utils/shell-detection.js';
+import { ENV_VAR_NAMES } from './fork/identity.js';
 
 export const COMPLETION_TIP_MESSAGE =
   "Tip: Run 'specagile completion install' for shell completions";
@@ -38,7 +39,7 @@ export interface CompletionTipOptions {
 function isSuppressedByEnv(): boolean {
   // isCiEnvironment, not a CI==='true' string check: providers set CI to "True",
   // "yes", "on", and the tip should be as quiet in those builds as telemetry is.
-  return isCiEnvironment() || process.env.OPENSPEC_NO_COMPLETIONS === '1';
+  return isCiEnvironment() || process.env[ENV_VAR_NAMES.noCompletions] === '1';
 }
 
 /**

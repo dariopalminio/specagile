@@ -138,7 +138,7 @@ In both branches, never create the root as a side effect: do not run `specagile 
         4. every other nonblank line in the whole file is accounted for as the
            title, Purpose, Requirements header, or a canonical requirement's
            statement, scenarios, or fenced examples;
-        5. the change's `.openspec.yaml` declares `retire_capabilities: true`;
+        5. the change's `.specagile.yaml` declares `retire_capabilities: true`;
         6. the `spec.md` resolves inside the real specs root (do not follow a
            capability-directory symlink to delete an external file).
         If removing the selected requirements would leave no requirement blocks and
@@ -163,7 +163,7 @@ In both branches, never create the root as a side effect: do not run `specagile 
       - Only when the delta has ADDED requirements to put in it and no MODIFIED or
         RENAMED requirements blocked this capability in step b. Otherwise create nothing
         and leave the specs directory untouched. For a REMOVED-only delta, if the change's
-        `.openspec.yaml` declares `retire_capabilities: true`, report it as already retired
+        `.specagile.yaml` declares `retire_capabilities: true`, report it as already retired
         and continue without recreating the spec. Without that marker, report the sync as blocked:
         `specagile archive` rejects it with `Spec must have at least one requirement`.
         An empty delta has no operations to sync; report it as blocked too.

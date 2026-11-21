@@ -77,7 +77,7 @@ beforeAll(async () => {
     XDG_DATA_HOME: path.join(base, 'home', 'data'),
     XDG_STATE_HOME: path.join(base, 'home', 'state'),
     XDG_CACHE_HOME: path.join(base, 'home', 'cache'),
-    OPENSPEC_TELEMETRY: '0',
+    SPECAGILE_TELEMETRY: '0',
   };
 
   await fs.mkdir(storeRoot, { recursive: true });

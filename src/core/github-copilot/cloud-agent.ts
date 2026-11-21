@@ -1,7 +1,8 @@
 /**
  * GitHub Copilot Cloud Agent Support
  *
- * Generates copilot-setup-steps.yml and .github/agents/openspec.agent.md
+ * Generates copilot-setup-steps.yml and .github/agents/specagile.agent.md
+ * (SpecAgile: upstream's openspec.agent.md, see COPILOT_CLOUD_FILES)
  * when the github-copilot tool is selected during init/update.
  * These files enable the GitHub Copilot coding agent (cloud) to use the
  * OpenSpec CLI in its ephemeral dev environment.
@@ -12,7 +13,14 @@ import { promises as fs } from 'fs';
 import { Document, YAMLMap, parseDocument, isMap } from 'yaml';
 import { FileSystemUtils } from '../../utils/file-system.js';
 import { readProjectConfig, resolveConfigFilePath } from '../project-config.js';
-import { CLI_NAME, PACKAGE_NAME, applyForkIdentity, applyForkNames } from '../fork/identity.js';
+import {
+  CLI_NAME,
+  FORMER_CLI_NAME,
+  PACKAGE_NAME,
+  PRODUCT_NAME,
+  applyForkIdentity,
+  applyForkNames,
+} from '../fork/identity.js';
 import { RELATIVE_CONFIG_FILE } from '../fork/layout.js';
 
 const COPILOT_TOOL_ID = 'github-copilot';
@@ -75,11 +83,34 @@ jobs:
 }
 
 /**
- * Generate the .github/agents/openspec.agent.md custom agent file content.
+ * Generate the .github/agents/specagile.agent.md custom agent file content.
  * This tells the GitHub Copilot coding agent how to use the OpenSpec CLI.
  */
 export function generateCopilotAgentFile(): string {
-  return withForkIdentity(generateCopilotAgentFileBody(true));
+  return applyAgentIdentity(withForkIdentity(generateCopilotAgentFileBody(true)));
+}
+
+/**
+ * SpecAgile: the name Copilot shows for the agent, its description and its
+ * title, each an exact upstream text with SpecAgile's. The rest of the body
+ * keeps upstream's prose. Applied with replaceRequired, so a sync that changes
+ * one of these texts fails instead of leaving the agent half translated.
+ */
+export const AGENT_IDENTITY_REPLACEMENTS: ReadonlyArray<readonly [upstream: string, fork: string]> = [
+  ['name: OpenSpec\n', `name: ${PRODUCT_NAME}\n`],
+  [
+    'description: "Manages OpenSpec changes, specs, and workflows using the OpenSpec CLI.',
+    `description: "Manages ${PRODUCT_NAME} changes, specs, and workflows using the ${PRODUCT_NAME} CLI.`,
+  ],
+  ['# OpenSpec Agent\n', `# ${PRODUCT_NAME} Agent\n`],
+];
+
+function applyAgentIdentity(content: string): string {
+  return AGENT_IDENTITY_REPLACEMENTS.reduce(
+    (result, [upstream, fork]) =>
+      replaceRequired(result, upstream, fork, `agent identity text ${JSON.stringify(upstream)}`),
+    content
+  );
 }
 
 function generateCopilotAgentFileBody(includeManagedMarker = false): string {
@@ -282,10 +313,19 @@ function replaceRequired(
  */
 export const COPILOT_CLOUD_FILES = {
   setupSteps: path.join('.github', 'workflows', 'copilot-setup-steps.yml'),
-  agent: path.join('.github', 'agents', 'openspec.agent.md'),
+  // SpecAgile: the agent is named after the CLI (`specagile.agent.md`).
+  agent: path.join('.github', 'agents', `${CLI_NAME}.agent.md`),
 } as const;
 
-const COPILOT_AGENT_ALTERNATE_FILE = path.join('.github', 'agents', 'openspec.md');
+// SpecAgile: the profile Copilot identifies like the agent (`specagile.md`).
+const COPILOT_AGENT_ALTERNATE_FILE = path.join('.github', 'agents', `${CLI_NAME}.md`);
+
+/**
+ * SpecAgile: where OpenSpec, and SpecAgile up to 4.0.0, wrote the agent. Not a
+ * file this version writes, so it is not in COPILOT_CLOUD_FILES: a generated
+ * one is replaced by COPILOT_CLOUD_FILES.agent, an edited one stays.
+ */
+export const FORMER_COPILOT_AGENT_FILE = path.join('.github', 'agents', `${FORMER_CLI_NAME}.agent.md`);
 
 type CopilotCloudFile = (typeof COPILOT_CLOUD_FILES)[keyof typeof COPILOT_CLOUD_FILES];
 
@@ -318,6 +358,8 @@ function getLegacyCopilotCloudFileContents(relPath: CopilotCloudFile): string[] 
     ];
   }
 
+  // SpecAgile 3.0.0 to 4.0.0 wrote it with OpenSpec's name and title, at
+  // FORMER_COPILOT_AGENT_FILE: test/fixtures/copilot-cloud/specagile-4.0.0.agent.md.
   return [
     generateCopilotAgentFileBody(),
     generatePreviousCopilotAgentFileBody(),
@@ -325,6 +367,7 @@ function getLegacyCopilotCloudFileContents(relPath: CopilotCloudFile): string[] 
     generateLegacyCopilotAgentFileBody(),
     generateCopilotAgentFileBody(true),
     withForkIdentity(generateCopilotAgentFileBody(true), applyForkNames),
+    withForkIdentity(generateCopilotAgentFileBody(true)),
   ];
 }
 
@@ -351,6 +394,39 @@ function isManagedCopilotCloudFile(
   content: string
 ): boolean {
   return isCurrentCopilotCloudFile(relPath, content) || isLegacyCopilotCloudFile(relPath, content);
+}
+
+/**
+ * SpecAgile: the agent at FORMER_COPILOT_AGENT_FILE, or null when no regular
+ * file is there. A folder at that path is not SpecAgile's and never stops a
+ * sync, unlike the paths SpecAgile writes.
+ */
+async function readFormerCopilotAgent(
+  projectPath: string
+): Promise<{ fullPath: string; content: string } | null> {
+  const fullPath = FileSystemUtils.resolveProjectArtifactPath(projectPath, FORMER_COPILOT_AGENT_FILE);
+  try {
+    if (!(await fs.stat(fullPath)).isFile()) {
+      return null;
+    }
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException).code;
+    if (code === 'ENOENT' || code === 'ENOTDIR') {
+      return null;
+    }
+    throw error;
+  }
+  return { fullPath, content: await FileSystemUtils.readFile(fullPath) };
+}
+
+/**
+ * SpecAgile: the former agent's text is generated when it is one the agent
+ * path recognizes: the same explicit list, wherever the file is.
+ */
+function isGeneratedFormerCopilotAgent(
+  formerAgent: { content: string } | null
+): formerAgent is { fullPath: string; content: string } {
+  return formerAgent !== null && isManagedCopilotCloudFile(COPILOT_CLOUD_FILES.agent, formerAgent.content);
 }
 
 /**
@@ -482,6 +558,7 @@ export async function writeCopilotCloudFiles(
     agentPath,
     alternateAgentPath
   );
+  const formerAgent = await readFormerCopilotAgent(projectPath);
 
   const setupStepsWritten = await reconcileCopilotCloudFile(
     setupStepsPath,
@@ -493,6 +570,14 @@ export async function writeCopilotCloudFiles(
     agentWritten = await reconcileCopilotCloudFile(agentPath, COPILOT_CLOUD_FILES.agent, ops);
   } else if (agentReconciliation === 'remove-managed') {
     await ops.removeFile(agentPath);
+  }
+
+  // SpecAgile: the generated agent at the former path goes after the current
+  // one is written, so a failed write keeps it. It goes too when specagile.md
+  // stands in for the agent: Copilot would list it as a second agent. An
+  // edited one stays (findKeptFormerCopilotAgent).
+  if (isGeneratedFormerCopilotAgent(formerAgent)) {
+    await ops.removeFile(formerAgent.fullPath);
   }
 
   return { setupStepsWritten, agentWritten };
@@ -517,6 +602,12 @@ export async function removeCopilotCloudFiles(
     if (!(await FileSystemUtils.fileExists(file))) continue;
     const content = await FileSystemUtils.readFile(file);
     if (isManagedCopilotCloudFile(rel, content)) managed.set(file, content);
+  }
+  // SpecAgile: the generated agent at the former path goes too, and comes
+  // back with the rest if afterRemove fails.
+  const formerAgent = await readFormerCopilotAgent(projectPath);
+  if (isGeneratedFormerCopilotAgent(formerAgent)) {
+    managed.set(formerAgent.fullPath, formerAgent.content);
   }
   try {
     for (const [file, content] of managed) {
@@ -573,7 +664,9 @@ export async function hasExistingManagedCloudFiles(projectPath: string): Promise
       return true;
     }
   }
-  return false;
+  // SpecAgile: a project with only the generated agent at the former path
+  // has the cloud files too, so update keeps them (and migrates the agent).
+  return isGeneratedFormerCopilotAgent(await readFormerCopilotAgent(projectPath));
 }
 
 /**
@@ -663,6 +756,22 @@ export async function findUnmanagedCloudFiles(projectPath: string): Promise<stri
     }
   }
   return collisions;
+}
+
+/**
+ * SpecAgile: FORMER_COPILOT_AGENT_FILE (relative to the project root) when it
+ * holds an agent the user edited, which update and init keep; null when there
+ * is none, it is generated, or it is a folder. Reads the disk, like
+ * findUnmanagedCloudFiles, to report what stayed rather than what was planned.
+ */
+export async function findKeptFormerCopilotAgent(projectPath: string): Promise<string | null> {
+  const formerAgent = await readFormerCopilotAgent(projectPath);
+  return formerAgent && !isGeneratedFormerCopilotAgent(formerAgent) ? FORMER_COPILOT_AGENT_FILE : null;
+}
+
+/** SpecAgile: the line update and init print for an edited agent at the former path. */
+export function formerCopilotAgentKeptMessage(relPath: string): string {
+  return `Kept ${relPath}: you edited it. ${PRODUCT_NAME}'s Copilot agent is now ${COPILOT_CLOUD_FILES.agent}.`;
 }
 
 /**

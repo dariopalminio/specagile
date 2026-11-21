@@ -7,7 +7,7 @@ import path from 'node:path';
 // can never write to the developer's real one (~/.minimax/skills,
 // ~/.codex/prompts, the global config). Tests that need their own still set it.
 const testHome = fs.mkdtempSync(path.join(os.tmpdir(), 'openspec-test-home-'));
-process.env.OPENSPEC_TEST_HOME = testHome;
+process.env.SPECAGILE_TEST_HOME = testHome;
 
 function resolveMaxWorkers(): number | undefined {
   // Allow callers (CI/agents) to override without editing config.
@@ -40,7 +40,7 @@ export default defineConfig({
     // CLI child processes they spawn. Telemetry's own tests delete these vars
     // before asserting, so they are unaffected.
     env: {
-      OPENSPEC_TELEMETRY: '0',
+      SPECAGILE_TELEMETRY: '0',
       DO_NOT_TRACK: '1',
       HOME: testHome,
       USERPROFILE: testHome,
@@ -52,7 +52,7 @@ export default defineConfig({
       // A scripted `openspec init` installs for the machine unless told
       // otherwise. The suite's project tests say so here, once; the tests of
       // that default clear it.
-      OPENSPEC_SKILLS_SCOPE: 'project',
+      SPECAGILE_SKILLS_SCOPE: 'project',
       GH_HOST: 'skills.example.invalid',
       GIT_CONFIG_GLOBAL: path.join(testHome, 'release', 'gitconfig'),
     },

@@ -16,8 +16,11 @@ import {
  */
 export {
   ARCHIVE_DIR_NAME,
+  CHANGE_METADATA_FILE_NAME,
+  CHANGE_METADATA_FILE_NAMES,
   CHANGES_DIR_NAME,
   CONFIG_FILE_NAMES,
+  FORMER_CHANGE_METADATA_FILE_NAME,
   FORMER_TOOL_DIR_NAME,
   RELATIVE_ARCHIVE_DIR,
   RELATIVE_CHANGES_DIR,
@@ -30,6 +33,7 @@ export {
   SPECS_DIR_NAME,
   TOOL_DIR_NAME,
   getArchiveDir,
+  getChangeMetadataFile,
   getChangesDir,
   getConfigFilePaths,
   getProjectSchemasDir,

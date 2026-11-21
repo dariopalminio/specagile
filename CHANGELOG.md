@@ -2,6 +2,37 @@
 
 ## Unreleased
 
+### Breaking Changes
+
+- **Each change keeps its metadata in `.specagile.yaml`.** `specagile new change`, and the skills that create a change (`sa-specify`, `sa-propose`, `sa-new-change`), write `changes/<change>/.specagile.yaml` instead of `.openspec.yaml`, with the same content (`schema`, `created` and the optional keys). `specagile new change --json` names it in `metadataPath`. Messages, the generated skills and the `spec-driven` schema's instructions name `.specagile.yaml` too.
+- **Run `specagile update` in each project and each store, then commit the renames.** It renames `.openspec.yaml` to `.specagile.yaml` in each active change, without changing its content, and prints each rename (`specagile init` does the same). `specagile update --dry-run` shows them first. Archived changes keep `.openspec.yaml`. A change that already has both files keeps both, with a warning: `.specagile.yaml` is the one used. A file another program holds open stays as it is and is named in the output; close it and run `specagile update` again.
+- **Changes with `.openspec.yaml` keep working.** In a change that has no `.specagile.yaml`, SpecAgile reads `.openspec.yaml` with the same effect: the schema, `skip_specs`, `retire_capabilities`, `initiative` and `x-` keys. That covers changes made with OpenSpec or with SpecAgile 4.0.0 or earlier, archived ones included. When a change has both files, only `.specagile.yaml` is read, even if it is invalid.
+- **Teammates on SpecAgile 4.0.0 or earlier** don't read `.specagile.yaml`: for their CLI, those changes have no metadata (the default schema, no `skip_specs`, no `retire_capabilities`). Update SpecAgile on every machine before committing the renames.
+- **Tools and scripts that read `.openspec.yaml`**, for example to read your `x-` keys, need to read `.specagile.yaml`, falling back to `.openspec.yaml` for changes that don't have it.
+- **The GitHub Copilot cloud agent is `.github/agents/specagile.agent.md`, and Copilot lists it as "SpecAgile".** With the cloud files on (`--copilot-cloud`), `specagile init` and `specagile update` write it instead of `.github/agents/openspec.agent.md`, with `name: SpecAgile`, the title `# SpecAgile Agent` and a description that names the SpecAgile CLI. `specagile init` asks about `.github/agents/specagile.agent.md`.
+- **Run `specagile update` in each project with the cloud files, then commit the rename.** It removes the `openspec.agent.md` that OpenSpec, or SpecAgile up to 4.0.0, wrote and writes `specagile.agent.md`; `specagile update --dry-run` shows both first. An `openspec.agent.md` you edited is kept, and `update` says so: delete it when you no longer need it, or Copilot lists two agents. A project whose only cloud file is that generated agent still counts as having the cloud files, so `update` keeps them without asking. Turning the cloud files off (`--no-copilot-cloud`, `githubCopilot.cloudAgent: false`) or no longer using Copilot removes the generated `openspec.agent.md` too.
+- **If you assign issues or tasks to the "OpenSpec" agent on GitHub**, pick "SpecAgile" instead.
+- **Your own agent profile moves from `.github/agents/openspec.md` to `.github/agents/specagile.md`.** With `specagile.md` in place, SpecAgile writes no agent of its own, as `openspec.md` did before. An `openspec.md` no longer affects SpecAgile.
+- **SpecAgile reads its environment variables with `SPECAGILE_*` names.** The values and their effect stay the same:
+
+  | Before | Now | Effect |
+  |---|---|---|
+  | `OPENSPEC_SKILLS_SCOPE` | `SPECAGILE_SKILLS_SCOPE` | Where `init` and `update` keep the skills (`global` or `project`) |
+  | `OPENSPEC_CONCURRENCY` | `SPECAGILE_CONCURRENCY` | Validations `validate` runs at once |
+  | `OPENSPEC_NO_UPDATE_CHECK` | `SPECAGILE_NO_UPDATE_CHECK` | Turns off the check for a newer version |
+  | `OPENSPEC_TELEMETRY` | `SPECAGILE_TELEMETRY` | SpecAgile sends no telemetry; a value other than `1`/`true`/`yes`/`on` turns off the background version check |
+  | `OPENSPEC_NO_COMPLETIONS` | `SPECAGILE_NO_COMPLETIONS` | Hides the tip to install shell completions |
+  | `OPENSPEC_NO_AUTO_CONFIG` | `SPECAGILE_NO_AUTO_CONFIG` | Keeps completions from editing the Bash and Zsh profile |
+  | `OPENSPEC_NO_ANIMATION` | `SPECAGILE_NO_ANIMATION` | Turns off the welcome animation |
+  | `OPENSPEC_ENABLE_CLI_AGENT_OPENERS` | `SPECAGILE_ENABLE_CLI_AGENT_OPENERS` | Turns opening worksets in terminal agents back on |
+  | `OPEN_SPEC_INTERACTIVE` | `SPECAGILE_INTERACTIVE` | `0` turns off prompts |
+
+  The help of `specagile validate --concurrency`, its shell completion and the error for an invalid `SPECAGILE_SKILLS_SCOPE` name the new variables.
+- **SpecAgile ignores the former names.** It doesn't read them as a fallback or warn when they are set: they configure OpenSpec, which keeps reading them, so the two tools can share a machine or a CI job. Rename them in your scripts, CI jobs and shell profiles. Two to check first:
+  - **`OPENSPEC_SKILLS_SCOPE=project` in CI.** Without `SPECAGILE_SKILLS_SCOPE=project`, `specagile init` in a repo with no skills can install them for the machine instead of in the checkout.
+  - **`OPENSPEC_NO_UPDATE_CHECK` on machines without network or without access to npm.** Without `SPECAGILE_NO_UPDATE_CHECK`, `specagile update` asks the npm registry again. The request has a time limit and a failure doesn't stop `update`.
+- **While some scripts or machines still run an earlier SpecAgile, set both names**: each version reads its own. `CI`, `DO_NOT_TRACK`, `NO_COLOR`, `XDG_CONFIG_HOME` and `XDG_DATA_HOME` work as before. See `docs-lab/reference/configuration/environment-variables.md`.
+
 ### Patch Changes
 
 Fixes from OpenSpec 2.1.1, with `specagile` in place of `openspec` and the `sa-*` skill names. OpenSpec 2.1.1 also installs skills from the npm package instead of cloning them; SpecAgile keeps installing them from its repository's release tag, so Git and access to GitHub are still needed.

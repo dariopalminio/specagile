@@ -69,11 +69,11 @@ function loadedModules(args: string[], withProject = false): {
     cwd: workDir,
     env: {
       ...process.env,
-      OPENSPEC_TELEMETRY: '0',
-      OPEN_SPEC_INTERACTIVE: '0',
+      SPECAGILE_TELEMETRY: '0',
+      SPECAGILE_INTERACTIVE: '0',
       XDG_CONFIG_HOME: path.join(workDir, 'config'),
       XDG_DATA_HOME: path.join(workDir, 'data'),
-      OPENSPEC_TEST_MODULE_LOG: logFile,
+      SPECAGILE_TEST_MODULE_LOG: logFile,
     },
     encoding: 'utf-8',
     timeout: 30_000,
@@ -195,7 +195,7 @@ describe('CLI startup loads only what the command needs', () => {
     const configHome = path.join(home, 'config');
 
     // These have to be DELETED, not blanked. Both opt-outs read as "set to
-    // anything that is not an explicit on-value", so `OPENSPEC_TELEMETRY: ''`
+    // anything that is not an explicit on-value", so `SPECAGILE_TELEMETRY: ''`
     // and `DO_NOT_TRACK: ''` would switch telemetry OFF and the assertions
     // below would hold on any build, passing vacuously.
     const env = {
@@ -205,7 +205,7 @@ describe('CLI startup loads only what the command needs', () => {
       XDG_CONFIG_HOME: configHome,
       XDG_DATA_HOME: path.join(home, 'data'),
     };
-    delete env.OPENSPEC_TELEMETRY;
+    delete env.SPECAGILE_TELEMETRY;
     delete env.DO_NOT_TRACK;
     delete env.CI;
 

@@ -351,14 +351,14 @@ jobs:
                mkdir /w && cd /src && tar --exclude=./node_modules -cf - . | tar -xf - -C /w && chown -R node /w &&
                su node -c 'cd /w && pnpm install --frozen-lockfile && pnpm run build &&
                  bash scripts/binary/e2e.sh dist-bin/openspec-$ASSET &&
-                 OPENSPEC_DOWNLOAD_URL=http://127.0.0.1:8766 bash scripts/binary/install-check.sh dist-bin/openspec-$ASSET'"
+                 SPECAGILE_DOWNLOAD_URL=http://127.0.0.1:8766 bash scripts/binary/install-check.sh dist-bin/openspec-$ASSET'"
           else
             pnpm install --frozen-lockfile
             pnpm run build
             bin="dist-bin/openspec-$ASSET"
             [ "$RUNNER_OS" = Windows ] && bin="$bin.exe"
             bash scripts/binary/e2e.sh "$bin"
-            OPENSPEC_DOWNLOAD_URL=http://127.0.0.1:8766 bash scripts/binary/install-check.sh "$bin"
+            SPECAGILE_DOWNLOAD_URL=http://127.0.0.1:8766 bash scripts/binary/install-check.sh "$bin"
           fi
 
   release:

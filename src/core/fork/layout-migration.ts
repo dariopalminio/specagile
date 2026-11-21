@@ -92,7 +92,11 @@ function errorCode(error: unknown): string | undefined {
     : undefined;
 }
 
-async function renameWithRetry(ops: LayoutMigrationOps, from: string, to: string): Promise<void> {
+/**
+ * `ops.rename`, retried on `ops.retryCodes` (Windows reports them while a file
+ * is briefly held); the last error is thrown. The metadata migration uses it too.
+ */
+export async function renameWithRetry(ops: LayoutMigrationOps, from: string, to: string): Promise<void> {
   for (let attempt = 0; ; attempt++) {
     try {
       await ops.rename(from, to);

@@ -5,7 +5,7 @@ import path from 'path';
 import os from 'os';
 import { runCLI } from '../helpers/run-cli.js';
 import { FileSystemUtils } from '../../src/utils/file-system.js';
-import { getChangesDir, getConfigFile, getProjectSchemasDir, getSpecsDir, getToolDir } from '../helpers/layout.js';
+import { CHANGE_METADATA_FILE_NAME, getChangesDir, getConfigFile, getProjectSchemasDir, getSpecsDir, getToolDir } from '../helpers/layout.js';
 
 describe('artifact-workflow CLI commands', () => {
   let tempDir: string;
@@ -745,7 +745,7 @@ rules:
       const stat = await fs.stat(changeDir);
       expect(stat.isDirectory()).toBe(true);
 
-      const metadata = await fs.readFile(path.join(changeDir, '.openspec.yaml'), 'utf-8');
+      const metadata = await fs.readFile(path.join(changeDir, CHANGE_METADATA_FILE_NAME), 'utf-8');
       expect(metadata).not.toContain('skip_specs');
     });
 
@@ -784,7 +784,7 @@ apply:
       expect(result.exitCode).toBe(0);
 
       const metadata = await fs.readFile(
-        path.join(changesDir, 'no-spec-change', '.openspec.yaml'),
+        path.join(changesDir, 'no-spec-change', CHANGE_METADATA_FILE_NAME),
         'utf-8'
       );
       expect(metadata).toContain('skip_specs: true');
@@ -825,7 +825,7 @@ artifacts:
       expect(result.exitCode).toBe(0);
 
       const changeDir = path.join(changesDir, changeName);
-      const metadata = await fs.readFile(path.join(changeDir, '.openspec.yaml'), 'utf-8');
+      const metadata = await fs.readFile(path.join(changeDir, CHANGE_METADATA_FILE_NAME), 'utf-8');
       expect(metadata).not.toContain('skip_specs');
 
       const specDir = path.join(changeDir, 'specs', 'example');
@@ -887,7 +887,7 @@ The system SHALL support the example behavior.
       expect(result.exitCode).toBe(0);
 
       const metadata = await fs.readFile(
-        path.join(changesDir, 'goal-change', '.openspec.yaml'),
+        path.join(changesDir, 'goal-change', CHANGE_METADATA_FILE_NAME),
         'utf-8'
       );
       expect(metadata).toContain('schema: spec-driven');
@@ -1701,7 +1701,7 @@ operations:
         expect(result.exitCode).toBe(0);
 
         // Verify the change was created with spec-driven schema
-        const metadataPath = path.join(changesDir, 'test-change', '.openspec.yaml');
+        const metadataPath = path.join(changesDir, 'test-change', CHANGE_METADATA_FILE_NAME);
         const metadata = await fs.readFile(metadataPath, 'utf-8');
         expect(metadata).toContain('schema: spec-driven');
       }, 60000);
@@ -1723,7 +1723,7 @@ operations:
         expect(result.exitCode).toBe(0);
 
         // Verify the change uses the CLI-specified schema
-        const metadataPath = path.join(changesDir, 'override-test', '.openspec.yaml');
+        const metadataPath = path.join(changesDir, 'override-test', CHANGE_METADATA_FILE_NAME);
         const metadata = await fs.readFile(metadataPath, 'utf-8');
         expect(metadata).toContain('schema: spec-driven');
       }, 60000);

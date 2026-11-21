@@ -10,4 +10,4 @@ while IFS= read -r file; do files+=("$file"); done < <(grep -rl 'runCLI' test | 
 # Without files vitest would run the whole suite and prove nothing about $1.
 [ "${#files[@]}" -gt 0 ] || { echo "No CLI test files found" >&2; exit 1; }
 echo "Running ${#files[@]} CLI test files against $1"
-OPENSPEC_TEST_BINARY="$1" pnpm exec vitest run "${files[@]}"
+SPECAGILE_TEST_BINARY="$1" pnpm exec vitest run "${files[@]}"

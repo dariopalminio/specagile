@@ -42,6 +42,8 @@ export type UpdatePlanNoteCode =
   | 'left-alone-skills'
   // SpecAgile: skills kept under their former `openspec-*` names.
   | 'kept-former-skills'
+  // SpecAgile: an edited Copilot agent kept at its former path (openspec.agent.md).
+  | 'kept-former-copilot-agent'
   // SpecAgile: the former openspec/ layout moves (src/core/fork/layout-migration.ts).
   | 'layout-migration';
 

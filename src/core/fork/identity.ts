@@ -17,6 +17,12 @@ import { applyLayoutText } from './layout.js';
 export const CLI_NAME = 'specagile';
 
 /**
+ * The product's name where a tool shows it, such as the GitHub Copilot cloud
+ * agent (`name: SpecAgile`). See "SpecAgile identity" in FORK.md.
+ */
+export const PRODUCT_NAME = 'SpecAgile';
+
+/**
  * The name of SpecAgile's global config and data folders: `specagile` under
  * `$XDG_CONFIG_HOME`/`%APPDATA%`/`~/.config` and `$XDG_DATA_HOME`/
  * `%LOCALAPPDATA%`/`~/.local/share`. OpenSpec's `openspec` folders are never
@@ -30,8 +36,73 @@ export const PACKAGE_NAME = 'specagile';
 /** SpecAgile's repository, where its links and feedback go. */
 export const REPOSITORY_URL = 'https://github.com/dariopalminio/specagile';
 
+/** The banner `specagile init` prints above its tool picker. */
+export const SPECAGILE_BANNER: string = [
+  '█▀▀ █▀▄ █▀▀ █▀▀  ▄▀█ █▀▀ █ █   █▀▀',
+  '▄▄█ █▀  ██▄ █▄▄  █▀█ █▄█ █ █▄▄ ██▄',
+].join('\n');
+
 /** The name OpenSpec upstream gives its executable. */
 export const FORMER_CLI_NAME = 'openspec';
+
+/** Each setting SpecAgile reads from the environment. */
+export type EnvSetting =
+  | 'skillsScope'
+  | 'concurrency'
+  | 'noUpdateCheck'
+  | 'telemetry'
+  | 'noCompletions'
+  | 'noAutoConfig'
+  | 'noAnimation'
+  | 'enableCliAgentOpeners'
+  | 'interactive'
+  | 'installDir'
+  | 'installName'
+  | 'downloadUrl'
+  | 'releasesUrl';
+
+/**
+ * The environment variable SpecAgile reads for each setting. Code reads
+ * `process.env[ENV_VAR_NAMES.<setting>]` and messages name the variable from
+ * this table. See "SpecAgile identity" in FORK.md.
+ */
+export const ENV_VAR_NAMES: Readonly<Record<EnvSetting, string>> = {
+  skillsScope: 'SPECAGILE_SKILLS_SCOPE',
+  concurrency: 'SPECAGILE_CONCURRENCY',
+  noUpdateCheck: 'SPECAGILE_NO_UPDATE_CHECK',
+  telemetry: 'SPECAGILE_TELEMETRY',
+  noCompletions: 'SPECAGILE_NO_COMPLETIONS',
+  noAutoConfig: 'SPECAGILE_NO_AUTO_CONFIG',
+  noAnimation: 'SPECAGILE_NO_ANIMATION',
+  enableCliAgentOpeners: 'SPECAGILE_ENABLE_CLI_AGENT_OPENERS',
+  interactive: 'SPECAGILE_INTERACTIVE',
+  installDir: 'SPECAGILE_INSTALL_DIR',
+  installName: 'SPECAGILE_INSTALL_NAME',
+  downloadUrl: 'SPECAGILE_DOWNLOAD_URL',
+  releasesUrl: 'SPECAGILE_RELEASES_URL',
+};
+
+/**
+ * OpenSpec's name for each setting. SpecAgile never reads these from the
+ * environment: what is set for OpenSpec does not change SpecAgile. Tests and
+ * docs use the table, and `src/commands/install-standalone.ts` names OpenSpec's
+ * installer's variables with it. See "SpecAgile identity" in FORK.md.
+ */
+export const FORMER_ENV_VAR_NAMES: Readonly<Record<EnvSetting, string>> = {
+  skillsScope: 'OPENSPEC_SKILLS_SCOPE',
+  concurrency: 'OPENSPEC_CONCURRENCY',
+  noUpdateCheck: 'OPENSPEC_NO_UPDATE_CHECK',
+  telemetry: 'OPENSPEC_TELEMETRY',
+  noCompletions: 'OPENSPEC_NO_COMPLETIONS',
+  noAutoConfig: 'OPENSPEC_NO_AUTO_CONFIG',
+  noAnimation: 'OPENSPEC_NO_ANIMATION',
+  enableCliAgentOpeners: 'OPENSPEC_ENABLE_CLI_AGENT_OPENERS',
+  interactive: 'OPEN_SPEC_INTERACTIVE',
+  installDir: 'OPENSPEC_INSTALL_DIR',
+  installName: 'OPENSPEC_INSTALL_NAME',
+  downloadUrl: 'OPENSPEC_DOWNLOAD_URL',
+  releasesUrl: 'OPENSPEC_RELEASES_URL',
+};
 
 /** The skill each workflow installs as: folder name and `name:` field. */
 export const SKILL_NAME_BY_WORKFLOW: Readonly<Record<WorkflowId, string>> = {
@@ -215,11 +286,12 @@ export function applyProductText(text: string): string {
 /**
  * Rewrites text written by upstream into SpecAgile's identity: its names
  * (`applyForkNames`), then its layout paths (`applyLayoutText`), so
- * `<planningHome.root>/openspec/specs/` reads `<planningHome.root>/specs/` and
- * `<root.path>/openspec/config.yaml` reads `<root.path>/specagile/config.yaml`,
- * then the greetings in PRODUCT_TEXT_REPLACEMENTS (`applyProductText`).
- * Internal files (`.openspec.yaml`, `.openspec-target`, `.openspec-store/`),
- * the store location `~/openspec/<id>` and any other "OpenSpec" in prose stay.
+ * `<planningHome.root>/openspec/specs/` reads `<planningHome.root>/specs/`,
+ * `<root.path>/openspec/config.yaml` reads `<root.path>/specagile/config.yaml`
+ * and a change's `.openspec.yaml` reads `.specagile.yaml`, then the greetings
+ * in PRODUCT_TEXT_REPLACEMENTS (`applyProductText`). Internal files
+ * (`.openspec-target`, `.openspec-store/`), the store location
+ * `~/openspec/<id>` and any other "OpenSpec" in prose stay.
  *
  * Idempotent: text that already has the fork's identity comes back unchanged.
  */

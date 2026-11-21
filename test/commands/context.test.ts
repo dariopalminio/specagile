@@ -10,7 +10,7 @@ import { runCLI, type RunCLIResult } from '../helpers/run-cli.js';
 import { createOpenSpecRoot } from '../helpers/openspec-fixtures.js';
 import { snapshotDirectory as snapshot } from '../helpers/fs-snapshot.js';
 import { cleanupTempPath } from '../helpers/temp-cleanup.js';
-import { getChangesDir, getConfigFile, getSpecsDir, getToolDir } from '../helpers/layout.js';
+import { CHANGE_METADATA_FILE_NAME, getChangesDir, getConfigFile, getSpecsDir, getToolDir } from '../helpers/layout.js';
 
 const CONTEXT_MATRIX_TIMEOUT_MS = 30_000;
 
@@ -26,8 +26,8 @@ describe('specagile context (4.1)', () => {
     env = {
       XDG_DATA_HOME: path.join(tempDir, 'data'),
       XDG_CONFIG_HOME: path.join(tempDir, 'config'),
-      OPEN_SPEC_INTERACTIVE: '0',
-      OPENSPEC_TELEMETRY: '0',
+      SPECAGILE_INTERACTIVE: '0',
+      SPECAGILE_TELEMETRY: '0',
     };
     globalDataDir = getGlobalDataDir({ env });
 
@@ -329,7 +329,7 @@ describe('specagile context (4.1)', () => {
         expect(root.store_id).toBe(selectedRoot === storeRoot ? 'team-context' : undefined);
       }
       expect(parseJson(instructions).context).toBe(expectedContext);
-      expect(fs.existsSync(path.join(getChangesDir(selectedRoot), 'add-auth', '.openspec.yaml'))).toBe(true);
+      expect(fs.existsSync(path.join(getChangesDir(selectedRoot), 'add-auth', CHANGE_METADATA_FILE_NAME))).toBe(true);
       expect(fs.existsSync(getToolDir(cwd))).toBe(false);
       if (selectedRoot !== project) {
         expect(fs.existsSync(path.join(getChangesDir(project), 'add-auth'))).toBe(false);

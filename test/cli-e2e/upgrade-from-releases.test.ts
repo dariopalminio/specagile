@@ -19,16 +19,16 @@ import { globalConfigFile } from '../helpers/global-folders.js';
  * left to do on a second run.
  *
  * Needs npm and network access, so it runs only with
- * OPENSPEC_RELEASE_UPGRADES=1. OPENSPEC_RELEASE_CACHE reuses installs.
+ * SPECAGILE_RELEASE_UPGRADES=1. SPECAGILE_RELEASE_CACHE reuses installs.
  */
-const enabled = process.env.OPENSPEC_RELEASE_UPGRADES === '1';
+const enabled = process.env.SPECAGILE_RELEASE_UPGRADES === '1';
 // 0.14 is the last layout with Cline's and Qwen's commands one folder up.
 const RELEASES = ['0.14.0', '0.23.0', '1.0.0', '1.2.0', '1.10.0', '1.16.0'];
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const currentBin = path.join(repoRoot, 'bin', 'specagile.js');
 const cacheDir = path.resolve(
-  process.env.OPENSPEC_RELEASE_CACHE ?? path.join(os.tmpdir(), 'openspec-release-cache')
+  process.env.SPECAGILE_RELEASE_CACHE ?? path.join(os.tmpdir(), 'openspec-release-cache')
 );
 
 function releaseBin(version: string): string {
@@ -69,7 +69,9 @@ function run(bin: string, args: string[], box: Sandbox): { status: number | null
 
       GH_HOST: process.env.GH_HOST,
       GIT_CONFIG_GLOBAL: process.env.GIT_CONFIG_GLOBAL,
+      // The releases are OpenSpec's and SpecAgile's, and each reads its own name.
       OPENSPEC_TELEMETRY: '0',
+      SPECAGILE_TELEMETRY: '0',
       DO_NOT_TRACK: '1',
       CI: '1',
       NO_COLOR: '1',

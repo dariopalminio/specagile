@@ -68,8 +68,8 @@ describe('store git lifecycle', { timeout: REAL_GIT_TEST_TIMEOUT_MS }, () => {
     env = {
       XDG_DATA_HOME: dataHome,
       XDG_CONFIG_HOME: configHome,
-      OPEN_SPEC_INTERACTIVE: '0',
-      OPENSPEC_TELEMETRY: '0',
+      SPECAGILE_INTERACTIVE: '0',
+      SPECAGILE_TELEMETRY: '0',
     };
     globalDataDir = getGlobalDataDir({ env });
 
@@ -112,10 +112,10 @@ describe('store git lifecycle', { timeout: REAL_GIT_TEST_TIMEOUT_MS }, () => {
       ...process.env,
       XDG_DATA_HOME: dataHome,
       XDG_CONFIG_HOME: configHome,
-      OPENSPEC_TELEMETRY: '0',
+      SPECAGILE_TELEMETRY: '0',
       ...isolatedGitEnv(tempDir),
     };
-    delete process.env.OPEN_SPEC_INTERACTIVE;
+    delete process.env.SPECAGILE_INTERACTIVE;
     delete process.env.CI;
     process.chdir(tempDir);
     (process.stdin as NodeJS.ReadStream & { isTTY?: boolean }).isTTY = true;

@@ -3,6 +3,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
 import { ZshInstaller } from '../../../../src/core/completions/installers/zsh-installer.js';
+import { FORMER_ENV_VAR_NAMES } from '../../../../src/core/fork/identity.js';
 
 describe('ZshInstaller', () => {
   let testHomeDir: string;
@@ -238,8 +239,8 @@ describe('ZshInstaller', () => {
     });
 
     it('should include fpath instructions for standard Zsh when auto-config is disabled', async () => {
-      const originalEnv = process.env.OPENSPEC_NO_AUTO_CONFIG;
-      process.env.OPENSPEC_NO_AUTO_CONFIG = '1';
+      const originalEnv = process.env.SPECAGILE_NO_AUTO_CONFIG;
+      process.env.SPECAGILE_NO_AUTO_CONFIG = '1';
 
       const result = await installer.install(testScript);
 
@@ -250,9 +251,9 @@ describe('ZshInstaller', () => {
 
       // Restore env
       if (originalEnv === undefined) {
-        delete process.env.OPENSPEC_NO_AUTO_CONFIG;
+        delete process.env.SPECAGILE_NO_AUTO_CONFIG;
       } else {
-        process.env.OPENSPEC_NO_AUTO_CONFIG = originalEnv;
+        process.env.SPECAGILE_NO_AUTO_CONFIG = originalEnv;
       }
     });
 
@@ -489,8 +490,8 @@ describe('ZshInstaller', () => {
       // With auto-config off these lines are printed for the user to paste in,
       // so an expansion left in them runs on every future shell start. The
       // fpath line was previously bare - not even a double quote.
-      const originalEnv = process.env.OPENSPEC_NO_AUTO_CONFIG;
-      process.env.OPENSPEC_NO_AUTO_CONFIG = '1';
+      const originalEnv = process.env.SPECAGILE_NO_AUTO_CONFIG;
+      process.env.SPECAGILE_NO_AUTO_CONFIG = '1';
 
       try {
         const hostileHome = path.join(testHomeDir, "x$(touch pwned)`id`'q");
@@ -510,9 +511,9 @@ describe('ZshInstaller', () => {
         expect(result.instructions).toContain(`  fpath=(${quotedDir} $fpath)`);
       } finally {
         if (originalEnv === undefined) {
-          delete process.env.OPENSPEC_NO_AUTO_CONFIG;
+          delete process.env.SPECAGILE_NO_AUTO_CONFIG;
         } else {
-          process.env.OPENSPEC_NO_AUTO_CONFIG = originalEnv;
+          process.env.SPECAGILE_NO_AUTO_CONFIG = originalEnv;
         }
       }
     });
@@ -593,9 +594,9 @@ describe('ZshInstaller', () => {
       expect(content).not.toContain('# Old OpenSpec config');
     });
 
-    it('should return false when OPENSPEC_NO_AUTO_CONFIG is set', async () => {
-      const originalEnv = process.env.OPENSPEC_NO_AUTO_CONFIG;
-      process.env.OPENSPEC_NO_AUTO_CONFIG = '1';
+    it('should return false when SPECAGILE_NO_AUTO_CONFIG is set', async () => {
+      const originalEnv = process.env.SPECAGILE_NO_AUTO_CONFIG;
+      process.env.SPECAGILE_NO_AUTO_CONFIG = '1';
 
       const result = await installer.configureZshrc(completionsDir);
 
@@ -607,9 +608,29 @@ describe('ZshInstaller', () => {
 
       // Restore env
       if (originalEnv === undefined) {
-        delete process.env.OPENSPEC_NO_AUTO_CONFIG;
+        delete process.env.SPECAGILE_NO_AUTO_CONFIG;
       } else {
-        process.env.OPENSPEC_NO_AUTO_CONFIG = originalEnv;
+        process.env.SPECAGILE_NO_AUTO_CONFIG = originalEnv;
+      }
+    });
+
+    it("still configures .zshrc with OpenSpec's variable at 1 and no SPECAGILE_NO_AUTO_CONFIG", async () => {
+      const former = FORMER_ENV_VAR_NAMES.noAutoConfig;
+      const original = { current: process.env.SPECAGILE_NO_AUTO_CONFIG, former: process.env[former] };
+      delete process.env.SPECAGILE_NO_AUTO_CONFIG;
+      process.env[former] = '1';
+
+      try {
+        const result = await installer.configureZshrc(completionsDir);
+
+        expect(result).toBe(true);
+        const content = await fs.readFile(path.join(testHomeDir, '.zshrc'), 'utf-8');
+        expect(content).toContain(`fpath=('${completionsDir}' $fpath)`);
+      } finally {
+        if (original.current === undefined) delete process.env.SPECAGILE_NO_AUTO_CONFIG;
+        else process.env.SPECAGILE_NO_AUTO_CONFIG = original.current;
+        if (original.former === undefined) delete process.env[former];
+        else process.env[former] = original.former;
       }
     });
 
@@ -772,8 +793,8 @@ describe('ZshInstaller', () => {
     });
 
     it('should include instructions when .zshrc auto-config fails', async () => {
-      const originalEnv = process.env.OPENSPEC_NO_AUTO_CONFIG;
-      process.env.OPENSPEC_NO_AUTO_CONFIG = '1';
+      const originalEnv = process.env.SPECAGILE_NO_AUTO_CONFIG;
+      process.env.SPECAGILE_NO_AUTO_CONFIG = '1';
 
       const result = await installer.install(testScript);
 
@@ -784,9 +805,9 @@ describe('ZshInstaller', () => {
 
       // Restore env
       if (originalEnv === undefined) {
-        delete process.env.OPENSPEC_NO_AUTO_CONFIG;
+        delete process.env.SPECAGILE_NO_AUTO_CONFIG;
       } else {
-        process.env.OPENSPEC_NO_AUTO_CONFIG = originalEnv;
+        process.env.SPECAGILE_NO_AUTO_CONFIG = originalEnv;
       }
     });
 
@@ -821,7 +842,7 @@ describe('ZshInstaller', () => {
     });
 
     it('names $ZDOTDIR/.zshrc in the manual instructions when it cannot write', async () => {
-      process.env.OPENSPEC_NO_AUTO_CONFIG = '1';
+      process.env.SPECAGILE_NO_AUTO_CONFIG = '1';
       try {
         const result = await installer.install('#compdef specagile\n');
 
@@ -831,7 +852,7 @@ describe('ZshInstaller', () => {
         expect(text).toContain(`already exist in ${path.join(zdotdir, '.zshrc')}`);
         expect(text).not.toContain('~/.zshrc');
       } finally {
-        delete process.env.OPENSPEC_NO_AUTO_CONFIG;
+        delete process.env.SPECAGILE_NO_AUTO_CONFIG;
       }
     });
 
@@ -873,7 +894,7 @@ describe('ZshInstaller', () => {
 
     it('shows manual instructions for an up-to-date script when it cannot configure .zshrc', async () => {
       await installer.install('#compdef specagile\n');
-      process.env.OPENSPEC_NO_AUTO_CONFIG = '1';
+      process.env.SPECAGILE_NO_AUTO_CONFIG = '1';
       try {
         const result = await installer.install('#compdef specagile\n');
 
@@ -882,7 +903,7 @@ describe('ZshInstaller', () => {
           `add the following to your ${path.join(zdotdir, '.zshrc')} file`
         );
       } finally {
-        delete process.env.OPENSPEC_NO_AUTO_CONFIG;
+        delete process.env.SPECAGILE_NO_AUTO_CONFIG;
       }
     });
 
@@ -948,12 +969,12 @@ describe('ZshInstaller', () => {
       expect(result.message.match(/Removed OpenSpec configuration from/g)).toHaveLength(1);
       expect(result.message).toContain('Removed OpenSpec configuration from ~/.zshrc');
 
-      process.env.OPENSPEC_NO_AUTO_CONFIG = '1';
+      process.env.SPECAGILE_NO_AUTO_CONFIG = '1';
       try {
         const manual = await installer.install('#compdef specagile\n');
         expect(manual.instructions!.join('\n')).toContain('add the following to your ~/.zshrc file');
       } finally {
-        delete process.env.OPENSPEC_NO_AUTO_CONFIG;
+        delete process.env.SPECAGILE_NO_AUTO_CONFIG;
       }
     });
   });

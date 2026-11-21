@@ -4,7 +4,7 @@ import os from 'os';
 import path from 'path';
 
 import { runCLI } from '../helpers/run-cli.js';
-import { createFormerLayout } from '../helpers/layout.js';
+import { CHANGE_METADATA_FILE_NAME, createFormerLayout } from '../helpers/layout.js';
 
 /**
  * SpecAgile's project layout as the CLI writes and reads it: `specs/`,
@@ -31,8 +31,8 @@ describe('the SpecAgile layout from the CLI', () => {
     env = {
       XDG_CONFIG_HOME: path.join(dir, 'config'),
       XDG_DATA_HOME: path.join(dir, 'data'),
-      OPEN_SPEC_INTERACTIVE: '0',
-      OPENSPEC_TELEMETRY: '0',
+      SPECAGILE_INTERACTIVE: '0',
+      SPECAGILE_TELEMETRY: '0',
     };
   });
 
@@ -74,7 +74,7 @@ describe('the SpecAgile layout from the CLI', () => {
     const result = await runCLI(['new', 'change', 'add-login'], { cwd: root, env });
 
     expect(result.exitCode, result.stderr).toBe(0);
-    expect(fs.existsSync(path.join(root, 'changes', 'add-login', '.openspec.yaml'))).toBe(true);
+    expect(fs.existsSync(path.join(root, 'changes', 'add-login', CHANGE_METADATA_FILE_NAME))).toBe(true);
     expect(`${result.stdout}\n${result.stderr}`).toContain('specagile status --change add-login');
   });
 

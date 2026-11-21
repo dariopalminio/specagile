@@ -54,14 +54,15 @@ Se agrega `PRODUCT_NAME = 'SpecAgile'` a `src/core/fork/identity.ts`, con un com
 Se aplica solo al agente. `copilot-setup-steps.yml` ("Install OpenSpec CLI") no cambia.
 
 - *Alternativa: sumar las sustituciones a `withForkIdentity`.* Se descarta. Esa función también traduce el setup y sus textos anteriores, y mezclar los dos haría menos clara la lista de textos que cuentan como generados.
+- *Alternativa: sumarlas a `PRODUCT_TEXT_REPLACEMENTS` (`identity.ts`).* Se descarta por lo mismo: `applyForkIdentity` aplica esa lista a todo lo que genera, así que `withForkIdentity(generateCopilotAgentFileBody(true))` dejaría de ser el texto de 4.0.0 y la lista de generados (decisión 3) lo perdería. Además, esa lista no avisa si upstream cambia el texto; `replaceRequired` sí.
 
 ### 3. Textos que cuentan como generados
 
-`getLegacyCopilotCloudFileContents(agent)` suma el texto que escribió SpecAgile 3.0.x: `withForkIdentity(generateCopilotAgentFileBody(true))`, sin `AGENT_IDENTITY_REPLACEMENTS`. Es lo que hoy devuelve `generateCopilotAgentFile()`. 3.0.0 y 3.0.1 escriben el mismo texto, porque 3.0.1 no tocó `cloud-agent.ts`.
+`getLegacyCopilotCloudFileContents(agent)` suma el texto que escribió SpecAgile de 3.0.0 a 4.0.0: `withForkIdentity(generateCopilotAgentFileBody(true))`, sin `AGENT_IDENTITY_REPLACEMENTS`. Es lo que hoy devuelve `generateCopilotAgentFile()`. Esas versiones escriben el mismo texto: `cloud-agent.ts` no cambió desde 3.0.0, y lo que se sumó después a `applyForkIdentity` (`## Welcome to OpenSpec!` en `PRODUCT_TEXT_REPLACEMENTS`, `.openspec.yaml` en `LAYOUT_TEXT_REPLACEMENTS`) no aparece en el agente.
 
 El mismo reconocedor (`isManagedCopilotCloudFile(COPILOT_CLOUD_FILES.agent, …)`) sirve para las dos rutas. Un texto conocido es generado esté en `openspec.agent.md` o en `specagile.agent.md`. Así no hay una segunda lista que mantener.
 
-Un fixture congelado, `test/fixtures/copilot-cloud/specagile-3.0.1.agent.md`, guarda el texto exacto de 3.0.1. Se captura del build actual antes de cambiar el código. El test compara contra el fixture y no contra un texto armado con las mismas funciones que se están cambiando.
+Un fixture congelado, `test/fixtures/copilot-cloud/specagile-4.0.0.agent.md`, guarda el texto exacto de 4.0.0. Se captura del build actual antes de cambiar el código. El test compara contra el fixture y no contra un texto armado con las mismas funciones que se están cambiando.
 
 ### 4. Migración dentro de `writeCopilotCloudFiles`
 

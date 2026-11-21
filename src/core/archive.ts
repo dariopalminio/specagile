@@ -35,7 +35,7 @@ import {
 import { confirmPrompt, isNonInteractivePromptError } from '../utils/interactive.js';
 import { FileSystemUtils } from '../utils/file-system.js';
 import { folderStyleNameProblem } from './id.js';
-import { getRootOfChangesDir, relativeChangeDir } from './fork/layout.js';
+import { getChangeMetadataFile, getRootOfChangesDir, relativeChangeDir } from './fork/layout.js';
 import {
   describeNestedChange,
   findNestedChangesIn,
@@ -1002,7 +1002,7 @@ async function assertRetirementAuthorization(
   expectedFingerprint: string,
   options: { verifyMarker?: boolean } = {}
 ): Promise<void> {
-  const metadataPath = path.join(changeDir, METADATA_FILENAME);
+  const metadataPath = getChangeMetadataFile(changeDir);
   const before = await fingerprintPortableContent(metadataPath);
   const markerStillDeclared =
     options.verifyMarker === false || readRetireCapabilitiesMarker(changeDir).declared;
@@ -1675,7 +1675,7 @@ export class ArchiveCommand {
     const retirementMarker = readRetireCapabilitiesMarker(changeDir);
     const retirementDeclared = retirementMarker.declared;
     const retirementAuthorizationFingerprint = retirementDeclared
-      ? await fingerprintPortableContent(path.join(changeDir, METADATA_FILENAME))
+      ? await fingerprintPortableContent(getChangeMetadataFile(changeDir))
       : undefined;
 
     await assertArchiveDestinationAvailable(archivePath, archiveName);

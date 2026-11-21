@@ -8,31 +8,43 @@ import {
   canRenderSpinner,
   InteractiveOptions,
 } from '../../src/utils/interactive.js';
+import { FORMER_ENV_VAR_NAMES } from '../../src/core/fork/identity.js';
+
+// OpenSpec's name for the variable, which SpecAgile ignores.
+const FORMER_INTERACTIVE = FORMER_ENV_VAR_NAMES.interactive;
 
 describe('interactive utilities', () => {
   let originalOpenSpecInteractive: string | undefined;
+  let originalFormerInteractive: string | undefined;
   let originalCI: string | undefined;
   let originalStdinIsTTY: boolean | undefined;
   let originalStdoutIsTTY: boolean | undefined;
 
   beforeEach(() => {
     // Save original environment
-    originalOpenSpecInteractive = process.env.OPEN_SPEC_INTERACTIVE;
+    originalOpenSpecInteractive = process.env.SPECAGILE_INTERACTIVE;
+    originalFormerInteractive = process.env[FORMER_INTERACTIVE];
     originalCI = process.env.CI;
     originalStdinIsTTY = process.stdin.isTTY;
     originalStdoutIsTTY = process.stdout.isTTY;
 
     // Clear environment for clean testing
-    delete process.env.OPEN_SPEC_INTERACTIVE;
+    delete process.env.SPECAGILE_INTERACTIVE;
+    delete process.env[FORMER_INTERACTIVE];
     delete process.env.CI;
   });
 
   afterEach(() => {
     // Restore original environment
     if (originalOpenSpecInteractive !== undefined) {
-      process.env.OPEN_SPEC_INTERACTIVE = originalOpenSpecInteractive;
+      process.env.SPECAGILE_INTERACTIVE = originalOpenSpecInteractive;
     } else {
-      delete process.env.OPEN_SPEC_INTERACTIVE;
+      delete process.env.SPECAGILE_INTERACTIVE;
+    }
+    if (originalFormerInteractive !== undefined) {
+      process.env[FORMER_INTERACTIVE] = originalFormerInteractive;
+    } else {
+      delete process.env[FORMER_INTERACTIVE];
     }
     if (originalCI !== undefined) {
       process.env.CI = originalCI;
@@ -104,10 +116,16 @@ describe('interactive utilities', () => {
       expect(isInteractive({ interactive: false })).toBe(false);
     });
 
-    it('should return false when OPEN_SPEC_INTERACTIVE env var is 0', () => {
-      process.env.OPEN_SPEC_INTERACTIVE = '0';
+    it('should return false when SPECAGILE_INTERACTIVE env var is 0', () => {
+      process.env.SPECAGILE_INTERACTIVE = '0';
       Object.defineProperty(process.stdin, 'isTTY', { value: true, writable: true, configurable: true });
       expect(isInteractive({})).toBe(false);
+    });
+
+    it("stays interactive with OpenSpec's variable at 0 and no SPECAGILE_INTERACTIVE", () => {
+      process.env[FORMER_INTERACTIVE] = '0';
+      Object.defineProperty(process.stdin, 'isTTY', { value: true, writable: true, configurable: true });
+      expect(isInteractive({})).toBe(true);
     });
 
     it('should return false when CI env var is set', () => {
@@ -198,9 +216,9 @@ describe('interactive utilities', () => {
       expect(isNonInteractivePromptError(failure)).toBe(true);
       delete process.env.CI;
 
-      process.env.OPEN_SPEC_INTERACTIVE = '0';
+      process.env.SPECAGILE_INTERACTIVE = '0';
       expect(isNonInteractivePromptError(failure)).toBe(true);
-      delete process.env.OPEN_SPEC_INTERACTIVE;
+      delete process.env.SPECAGILE_INTERACTIVE;
 
       expect(isNonInteractivePromptError(failure, { interactive: false })).toBe(true);
     });

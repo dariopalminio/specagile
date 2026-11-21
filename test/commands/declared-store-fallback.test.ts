@@ -23,8 +23,8 @@ describe('declared store fallback (3.2)', () => {
     env = {
       XDG_DATA_HOME: path.join(tempDir, 'data'),
       XDG_CONFIG_HOME: path.join(tempDir, 'config'),
-      OPEN_SPEC_INTERACTIVE: '0',
-      OPENSPEC_TELEMETRY: '0',
+      SPECAGILE_INTERACTIVE: '0',
+      SPECAGILE_TELEMETRY: '0',
     };
     globalDataDir = getGlobalDataDir({ env });
 
@@ -201,7 +201,7 @@ describe('declared store fallback (3.2)', () => {
       'workflows',
       'copilot-setup-steps.yml'
     );
-    const agentPath = path.join(pointerRepo, '.github', 'agents', 'openspec.agent.md');
+    const agentPath = path.join(pointerRepo, '.github', 'agents', 'specagile.agent.md');
     const before = fs.readFileSync(configPath, 'utf8');
 
     const enabled = await runCLI(

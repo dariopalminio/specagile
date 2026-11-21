@@ -92,7 +92,7 @@ In both branches, never create the root as a side effect: do not run `specagile 
    ```bash
    specagile new change "<name>" --schema "<schema-name>"
    ```
-   This creates a scaffolded change in the planning home resolved by the CLI with `.openspec.yaml`.
+   This creates a scaffolded change in the planning home resolved by the CLI with `.specagile.yaml`.
 
 6. **Get the artifact graph and split it**
    ```bash
@@ -110,7 +110,7 @@ In both branches, never create the root as a side effect: do not run `specagile 
 
    **Schema without a specs artifact**: if no artifact has id `specs`, write nothing. Tell the user this schema does not separate the specification from the plan, and suggest generating all of its artifacts in one step with `sa-propose` if that skill is installed, or otherwise one at a time with `specagile instructions <artifact-id> --change "<name>"` (a change that does not exist yet is created first with `specagile new change "<name>"`).
 
-   **Change that declares skip_specs**: when the `specs` artifact reads `status: "skipped"`, the change declares `skip_specs: true` in its `.openspec.yaml`. The specs are satisfied and their files must NOT exist: write only the rest of the specification set (spec-driven: `proposal.md` alone), create nothing under `specs/`, and tell the user the specs are omitted because of that declaration.
+   **Change that declares skip_specs**: when the `specs` artifact reads `status: "skipped"`, the change declares `skip_specs: true` in its `.specagile.yaml`. The specs are satisfied and their files must NOT exist: write only the rest of the specification set (spec-driven: `proposal.md` alone), create nothing under `specs/`, and tell the user the specs are omitted because of that declaration.
 
 7. **Revise existing artifacts (edit mode)**
 

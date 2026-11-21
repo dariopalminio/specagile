@@ -78,7 +78,7 @@
           # needs no project and no network. Opting out of telemetry also disables
           # the update check, keeping the build offline.
           postInstall = final.lib.optionalString (final.stdenv.buildPlatform.canExecute final.stdenv.hostPlatform) ''
-            export OPENSPEC_TELEMETRY=0
+            export SPECAGILE_TELEMETRY=0
             completions=$(mktemp -d)
             for shell in bash fish zsh; do
               $out/bin/specagile completion generate "$shell" > "$completions/specagile.$shell"

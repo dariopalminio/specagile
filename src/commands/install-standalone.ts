@@ -8,6 +8,7 @@ import {
   getStandaloneBinaryPath,
   type CliInstallInfo,
 } from '../core/version-check.js';
+import { ENV_VAR_NAMES, FORMER_ENV_VAR_NAMES } from '../core/fork/identity.js';
 
 /**
  * `openspec install`: installs the standalone binary (no Node.js needed) by
@@ -37,8 +38,9 @@ export function resolveInstallTarget(
   standalonePath: string | null = getStandaloneBinaryPath()
 ): InstallTarget {
   const defaultName = platform === 'win32' ? 'openspec.exe' : 'openspec';
-  if (env.OPENSPEC_INSTALL_DIR) {
-    return { dir: path.resolve(env.OPENSPEC_INSTALL_DIR), name: env.OPENSPEC_INSTALL_NAME || defaultName };
+  const installDir = env[ENV_VAR_NAMES.installDir];
+  if (installDir) {
+    return { dir: path.resolve(installDir), name: env[ENV_VAR_NAMES.installName] || defaultName };
   }
   if (standalonePath) {
     return { dir: path.dirname(standalonePath), name: path.basename(standalonePath) };
@@ -92,10 +94,39 @@ export function checkSource(label: string, value: string): string {
   return url.href.replace(/\/+$/, '');
 }
 
-/** Where the installer script comes from: OPENSPEC_DOWNLOAD_URL when set (mirrors, tests), else main. */
+/** Where the installer script comes from: SPECAGILE_DOWNLOAD_URL when set (mirrors, tests), else main. */
 export function installerBase(env: NodeJS.ProcessEnv = process.env): string {
-  if (env.OPENSPEC_RELEASES_URL) checkSource('OPENSPEC_RELEASES_URL', env.OPENSPEC_RELEASES_URL);
-  return env.OPENSPEC_DOWNLOAD_URL ? checkSource('OPENSPEC_DOWNLOAD_URL', env.OPENSPEC_DOWNLOAD_URL) : INSTALLER_BASE;
+  const releasesUrl = env[ENV_VAR_NAMES.releasesUrl];
+  if (releasesUrl) checkSource(ENV_VAR_NAMES.releasesUrl, releasesUrl);
+  const downloadUrl = env[ENV_VAR_NAMES.downloadUrl];
+  return downloadUrl ? checkSource(ENV_VAR_NAMES.downloadUrl, downloadUrl) : INSTALLER_BASE;
+}
+
+/**
+ * The environment the installer runs with. The installer is OpenSpec's and
+ * reads OpenSpec's names, so it gets the resolved target and the SPECAGILE_*
+ * download sources under them (FORMER_ENV_VAR_NAMES). The same names inherited
+ * from the environment were set for OpenSpec and never reach it.
+ */
+export function installerEnv(
+  env: NodeJS.ProcessEnv,
+  target: InstallTarget,
+  version?: string
+): NodeJS.ProcessEnv {
+  const result: NodeJS.ProcessEnv = { ...env };
+  for (const setting of ['installDir', 'installName', 'downloadUrl', 'releasesUrl'] as const) {
+    delete result[FORMER_ENV_VAR_NAMES[setting]];
+  }
+  result[FORMER_ENV_VAR_NAMES.installDir] = target.dir;
+  result[FORMER_ENV_VAR_NAMES.installName] = target.name;
+  for (const setting of ['downloadUrl', 'releasesUrl'] as const) {
+    const value = env[ENV_VAR_NAMES[setting]];
+    if (value) result[FORMER_ENV_VAR_NAMES[setting]] = value;
+  }
+  return {
+    ...result,
+    ...(version && version !== 'latest' ? { OPENSPEC_VERSION: version } : {}),
+  };
 }
 
 // Fixed scripts: the installer URL reaches them as data (an argument, or an
@@ -134,12 +165,7 @@ export async function installStandalone(options: { version?: string } = {}): Pro
 
   const scriptUrl = `${installerBase()}/${process.platform === 'win32' ? 'install.ps1' : 'install.sh'}`;
   const target = resolveInstallTarget();
-  const exitCode = await runInstaller(scriptUrl, {
-    ...process.env,
-    OPENSPEC_INSTALL_DIR: target.dir,
-    OPENSPEC_INSTALL_NAME: target.name,
-    ...(version && version !== 'latest' ? { OPENSPEC_VERSION: version } : {}),
-  });
+  const exitCode = await runInstaller(scriptUrl, installerEnv(process.env, target, version));
   if (exitCode !== 0) {
     throw new Error(`The standalone install did not finish (installer: ${scriptUrl}).`);
   }

@@ -7,7 +7,7 @@ import { getGlobalDataDir, registerStore } from '../../src/core/index.js';
 import { runCLI } from '../helpers/run-cli.js';
 import { createOpenSpecRoot, writeSpec } from '../helpers/openspec-fixtures.js';
 import { cleanupTempPath } from '../helpers/temp-cleanup.js';
-import { getArchiveDir, getChangesDir, getConfigFile, getToolDir } from '../helpers/layout.js';
+import { CHANGE_METADATA_FILE_NAME, getArchiveDir, getChangesDir, getConfigFile, getToolDir } from '../helpers/layout.js';
 
 const JOURNEY_TIMEOUT_MS = 30_000;
 
@@ -28,8 +28,8 @@ describe('capstone persona journeys (6.1)', () => {
     env = {
       XDG_DATA_HOME: path.join(tempDir, 'data'),
       XDG_CONFIG_HOME: path.join(tempDir, 'config'),
-      OPEN_SPEC_INTERACTIVE: '0',
-      OPENSPEC_TELEMETRY: '0',
+      SPECAGILE_INTERACTIVE: '0',
+      SPECAGILE_TELEMETRY: '0',
     };
     globalDataDir = getGlobalDataDir({ env });
   });
@@ -159,7 +159,7 @@ describe('capstone persona journeys (6.1)', () => {
 
     // Everything written landed inside the store's change dir.
     const writtenArtifacts = fs.readdirSync(changeDir).sort();
-    expect(writtenArtifacts).toEqual(['.openspec.yaml', 'design.md', 'proposal.md', 'specs', 'tasks.md']);
+    expect(writtenArtifacts).toEqual([CHANGE_METADATA_FILE_NAME, 'design.md', 'proposal.md', 'specs', 'tasks.md']);
 
     // Archive completes the lifecycle, still without --store.
     const archived = await runCLI(

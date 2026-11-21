@@ -10,7 +10,7 @@ Además, SpecAgile y OpenSpec escriben hoy el mismo archivo. Cada herramienta re
 
 - **BREAKING**: el agente de Copilot en la nube pasa a `.github/agents/specagile.agent.md`. Copilot lo muestra como **SpecAgile** (`name: SpecAgile`, título `# SpecAgile Agent`) y la descripción nombra la CLI de SpecAgile. El resto del texto del agente no cambia.
 - El perfil alternativo que el usuario puede tener con el mismo identificador de Copilot pasa de `.github/agents/openspec.md` a `.github/agents/specagile.md`. Si existe, SpecAgile no escribe su agente, como hasta ahora. Un `openspec.md` ya no afecta a SpecAgile.
-- `specagile update` y `specagile init` migran el archivo anterior. Un `.github/agents/openspec.agent.md` tal como lo escribió OpenSpec, o SpecAgile hasta la 3.0.1, se quita y se escribe `specagile.agent.md`. Si el usuario lo editó, se conserva y la salida lo informa. `update --dry-run` lista la migración sin hacerla.
+- `specagile update` y `specagile init` migran el archivo anterior. Un `.github/agents/openspec.agent.md` tal como lo escribió OpenSpec, o SpecAgile hasta la 4.0.0, se quita y se escribe `specagile.agent.md`. Si el usuario lo editó, se conserva y la salida lo informa. `update --dry-run` lista la migración sin hacerla.
 - Un proyecto que solo tiene el `openspec.agent.md` generado cuenta como que ya tiene los archivos de Copilot en la nube, igual que hoy. `update` los mantiene sin preguntar.
 - Desactivar los archivos de Copilot en la nube (`--no-copilot-cloud`, `githubCopilot.cloudAgent: false`) o dejar de usar Copilot también quita el `openspec.agent.md` generado. Uno editado se conserva.
 - La pregunta de `init` sobre Copilot en la nube nombra `.github/agents/specagile.agent.md`.

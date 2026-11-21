@@ -9,9 +9,17 @@ import {
 import { listSchemas, resolveSchema } from '../core/artifact-graph/resolver.js';
 import { readProjectConfig, type ProjectConfig } from '../core/project-config.js';
 import { sanitizeInline } from '../core/references.js';
-import { getRootOfChangeDir } from '../core/fork/layout.js';
+import {
+  CHANGE_METADATA_FILE_NAME,
+  getChangeMetadataFile,
+  getRootOfChangeDir,
+} from '../core/fork/layout.js';
 
-export const METADATA_FILENAME = '.openspec.yaml';
+/**
+ * The file a new change's metadata is written to. Readers resolve the file with
+ * getChangeMetadataFile, which also reads the former `.openspec.yaml`.
+ */
+export const METADATA_FILENAME = CHANGE_METADATA_FILE_NAME;
 
 export { CHANGE_METADATA_KNOWN_KEYS };
 
@@ -80,7 +88,7 @@ export function formatUnknownChangeMetadataKeysMessage(keys: string[]): string {
 export function readUnknownChangeMetadataKeys(changeDir: string): string[] {
   let raw: string;
   try {
-    raw = fs.readFileSync(path.join(changeDir, METADATA_FILENAME), 'utf-8');
+    raw = fs.readFileSync(getChangeMetadataFile(changeDir), 'utf-8');
   } catch {
     return [];
   }
@@ -188,7 +196,7 @@ export function readChangeMetadata(
   changeDir: string,
   projectRoot?: string
 ): ChangeMetadata | null {
-  const metaPath = path.join(changeDir, METADATA_FILENAME);
+  const metaPath = getChangeMetadataFile(changeDir);
 
   if (!fs.existsSync(metaPath)) {
     return null;
@@ -370,7 +378,7 @@ function readBooleanMarker(
 ): MetadataMarker {
   let raw: string;
   try {
-    raw = fs.readFileSync(path.join(changeDir, METADATA_FILENAME), 'utf-8');
+    raw = fs.readFileSync(getChangeMetadataFile(changeDir), 'utf-8');
   } catch (err) {
     if ((err as NodeJS.ErrnoException)?.code === 'ENOENT') {
       return { declared: false };

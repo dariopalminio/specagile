@@ -3,7 +3,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
 import { validateChangeName, createChange } from '../../src/utils/change-utils.js';
-import { getChangesDir } from '../helpers/layout.js';
+import { CHANGE_METADATA_FILE_NAME, getChangesDir } from '../helpers/layout.js';
 
 describe('validateChangeName', () => {
   describe('valid names', () => {
@@ -175,7 +175,7 @@ describe('createChange', () => {
     it('should create .openspec.yaml metadata file with default schema', async () => {
       await createChange(testDir, 'add-auth');
 
-      const metaPath = path.join(getChangesDir(testDir), 'add-auth', '.openspec.yaml');
+      const metaPath = path.join(getChangesDir(testDir), 'add-auth', CHANGE_METADATA_FILE_NAME);
       const content = await fs.readFile(metaPath, 'utf-8');
       expect(content).toContain('schema: spec-driven');
       expect(content).toMatch(/created: \d{4}-\d{2}-\d{2}/);
@@ -188,7 +188,7 @@ describe('createChange', () => {
 
       await createChange(testDir, 'local-date-change');
 
-      const metaPath = path.join(getChangesDir(testDir), 'local-date-change', '.openspec.yaml');
+      const metaPath = path.join(getChangesDir(testDir), 'local-date-change', CHANGE_METADATA_FILE_NAME);
       const content = await fs.readFile(metaPath, 'utf-8');
       expect(content).toContain('created: 2026-07-15');
     });
@@ -200,7 +200,7 @@ describe('createChange', () => {
 
       await createChange(testDir, 'same-date-change');
 
-      const metaPath = path.join(getChangesDir(testDir), 'same-date-change', '.openspec.yaml');
+      const metaPath = path.join(getChangesDir(testDir), 'same-date-change', CHANGE_METADATA_FILE_NAME);
       const content = await fs.readFile(metaPath, 'utf-8');
       expect(content).toContain('created: 2026-01-05');
     });
@@ -208,7 +208,7 @@ describe('createChange', () => {
     it('should create .openspec.yaml with custom schema', async () => {
       await createChange(testDir, 'add-auth', { schema: 'spec-driven' });
 
-      const metaPath = path.join(getChangesDir(testDir), 'add-auth', '.openspec.yaml');
+      const metaPath = path.join(getChangesDir(testDir), 'add-auth', CHANGE_METADATA_FILE_NAME);
       const content = await fs.readFile(metaPath, 'utf-8');
       expect(content).toContain('schema: spec-driven');
     });

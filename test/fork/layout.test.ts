@@ -7,8 +7,11 @@ import { getStoreMetadataPath } from '../../src/core/store/foundation.js';
 
 import {
   ARCHIVE_DIR_NAME,
+  CHANGE_METADATA_FILE_NAME,
+  CHANGE_METADATA_FILE_NAMES,
   CHANGES_DIR_NAME,
   CONFIG_FILE_NAMES,
+  FORMER_CHANGE_METADATA_FILE_NAME,
   FORMER_TOOL_DIR_NAME,
   RELATIVE_ARCHIVE_DIR,
   RELATIVE_CHANGES_DIR,
@@ -23,6 +26,7 @@ import {
   TOOL_DIR_NAME,
   detectFormerLayout,
   getArchiveDir,
+  getChangeMetadataFile,
   getChangesDir,
   getConfigFilePaths,
   getProjectSchemasDir,
@@ -50,6 +54,52 @@ describe('layout names', () => {
     expect(CONFIG_FILE_NAMES).toEqual(['config.yaml', 'config.yml']);
     expect(SCHEMAS_DIR_NAME).toBe('schemas');
     expect(FORMER_TOOL_DIR_NAME).toBe('openspec');
+  });
+
+  it('names the change metadata file, the former one, and the reading order', () => {
+    expect(CHANGE_METADATA_FILE_NAME).toBe('.specagile.yaml');
+    expect(FORMER_CHANGE_METADATA_FILE_NAME).toBe('.openspec.yaml');
+    expect(CHANGE_METADATA_FILE_NAMES).toEqual(['.specagile.yaml', '.openspec.yaml']);
+  });
+});
+
+describe('getChangeMetadataFile', () => {
+  let changeDir: string;
+
+  beforeEach(() => {
+    changeDir = fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(), 'specagile-change-metadata-')));
+  });
+
+  afterEach(() => {
+    fs.rmSync(changeDir, { recursive: true, force: true });
+  });
+
+  it('gives .specagile.yaml when it exists, also beside .openspec.yaml', () => {
+    fs.writeFileSync(path.join(changeDir, '.specagile.yaml'), 'schema: spec-driven\n');
+    expect(getChangeMetadataFile(changeDir)).toBe(path.join(changeDir, '.specagile.yaml'));
+    fs.writeFileSync(path.join(changeDir, '.openspec.yaml'), 'schema: spec-driven\n');
+    expect(getChangeMetadataFile(changeDir)).toBe(path.join(changeDir, '.specagile.yaml'));
+  });
+
+  it('gives .openspec.yaml when it is the only one', () => {
+    fs.writeFileSync(path.join(changeDir, '.openspec.yaml'), 'schema: spec-driven\n');
+    expect(getChangeMetadataFile(changeDir)).toBe(path.join(changeDir, '.openspec.yaml'));
+  });
+
+  it('gives .specagile.yaml when there is none', () => {
+    expect(getChangeMetadataFile(changeDir)).toBe(path.join(changeDir, '.specagile.yaml'));
+  });
+
+  it("goes by existence, not validity: an invalid .specagile.yaml still rules", () => {
+    fs.writeFileSync(path.join(changeDir, '.specagile.yaml'), ': not yaml [\n');
+    fs.writeFileSync(path.join(changeDir, '.openspec.yaml'), 'schema: spec-driven\n');
+    expect(getChangeMetadataFile(changeDir)).toBe(path.join(changeDir, '.specagile.yaml'));
+  });
+
+  it("builds the path with the platform's separator", () => {
+    const missing = path.join(root, 'changes', 'add-login');
+    expect(getChangeMetadataFile(missing)).toBe(path.join(root, 'changes', 'add-login', '.specagile.yaml'));
+    expect(getChangeMetadataFile(missing).includes(path.sep === '\\' ? '/' : '\\')).toBe(false);
   });
 });
 

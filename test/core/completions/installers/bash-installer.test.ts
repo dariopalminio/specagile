@@ -3,6 +3,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
 import { BashInstaller } from '../../../../src/core/completions/installers/bash-installer.js';
+import { FORMER_ENV_VAR_NAMES } from '../../../../src/core/fork/identity.js';
 
 describe('BashInstaller', () => {
   let testHomeDir: string;
@@ -119,8 +120,8 @@ describe('BashInstaller', () => {
     });
 
     it('should include instructions when auto-config is disabled', async () => {
-      const originalEnv = process.env.OPENSPEC_NO_AUTO_CONFIG;
-      process.env.OPENSPEC_NO_AUTO_CONFIG = '1';
+      const originalEnv = process.env.SPECAGILE_NO_AUTO_CONFIG;
+      process.env.SPECAGILE_NO_AUTO_CONFIG = '1';
 
       const result = await installer.install(testScript);
 
@@ -130,9 +131,9 @@ describe('BashInstaller', () => {
 
       // Restore env
       if (originalEnv === undefined) {
-        delete process.env.OPENSPEC_NO_AUTO_CONFIG;
+        delete process.env.SPECAGILE_NO_AUTO_CONFIG;
       } else {
-        process.env.OPENSPEC_NO_AUTO_CONFIG = originalEnv;
+        process.env.SPECAGILE_NO_AUTO_CONFIG = originalEnv;
       }
     });
 
@@ -315,8 +316,8 @@ describe('BashInstaller', () => {
       // With auto-config off these lines are printed for the user to paste
       // into their own rc file, so an expansion left in them runs on every
       // future shell start exactly as it would from the written block.
-      const originalEnv = process.env.OPENSPEC_NO_AUTO_CONFIG;
-      process.env.OPENSPEC_NO_AUTO_CONFIG = '1';
+      const originalEnv = process.env.SPECAGILE_NO_AUTO_CONFIG;
+      process.env.SPECAGILE_NO_AUTO_CONFIG = '1';
 
       try {
         const hostileHome = path.join(testHomeDir, "x$(touch pwned)`id`'q");
@@ -339,9 +340,9 @@ describe('BashInstaller', () => {
         expect(result.instructions).toContain(`    for f in ${quotedDir}/*; do`);
       } finally {
         if (originalEnv === undefined) {
-          delete process.env.OPENSPEC_NO_AUTO_CONFIG;
+          delete process.env.SPECAGILE_NO_AUTO_CONFIG;
         } else {
-          process.env.OPENSPEC_NO_AUTO_CONFIG = originalEnv;
+          process.env.SPECAGILE_NO_AUTO_CONFIG = originalEnv;
         }
       }
     });
@@ -424,9 +425,9 @@ describe('BashInstaller', () => {
       expect(content).not.toContain('# Old OpenSpec config');
     });
 
-    it('should return false when OPENSPEC_NO_AUTO_CONFIG is set', async () => {
-      const originalEnv = process.env.OPENSPEC_NO_AUTO_CONFIG;
-      process.env.OPENSPEC_NO_AUTO_CONFIG = '1';
+    it('should return false when SPECAGILE_NO_AUTO_CONFIG is set', async () => {
+      const originalEnv = process.env.SPECAGILE_NO_AUTO_CONFIG;
+      process.env.SPECAGILE_NO_AUTO_CONFIG = '1';
 
       const result = await installer.configureBashrc(completionsDir);
 
@@ -438,9 +439,29 @@ describe('BashInstaller', () => {
 
       // Restore env
       if (originalEnv === undefined) {
-        delete process.env.OPENSPEC_NO_AUTO_CONFIG;
+        delete process.env.SPECAGILE_NO_AUTO_CONFIG;
       } else {
-        process.env.OPENSPEC_NO_AUTO_CONFIG = originalEnv;
+        process.env.SPECAGILE_NO_AUTO_CONFIG = originalEnv;
+      }
+    });
+
+    it("still configures .bashrc with OpenSpec's variable at 1 and no SPECAGILE_NO_AUTO_CONFIG", async () => {
+      const former = FORMER_ENV_VAR_NAMES.noAutoConfig;
+      const original = { current: process.env.SPECAGILE_NO_AUTO_CONFIG, former: process.env[former] };
+      delete process.env.SPECAGILE_NO_AUTO_CONFIG;
+      process.env[former] = '1';
+
+      try {
+        const result = await installer.configureBashrc(completionsDir);
+
+        expect(result).toBe(true);
+        const content = await fs.readFile(path.join(testHomeDir, '.bashrc'), 'utf-8');
+        expect(content).toContain(completionsDir);
+      } finally {
+        if (original.current === undefined) delete process.env.SPECAGILE_NO_AUTO_CONFIG;
+        else process.env.SPECAGILE_NO_AUTO_CONFIG = original.current;
+        if (original.former === undefined) delete process.env[former];
+        else process.env[former] = original.former;
       }
     });
 

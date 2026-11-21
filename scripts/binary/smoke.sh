@@ -19,7 +19,7 @@ cp "$1" "$bin"
 
 # Keep the run off the user's real config and data, and offline.
 export XDG_CONFIG_HOME="$work/config ü" XDG_DATA_HOME="$work/data ü"
-export OPENSPEC_TELEMETRY=0 OPENSPEC_NO_UPDATE_CHECK=1 NO_COLOR=1
+export SPECAGILE_TELEMETRY=0 SPECAGILE_NO_UPDATE_CHECK=1 NO_COLOR=1
 node "$(dirname "$0")/../../test/helpers/skill-release.mjs" "$work/release"
 export GH_HOST=skills.example.invalid GIT_CONFIG_GLOBAL="$work/release/gitconfig"
 mkdir "$work/project" && cd "$work/project"

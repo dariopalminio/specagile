@@ -45,7 +45,7 @@ describe('wrapped task text (#2227)', () => {
       USERPROFILE: home,
       XDG_CONFIG_HOME: path.join(home, '.config'),
       XDG_DATA_HOME: path.join(home, '.local', 'share'),
-      OPENSPEC_NO_ANIMATION: '1',
+      SPECAGILE_NO_ANIMATION: '1',
     };
 
     const result = await runCLI(

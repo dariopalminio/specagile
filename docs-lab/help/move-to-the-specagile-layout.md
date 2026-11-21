@@ -12,13 +12,13 @@ Earlier versions of SpecAgile, like OpenSpec, kept everything in one folder name
 specs/                    living specs, the source of truth
 └── <capability-path>/spec.md
 changes/                  work in progress
-├── <change>/             proposal.md, design.md, tasks.md, .openspec.yaml
+├── <change>/             proposal.md, design.md, tasks.md, .specagile.yaml
 │   └── specs/<capability-path>/spec.md   the delta
 └── archive/              archived changes
 specagile/                SpecAgile's own files: config.yaml, schemas/, ...
 ```
 
-Inside a change nothing changes: its delta specs are still in `specs/<capability-path>/spec.md`, and its metadata is still `.openspec.yaml`.
+Inside a change, its delta specs are still in `specs/<capability-path>/spec.md`. Its metadata file is now `.specagile.yaml`: see [Change metadata](#change-metadata) below.
 
 A folder is a SpecAgile project when it has `specagile/` with a config file, or `specagile/` next to `specs/` or `changes/`. A `specs/` folder alone doesn't count, so a repo that keeps its tests in `specs/` is not taken for a project.
 
@@ -44,13 +44,30 @@ Commit the move: SpecAgile now keeps specs/, changes/ and specagile/ at the proj
 
 `specagile init` on a project that is already set up moves it the same way before it does anything else.
 
+## Change metadata
+
+Each change keeps its metadata (`schema`, `created`, `skip_specs`, …) in `.specagile.yaml`. OpenSpec and SpecAgile 4.0.0 and earlier named that file `.openspec.yaml`. Right after moving the layout, in the same run, `specagile update` (and `specagile init`) renames it in each active change, without changing its content:
+
+```text
+Renamed changes/add-login/.openspec.yaml → changes/add-login/.specagile.yaml
+Commit the renames: SpecAgile now keeps each change's metadata in .specagile.yaml.
+```
+
+A project already on the new layout gets only the renames.
+
+- **Archived changes** keep `.openspec.yaml`: they are history, and SpecAgile still reads them.
+- **A change that has both files** keeps both. `specagile update` warns that it uses `.specagile.yaml`; move what you still need from `.openspec.yaml` into it and delete `.openspec.yaml`.
+- **Until a change is renamed**, it keeps working: SpecAgile reads `.openspec.yaml` when there is no `.specagile.yaml`. Messages already name `.specagile.yaml`.
+
+Unlike the move of the layout, the renames are not all or nothing. If a file can't be renamed, for example because another program has it open on Windows, it stays as it is and keeps working, the output names it, and the rest of the update goes on. Close the program and run `specagile update` again.
+
 ## See it first
 
 ```bash
 specagile update --dry-run
 ```
 
-The plan lists each file that would move and changes nothing. If something stops the move, the plan says what.
+The plan lists each file that would move or be renamed, and changes nothing. If something stops the move, the plan says what.
 
 ## What stops the move
 
@@ -85,7 +102,7 @@ git commit -m "Move planning to the SpecAgile layout"
 
 ## Teams
 
-- **Update SpecAgile on every machine first.** An earlier SpecAgile doesn't find the moved project. Until everyone is on the new version, nobody should commit the move.
+- **Update SpecAgile on every machine first.** An earlier SpecAgile doesn't find the moved project, and SpecAgile 4.0.0 or earlier doesn't read `.specagile.yaml`: for it, renamed changes have no metadata. Until everyone is on the new version, nobody should commit the move or the renames.
 - **OpenSpec in the same repo.** If part of the team uses OpenSpec upstream (`openspec`), it stops finding the planning once the repo is moved. The two can no longer share it.
 - **Stores.** Run `specagile update` in the folder of each store too. Until then, `--store <id>` and `specagile store doctor` say the store needs it. `.openspec-store/` stays where it is.
 
@@ -97,5 +114,6 @@ If the project already has the new layout and still has an `openspec/` folder, S
 
 - **Before you commit:** put the tree back with git, for example `git stash --include-untracked`, and install the earlier version of SpecAgile.
 - **After you commit:** move `specs/`, `changes/` and the contents of `specagile/` back into `openspec/`, and install the earlier version of SpecAgile.
+- **Change metadata:** SpecAgile 4.0.0 and earlier ignore `.specagile.yaml`. Rename it back to `.openspec.yaml` in each active change, including the ones created after updating.
 
 Coming from an older version? [Upgrade to 2.1](upgrade-to-2-1.md) and [Upgrade to 2.0](upgrade-to-2.md) cover what changed before.

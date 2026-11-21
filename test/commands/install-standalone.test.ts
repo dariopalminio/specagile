@@ -32,8 +32,8 @@ describe('openspec install', () => {
       });
     });
 
-    it('honors OPENSPEC_INSTALL_DIR and resolves it to an absolute folder', () => {
-      expect(resolveInstallTarget({ OPENSPEC_INSTALL_DIR: 'relative/bin' }, 'linux', '/x/openspec')).toEqual({
+    it('honors SPECAGILE_INSTALL_DIR and resolves it to an absolute folder', () => {
+      expect(resolveInstallTarget({ SPECAGILE_INSTALL_DIR: 'relative/bin' }, 'linux', '/x/openspec')).toEqual({
         dir: path.resolve('relative/bin'),
         name: 'openspec',
       });
@@ -105,12 +105,12 @@ describe('openspec install', () => {
   describe('installerBase', () => {
     it('takes the installer from main, which always has it, unless a mirror is set', () => {
       expect(installerBase({})).toBe('https://raw.githubusercontent.com/Fission-AI/OpenSpec/main/scripts/binary');
-      expect(installerBase({ OPENSPEC_DOWNLOAD_URL: 'http://127.0.0.1:8765/' })).toBe('http://127.0.0.1:8765');
+      expect(installerBase({ SPECAGILE_DOWNLOAD_URL: 'http://127.0.0.1:8765/' })).toBe('http://127.0.0.1:8765');
     });
 
-    it('checks OPENSPEC_RELEASES_URL too, though the installer is what reads it', () => {
-      expect(() => installerBase({ OPENSPEC_RELEASES_URL: 'http://localhost:80@evil.example/' })).toThrow(
-        'OPENSPEC_RELEASES_URL must use https'
+    it('checks SPECAGILE_RELEASES_URL too, though the installer is what reads it', () => {
+      expect(() => installerBase({ SPECAGILE_RELEASES_URL: 'http://localhost:80@evil.example/' })).toThrow(
+        'SPECAGILE_RELEASES_URL must use https'
       );
     });
   });
@@ -133,7 +133,7 @@ describe('openspec install', () => {
       'ftp://localhost/',
       'not a url',
     ])('refuses %s', (unsafe) => {
-      expect(() => checkSource('OPENSPEC_DOWNLOAD_URL', unsafe)).toThrow('OPENSPEC_DOWNLOAD_URL');
+      expect(() => checkSource('SPECAGILE_DOWNLOAD_URL', unsafe)).toThrow('SPECAGILE_DOWNLOAD_URL');
     });
   });
 

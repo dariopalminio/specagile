@@ -27,7 +27,7 @@ OpenSpec checks three places for that directory. The first match wins.
 
 If `XDG_DATA_HOME` is set, the user directory moves to `$XDG_DATA_HOME/specagile/schemas/<name>/` on every platform.
 
-The directory name is the lookup key used by `--schema`, `config.yaml`, and [`.openspec.yaml`](../configuration/change-metadata.md#schema). If the `name` field differs from the directory name, OpenSpec still uses the directory name for lookup.
+The directory name is the lookup key used by `--schema`, `config.yaml`, and [`.specagile.yaml`](../configuration/change-metadata.md#schema). If the `name` field differs from the directory name, OpenSpec still uses the directory name for lookup.
 
 [`specagile schema which <name>`](../cli.md#specagile-schema-which) prints the active directory and any lower-priority copies it hides.
 

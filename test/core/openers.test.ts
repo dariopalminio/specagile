@@ -8,9 +8,11 @@ import {
   buildLaunchCommand,
   findOpener,
   isOpenerCommandAvailable,
+  isOpenerEnabled,
   listOpenerChoices,
   mergeOpenerTable,
 } from '../../src/core/openers.js';
+import { FORMER_ENV_VAR_NAMES } from '../../src/core/fork/identity.js';
 import { GLOBAL_FOLDER_NAME } from '../helpers/global-folders.js';
 
 const CONFIG_PATH = path.posix.join('/home/dev/.config', GLOBAL_FOLDER_NAME, 'config.json');
@@ -31,6 +33,29 @@ describe('openers core', () => {
       expect(findOpener([...BUILTIN_OPENERS], 'claude')?.attachFlag).toBe(
         '--add-dir'
       );
+    });
+  });
+
+  describe('terminal-agent kill switch', () => {
+    const FORMER = FORMER_ENV_VAR_NAMES.enableCliAgentOpeners;
+    const claude = () => findOpener([...BUILTIN_OPENERS], 'claude')!;
+
+    afterEach(() => {
+      delete process.env.SPECAGILE_ENABLE_CLI_AGENT_OPENERS;
+      delete process.env[FORMER];
+    });
+
+    it('turns terminal agents on with SPECAGILE_ENABLE_CLI_AGENT_OPENERS=1', () => {
+      delete process.env[FORMER];
+      process.env.SPECAGILE_ENABLE_CLI_AGENT_OPENERS = '1';
+      expect(isOpenerEnabled(claude())).toBe(true);
+    });
+
+    it("keeps them off with OpenSpec's variable at 1 and no SPECAGILE_ENABLE_CLI_AGENT_OPENERS", () => {
+      delete process.env.SPECAGILE_ENABLE_CLI_AGENT_OPENERS;
+      process.env[FORMER] = '1';
+      expect(isOpenerEnabled(claude())).toBe(false);
+      expect(isOpenerEnabled(findOpener([...BUILTIN_OPENERS], 'code')!)).toBe(true);
     });
   });
 
@@ -122,12 +147,12 @@ describe('openers core', () => {
     beforeEach(() => {
       // listOpenerChoices hides CLI-agent (attach-dirs) tools by default;
       // this suite asserts the full table, so enable them.
-      process.env.OPENSPEC_ENABLE_CLI_AGENT_OPENERS = '1';
+      process.env.SPECAGILE_ENABLE_CLI_AGENT_OPENERS = '1';
       tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openspec-openers-'));
     });
 
     afterEach(() => {
-      delete process.env.OPENSPEC_ENABLE_CLI_AGENT_OPENERS;
+      delete process.env.SPECAGILE_ENABLE_CLI_AGENT_OPENERS;
       fs.rmSync(tempDir, { recursive: true, force: true });
     });
 

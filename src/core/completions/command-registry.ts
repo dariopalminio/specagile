@@ -1,4 +1,5 @@
 import { COMMON_FLAGS } from './shared-flags.js';
+import { ENV_VAR_NAMES } from '../fork/identity.js';
 import type { CommandDefinition } from './types.js';
 export const COMMAND_REGISTRY: CommandDefinition[] = [
   {
@@ -152,7 +153,7 @@ export const COMMAND_REGISTRY: CommandDefinition[] = [
       COMMON_FLAGS.jsonValidation,
       {
         name: 'concurrency',
-        description: 'Max concurrent validations (defaults to env OPENSPEC_CONCURRENCY or 6)',
+        description: `Max concurrent validations (defaults to env ${ENV_VAR_NAMES.concurrency} or 6)`,
         takesValue: true,
       },
       COMMON_FLAGS.noInteractive,

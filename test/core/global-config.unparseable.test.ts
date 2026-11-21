@@ -44,7 +44,7 @@ describe('an unparseable global config', () => {
     process.env.APPDATA = path.join(tempDir, 'appdata');
     // Telemetry stays on at the environment level, as in a user's shell, so
     // only the config file decides.
-    delete process.env.OPENSPEC_TELEMETRY;
+    delete process.env.SPECAGILE_TELEMETRY;
     delete process.env.DO_NOT_TRACK;
     delete process.env.CI;
 
@@ -375,7 +375,7 @@ describe('an unparseable global config', () => {
         HOME: tempDir,
         USERPROFILE: tempDir,
         // Telemetry on at the environment level, as for a real user.
-        OPENSPEC_TELEMETRY: '1',
+        SPECAGILE_TELEMETRY: '1',
         DO_NOT_TRACK: '0',
         CI: 'false',
       },
