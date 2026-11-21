@@ -3,7 +3,7 @@ import path from 'path';
 import os from 'os';
 import { FileSystemUtils } from '../../../utils/file-system.js';
 import { InstallationResult } from '../factory.js';
-import { CLI_NAME } from '../../fork/identity.js';
+import { CLI_NAME, ENV_VAR_NAMES } from '../../fork/identity.js';
 import { shellSingleQuote } from './shell-quote.js';
 
 /**
@@ -164,7 +164,7 @@ export class ZshInstaller {
    */
   async configureZshrc(completionsDir: string): Promise<boolean> {
     // Check if auto-configuration is disabled
-    if (process.env.OPENSPEC_NO_AUTO_CONFIG === '1') {
+    if (process.env[ENV_VAR_NAMES.noAutoConfig] === '1') {
       return false;
     }
 

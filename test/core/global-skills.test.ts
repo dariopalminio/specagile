@@ -71,7 +71,7 @@ describe('skills installed for this machine', { timeout: 60_000 }, () => {
       CLAUDE_CONFIG_DIR: path.join(home, '.claude'),
 
       // The suite pins project installs; here the default itself is under test.
-      OPENSPEC_SKILLS_SCOPE: '',
+      SPECAGILE_SKILLS_SCOPE: '',
     };
   });
 
@@ -107,11 +107,11 @@ describe('skills installed for this machine', { timeout: 60_000 }, () => {
     expect(await globalSkills()).toEqual(CORE_SKILLS);
   });
 
-  it('keeps a scripted init in the project when OPENSPEC_SKILLS_SCOPE says so', async () => {
+  it('keeps a scripted init in the project when SPECAGILE_SKILLS_SCOPE says so', async () => {
     const dir = await project('app');
     const result = await runCLI(['init', '--tools', 'claude'], {
       cwd: dir,
-      env: { ...env, OPENSPEC_SKILLS_SCOPE: 'project' },
+      env: { ...env, SPECAGILE_SKILLS_SCOPE: 'project' },
       timeoutMs: 60000,
     });
 
@@ -122,11 +122,11 @@ describe('skills installed for this machine', { timeout: 60_000 }, () => {
 
     const bad = await runCLI(['init', '--tools', 'claude'], {
       cwd: await project('other'),
-      env: { ...env, OPENSPEC_SKILLS_SCOPE: 'everywhere' },
+      env: { ...env, SPECAGILE_SKILLS_SCOPE: 'everywhere' },
       timeoutMs: 60000,
     });
     expect(bad.exitCode).toBe(1);
-    expect(bad.stderr).toContain('Invalid OPENSPEC_SKILLS_SCOPE "everywhere". Use global or project.');
+    expect(bad.stderr).toContain('Invalid SPECAGILE_SKILLS_SCOPE "everywhere". Use global or project.');
   });
 
   it('installs the skills once for the machine and leaves the project with only openspec/', async () => {

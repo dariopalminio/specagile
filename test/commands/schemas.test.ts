@@ -62,8 +62,8 @@ describe('openspec schemas root selection', () => {
     return {
       XDG_DATA_HOME: path.join(tempDir, `${name}-data`),
       XDG_CONFIG_HOME: path.join(tempDir, `${name}-config`),
-      OPEN_SPEC_INTERACTIVE: '0',
-      OPENSPEC_TELEMETRY: '0',
+      SPECAGILE_INTERACTIVE: '0',
+      SPECAGILE_TELEMETRY: '0',
     };
   }
 

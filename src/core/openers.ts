@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { StoreError } from './store/errors.js';
 import { formatZodIssues } from './zod-issues.js';
 import type { WorksetMember } from './worksets.js';
+import { ENV_VAR_NAMES } from './fork/identity.js';
 
 /**
  * The workset opener table (slice 7.1). Supporting a new tool is
@@ -38,10 +39,10 @@ const DEFAULT_ATTACH_FLAG = '--add-dir';
  * is reworked. The agents (Claude Code, codex) launch in a single primary
  * cwd rather than a true combined multi-root view, which makes "where does
  * my change land?" ambiguous. Default off; set
- * OPENSPEC_ENABLE_CLI_AGENT_OPENERS=1 to restore them (internal rollback seam).
+ * SPECAGILE_ENABLE_CLI_AGENT_OPENERS=1 to restore them (internal rollback seam).
  */
 export function isCliAgentOpenersEnabled(): boolean {
-  return process.env.OPENSPEC_ENABLE_CLI_AGENT_OPENERS === '1';
+  return process.env[ENV_VAR_NAMES.enableCliAgentOpeners] === '1';
 }
 
 /** Whether a tool can be opened right now (CLI-agent styles are gated). */

@@ -31,15 +31,15 @@ describe('specagile workset (7.1)', () => {
     // These suites assert the CLI-agent (attach-dirs) open behavior, which
     // is gated off by default; enable it for the legacy coverage. The
     // disabled-by-default path is covered in its own describe below.
-    process.env.OPENSPEC_ENABLE_CLI_AGENT_OPENERS = '1';
+    process.env.SPECAGILE_ENABLE_CLI_AGENT_OPENERS = '1';
     tempDir = fs.realpathSync.native(
       fs.mkdtempSync(path.join(os.tmpdir(), 'openspec-workset-'))
     );
     env = {
       XDG_DATA_HOME: path.join(tempDir, 'data'),
       XDG_CONFIG_HOME: path.join(tempDir, 'config'),
-      OPEN_SPEC_INTERACTIVE: '0',
-      OPENSPEC_TELEMETRY: '0',
+      SPECAGILE_INTERACTIVE: '0',
+      SPECAGILE_TELEMETRY: '0',
       // Fully controlled PATH: node (for the fake-tool shims) plus
       // whatever fakes each test prepends. Real editors/agents on the
       // host machine must never be reachable from these tests.
@@ -57,7 +57,7 @@ describe('specagile workset (7.1)', () => {
   });
 
   afterEach(() => {
-    delete process.env.OPENSPEC_ENABLE_CLI_AGENT_OPENERS;
+    delete process.env.SPECAGILE_ENABLE_CLI_AGENT_OPENERS;
     cleanupTempPath(tempDir);
   });
 
@@ -97,7 +97,7 @@ describe('specagile workset (7.1)', () => {
 
   describe('CLI-agent openers are disabled by default', () => {
     beforeEach(() => {
-      delete process.env.OPENSPEC_ENABLE_CLI_AGENT_OPENERS;
+      delete process.env.SPECAGILE_ENABLE_CLI_AGENT_OPENERS;
     });
 
     it('refuses to open a workset in a CLI agent, pointing at an IDE', async () => {
@@ -618,7 +618,7 @@ describe('specagile workset (7.1)', () => {
       { tool: 'code-insiders', args: [] },
       { tool: 'code', args: ['--new-window'] },
     ])('launches the documented $tool opener configuration', async ({ tool, args }) => {
-      delete process.env.OPENSPEC_ENABLE_CLI_AGENT_OPENERS;
+      delete process.env.SPECAGILE_ENABLE_CLI_AGENT_OPENERS;
       writeOpenersConfig({
         'code-insiders': { style: 'workspace-file', label: 'VS Code Insiders' },
         code: { args: ['--new-window'] },
@@ -863,8 +863,8 @@ describe('interactive compose cancellation (in-process)', () => {
     process.env.XDG_DATA_HOME = path.join(tempDir, 'data');
     process.env.XDG_CONFIG_HOME = path.join(tempDir, 'config');
     delete process.env.CI;
-    delete process.env.OPEN_SPEC_INTERACTIVE;
-    process.env.OPENSPEC_ENABLE_CLI_AGENT_OPENERS = '1';
+    delete process.env.SPECAGILE_INTERACTIVE;
+    process.env.SPECAGILE_ENABLE_CLI_AGENT_OPENERS = '1';
     // Deterministic tool availability for the wizard's [3/3] step:
     // exactly one fake claude on PATH, regardless of the host machine.
     const fakeClaude = createFakeTool(tempDir, 'claude');
@@ -1061,12 +1061,12 @@ describe('interactive compose cancellation (in-process)', () => {
     const setup = new Command();
     setup.exitOverride();
     registerWorksetCommand(setup);
-    process.env.OPEN_SPEC_INTERACTIVE = '0';
+    process.env.SPECAGILE_INTERACTIVE = '0';
     await setup.parseAsync(
       ['workset', 'create', 'platform', '--member', memberDir],
       { from: 'user' }
     );
-    delete process.env.OPEN_SPEC_INTERACTIVE;
+    delete process.env.SPECAGILE_INTERACTIVE;
     process.exitCode = undefined;
 
     const program = new Command();

@@ -12,7 +12,7 @@ const cliEntry = path.join(projectRoot, 'dist', 'cli', 'index.js');
 const DEFAULT_CLI_TIMEOUT_MS = 30_000;
 // Set to a standalone binary (scripts/binary/build.mjs) to run every CLI test
 // against it instead of `node dist/cli/index.js`.
-export const testBinary = process.env.OPENSPEC_TEST_BINARY ? path.resolve(process.env.OPENSPEC_TEST_BINARY) : undefined;
+export const testBinary = process.env.SPECAGILE_TEST_BINARY ? path.resolve(process.env.SPECAGILE_TEST_BINARY) : undefined;
 
 let buildPromise: Promise<void> | undefined;
 const activeCliChildren = new Set<ChildProcess>();
@@ -159,8 +159,8 @@ export async function runCLI(args: string[] = [], options: RunCLIOptions = {}): 
       env: mergeEnv(
         process.env,
         {
-          OPENSPEC_TELEMETRY: '0',
-          OPEN_SPEC_INTERACTIVE: '0',
+          SPECAGILE_TELEMETRY: '0',
+          SPECAGILE_INTERACTIVE: '0',
           XDG_CONFIG_HOME: explicitConfigHome ?? isolatedConfigHome,
         },
         options.env

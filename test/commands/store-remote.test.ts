@@ -32,8 +32,8 @@ describe('store canonical remote (3.3)', { timeout: REAL_GIT_TEST_TIMEOUT_MS }, 
     env = {
       XDG_DATA_HOME: path.join(tempDir, 'data'),
       XDG_CONFIG_HOME: path.join(tempDir, 'config'),
-      OPEN_SPEC_INTERACTIVE: '0',
-      OPENSPEC_TELEMETRY: '0',
+      SPECAGILE_INTERACTIVE: '0',
+      SPECAGILE_TELEMETRY: '0',
       ...isolatedGitEnv(tempDir),
     };
     globalDataDir = getGlobalDataDir({ env });

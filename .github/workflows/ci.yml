@@ -299,7 +299,7 @@ jobs:
 
       - name: Upgrade released projects
         env:
-          OPENSPEC_RELEASE_UPGRADES: '1'
+          SPECAGILE_RELEASE_UPGRADES: '1'
         run: pnpm exec vitest run test/cli-e2e/upgrade-from-releases.test.ts
 
   nix-flake-validate:

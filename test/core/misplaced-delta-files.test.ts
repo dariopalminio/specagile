@@ -378,7 +378,7 @@ describe('end to end: a delta written as specs/<capability>.md', () => {
       HOME: home,
       XDG_CONFIG_HOME: path.join(home, '.config'),
       XDG_DATA_HOME: path.join(home, '.local', 'share'),
-      OPENSPEC_NO_ANIMATION: '1',
+      SPECAGILE_NO_ANIMATION: '1',
     };
     const cli = (args: string[]) => runCLI(args, { cwd: project, env, timeoutMs: 60_000 });
     expect((await cli(['init', '--tools', 'claude'])).exitCode).toBe(0);

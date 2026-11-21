@@ -11,7 +11,7 @@ import ora from 'ora';
 import { createRequire } from 'module';
 import { FileSystemUtils } from '../utils/file-system.js';
 import { getSkillReferenceTransformer, transformToSkillReferences } from '../utils/command-references.js';
-import { REPOSITORY_URL, applyForkIdentity } from './fork/identity.js';
+import { ENV_VAR_NAMES, REPOSITORY_URL, applyForkIdentity } from './fork/identity.js';
 import {
   formatFormerSkillMigration,
   formerSkillsKeptMessage,
@@ -270,7 +270,7 @@ export class UpdateCommand {
             return;
           }
         }
-      } else if (!hasProjectSkills && !this.hasGlobalSkills && process.env.OPENSPEC_SKILLS_SCOPE !== 'project' &&
+      } else if (!hasProjectSkills && !this.hasGlobalSkills && process.env[ENV_VAR_NAMES.skillsScope] !== 'project' &&
         await confirm({ message: 'Set up OpenSpec skills for your coding tools on this machine?', default: false })) {
         await new InitCommand({ scope: 'global' }).execute(resolvedProjectPath);
         return;

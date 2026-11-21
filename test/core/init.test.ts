@@ -2230,7 +2230,7 @@ describe('InitCommand - profile and detection features', () => {
 
   it('interactive init installs for the machine when that is the answer, and writes no project skills', async () => {
     // The suite pins project installs; this test is about the question itself.
-    delete process.env.OPENSPEC_SKILLS_SCOPE;
+    delete process.env.SPECAGILE_SKILLS_SCOPE;
     selectMock.mockResolvedValue('global');
     searchableMultiSelectMock.mockResolvedValue(['claude']);
 
@@ -2249,7 +2249,7 @@ describe('InitCommand - profile and detection features', () => {
     ['a mix that includes one', ['claude', 'eve']],
   ])('interactive init keeps the skills in the project when the tools picked are %s', async (_label, picked) => {
     // No flag, no environment variable, no saved setting: the default follows the tools, as it does for --tools.
-    delete process.env.OPENSPEC_SKILLS_SCOPE;
+    delete process.env.SPECAGILE_SKILLS_SCOPE;
     searchableMultiSelectMock.mockResolvedValue(picked);
 
     const initCommand = new InitCommand({});
@@ -2262,7 +2262,7 @@ describe('InitCommand - profile and detection features', () => {
   });
 
   it('interactive init still refuses a tool that needs project scope when global was asked for', async () => {
-    delete process.env.OPENSPEC_SKILLS_SCOPE;
+    delete process.env.SPECAGILE_SKILLS_SCOPE;
     searchableMultiSelectMock.mockResolvedValue(['eve']);
 
     const initCommand = new InitCommand({ scope: 'global' });

@@ -158,6 +158,6 @@ Run `specagile update` to refresh the skills for your [workflow profile](../cust
 2. Run `specagile update` in a terminal. Choose **Switch to global** to install skills on your machine and remove the repo copies. To keep the skills in your project repo, press Enter on **Keep in this project** and commit the updated `specagile/config.yaml`, where OpenSpec saves the choice as `skillsScope: project`. Other checkouts then remember the choice. You can switch later with `specagile init --scope global`.
 3. If you switched to global, commit the removals. After pulling that commit, each teammate runs `specagile update` in a terminal, answers **Yes** to setting up skills on their machine, and selects their tools. In a script or from an agent, they run `specagile init --tools <ids>` instead.
 
-Keep project skills for GitHub’s hosted Copilot agent. It can read committed files, but it can’t read your home folder. CI jobs that only run `specagile validate` don’t need skills. For jobs that install them, see [OPENSPEC_SKILLS_SCOPE](../reference/configuration/environment-variables.md#openspec_skills_scope).
+Keep project skills for GitHub’s hosted Copilot agent. It can read committed files, but it can’t read your home folder. CI jobs that only run `specagile validate` don’t need skills. For jobs that install them, see [SPECAGILE_SKILLS_SCOPE](../reference/configuration/environment-variables.md#specagile_skills_scope).
 
 Setup is done. The [Quickstart](quickstart.md) takes your first change from here.

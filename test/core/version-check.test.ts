@@ -35,6 +35,7 @@ import {
   getCliUpdateCommand,
   buildVersionReportLines,
 } from '../../src/core/version-check.js';
+import { FORMER_ENV_VAR_NAMES } from '../../src/core/fork/identity.js';
 
 const require = createRequire(import.meta.url);
 const { version: OPENSPEC_VERSION } = require('../../package.json');
@@ -98,9 +99,11 @@ describe('getAvailableCliUpdate', () => {
   const ENV_KEYS = [
     'NODE_ENV',
     'CI',
-    'OPENSPEC_NO_UPDATE_CHECK',
+    'SPECAGILE_NO_UPDATE_CHECK',
     'DO_NOT_TRACK',
-    'OPENSPEC_TELEMETRY',
+    'SPECAGILE_TELEMETRY',
+    FORMER_ENV_VAR_NAMES.noUpdateCheck,
+    FORMER_ENV_VAR_NAMES.telemetry,
     'npm_config_registry',
   ] as const;
 
@@ -331,8 +334,8 @@ describe('getAvailableCliUpdate', () => {
 
   it('sends nothing at all when opted out', async () => {
     for (const [key, value] of [
-      ['OPENSPEC_NO_UPDATE_CHECK', '1'],
-      ['OPENSPEC_NO_UPDATE_CHECK', ''],
+      ['SPECAGILE_NO_UPDATE_CHECK', '1'],
+      ['SPECAGILE_NO_UPDATE_CHECK', ''],
       ['CI', 'true'],
       ['CI', '1'],
       ['CI', 'TRUE'],
@@ -344,9 +347,9 @@ describe('getAvailableCliUpdate', () => {
       // Tolerant, like CI above: a user who wrote "true" opted out.
       ['DO_NOT_TRACK', 'true'],
       ['DO_NOT_TRACK', ' Yes '],
-      ['OPENSPEC_TELEMETRY', '0'],
-      ['OPENSPEC_TELEMETRY', 'false'],
-      ['OPENSPEC_TELEMETRY', 'OFF'],
+      ['SPECAGILE_TELEMETRY', '0'],
+      ['SPECAGILE_TELEMETRY', 'false'],
+      ['SPECAGILE_TELEMETRY', 'OFF'],
     ] as const) {
       process.env[key] = value;
       await expect(checkForCliUpdate()).resolves.toEqual({ status: 'disabled', latest: null });
@@ -355,6 +358,28 @@ describe('getAvailableCliUpdate', () => {
     }
 
     expect(requests).toHaveLength(0);
+  });
+
+  it("still checks with OpenSpec's opt-outs set, which SpecAgile ignores", async () => {
+    for (const [key, value] of [
+      [FORMER_ENV_VAR_NAMES.noUpdateCheck, '1'],
+      [FORMER_ENV_VAR_NAMES.noUpdateCheck, ''],
+      [FORMER_ENV_VAR_NAMES.telemetry, '0'],
+      [FORMER_ENV_VAR_NAMES.telemetry, 'false'],
+    ] as const) {
+      process.env[key] = value;
+      await expect(checkForCliUpdate()).resolves.toEqual({
+        status: 'available',
+        latest: bumpMajor(OPENSPEC_VERSION),
+      });
+      await expect(checkForCliUpdate({ requested: true })).resolves.toEqual({
+        status: 'available',
+        latest: bumpMajor(OPENSPEC_VERSION),
+      });
+      delete process.env[key];
+    }
+
+    expect(requests).toHaveLength(8);
   });
 
   it('sends nothing when telemetry.enabled is false in global config', async () => {
@@ -431,7 +456,7 @@ describe('getAvailableCliUpdate', () => {
 
     it('runs when telemetry is off by env, while the passive check stays off', async () => {
       for (const [key, value] of [
-        ['OPENSPEC_TELEMETRY', '0'],
+        ['SPECAGILE_TELEMETRY', '0'],
         ['DO_NOT_TRACK', '1'],
       ] as const) {
         process.env[key] = value;
@@ -477,11 +502,11 @@ describe('getAvailableCliUpdate', () => {
     });
 
     it('still honors the update-check opt-out and the test guard', async () => {
-      process.env.OPENSPEC_TELEMETRY = '0';
+      process.env.SPECAGILE_TELEMETRY = '0';
       process.env.CI = 'true';
       for (const [key, value] of [
-        ['OPENSPEC_NO_UPDATE_CHECK', '1'],
-        ['OPENSPEC_NO_UPDATE_CHECK', ''],
+        ['SPECAGILE_NO_UPDATE_CHECK', '1'],
+        ['SPECAGILE_NO_UPDATE_CHECK', ''],
         ['NODE_ENV', 'test'],
       ] as const) {
         process.env[key] = value;
@@ -495,7 +520,7 @@ describe('getAvailableCliUpdate', () => {
     });
 
     it('still refuses a rejected registry', async () => {
-      process.env.OPENSPEC_TELEMETRY = '0';
+      process.env.SPECAGILE_TELEMETRY = '0';
       process.env.npm_config_registry = 'http://169.254.169.254/';
       await expect(checkForCliUpdate({ requested: true })).resolves.toEqual({
         status: 'disabled',
@@ -850,13 +875,13 @@ describe('openspec version --check with telemetry off, in CI', () => {
 
     const env: NodeJS.ProcessEnv = {
       ...process.env,
-      OPENSPEC_TELEMETRY: '0',
+      SPECAGILE_TELEMETRY: '0',
       DO_NOT_TRACK: '1',
       XDG_CONFIG_HOME: xdgHome,
       npm_config_registry: `https://127.0.0.1:${port}/`,
     };
     delete env.NODE_ENV;
-    delete env.OPENSPEC_NO_UPDATE_CHECK;
+    delete env.SPECAGILE_NO_UPDATE_CHECK;
     // A script reading --json often runs in CI; that must not stop it either.
     env.CI = 'true';
 
@@ -1251,15 +1276,33 @@ describe('rerunUpdateWithUpgradedCli', () => {
     const log = path.join(dir, 'env.txt');
     const bin = writeFakeCli(
       isWindows
-        ? `@echo %OPENSPEC_NO_UPDATE_CHECK% > "${log}"\r\n@exit /b 0\r\n`
-        : `#!/bin/sh\necho "$OPENSPEC_NO_UPDATE_CHECK" > "${log}"\nexit 0\n`
+        ? `@echo %SPECAGILE_NO_UPDATE_CHECK% %SPECAGILE_TELEMETRY% > "${log}"\r\n@exit /b 0\r\n`
+        : `#!/bin/sh\necho "$SPECAGILE_NO_UPDATE_CHECK" "$SPECAGILE_TELEMETRY" > "${log}"\nexit 0\n`
     );
+    // The child gets SpecAgile's names, which the upgraded CLI reads, whatever
+    // the parent had set.
+    const previous = {
+      noUpdateCheck: process.env.SPECAGILE_NO_UPDATE_CHECK,
+      telemetry: process.env.SPECAGILE_TELEMETRY,
+    };
+    delete process.env.SPECAGILE_NO_UPDATE_CHECK;
+    process.env.SPECAGILE_TELEMETRY = '1';
 
-    await rerunUpdateWithUpgradedCli('.', { binPath: bin });
+    try {
+      await rerunUpdateWithUpgradedCli('.', { binPath: bin });
+    } finally {
+      for (const [key, value] of [
+        ['SPECAGILE_NO_UPDATE_CHECK', previous.noUpdateCheck],
+        ['SPECAGILE_TELEMETRY', previous.telemetry],
+      ] as const) {
+        if (value === undefined) delete process.env[key];
+        else process.env[key] = value;
+      }
+    }
 
     // Without this, a PATH still resolving to the old binary would prompt
     // again, and again.
-    expect(fs.readFileSync(log, 'utf-8').trim()).toBe('1');
+    expect(fs.readFileSync(log, 'utf-8').trim().split(/\s+/)).toEqual(['1', '0']);
   }, 30000);
 
   it('passes the child exit code through instead of claiming success', async () => {
@@ -1519,9 +1562,11 @@ describe('standalone update check', () => {
   const ENV_KEYS = [
     'NODE_ENV',
     'CI',
-    'OPENSPEC_NO_UPDATE_CHECK',
+    'SPECAGILE_NO_UPDATE_CHECK',
     'DO_NOT_TRACK',
-    'OPENSPEC_TELEMETRY',
+    'SPECAGILE_TELEMETRY',
+    FORMER_ENV_VAR_NAMES.noUpdateCheck,
+    FORMER_ENV_VAR_NAMES.telemetry,
     'npm_config_registry',
   ] as const;
   const RELEASES = '/Fission-AI/OpenSpec/releases';

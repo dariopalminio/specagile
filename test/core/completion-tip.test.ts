@@ -5,6 +5,7 @@ import * as os from 'node:os';
 
 import { maybeShowCompletionTip, COMPLETION_TIP_MESSAGE } from '../../src/core/completion-tip.js';
 import { getGlobalConfigPath } from '../../src/core/global-config.js';
+import { FORMER_ENV_VAR_NAMES } from '../../src/core/fork/identity.js';
 
 describe('core/completion-tip', () => {
   let tempDir: string;
@@ -36,7 +37,8 @@ describe('core/completion-tip', () => {
     delete process.env.ZSH;
     delete process.env.ZSH_CUSTOM;
     delete process.env.CI;
-    delete process.env.OPENSPEC_NO_COMPLETIONS;
+    delete process.env.SPECAGILE_NO_COMPLETIONS;
+    delete process.env[FORMER_ENV_VAR_NAMES.noCompletions];
     errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
   });
 
@@ -92,7 +94,7 @@ describe('core/completion-tip', () => {
     ['CI', 'True'],
     ['CI', 'yes'],
     ['CI', 'on'],
-    ['OPENSPEC_NO_COMPLETIONS', '1'],
+    ['SPECAGILE_NO_COMPLETIONS', '1'],
   ])('stays silent when %s=%s', async (key, value) => {
     process.env[key] = value;
 
@@ -100,6 +102,14 @@ describe('core/completion-tip', () => {
 
     expect(printedTip()).toBe(false);
     expect(fs.existsSync(getGlobalConfigPath())).toBe(false);
+  });
+
+  it("still shows the tip with OpenSpec's variable at 1 and no SPECAGILE_NO_COMPLETIONS", async () => {
+    process.env[FORMER_ENV_VAR_NAMES.noCompletions] = '1';
+
+    await maybeShowCompletionTip();
+
+    expect(printedTip()).toBe(true);
   });
 
   it('does not materialize default config fields when recording the flag', async () => {

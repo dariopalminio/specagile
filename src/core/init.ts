@@ -34,7 +34,7 @@ import {
   getToolDir,
 } from './fork/layout.js';
 import { getSkillReferenceTransformer, transformToSkillReferences, usesNaturalLanguageSkillReferences } from '../utils/command-references.js';
-import { REPOSITORY_URL, SPECAGILE_BANNER, applyForkIdentity } from './fork/identity.js';
+import { ENV_VAR_NAMES, REPOSITORY_URL, SPECAGILE_BANNER, applyForkIdentity } from './fork/identity.js';
 import { formerSkillsKeptMessage, migrateFormerSkills } from './fork/former-skills.js';
 import {
   installerAgent,
@@ -419,10 +419,10 @@ export class InitCommand {
     if (this.toolsArg?.trim().toLowerCase() === 'none') return 'project';
     if (this.scopeOption) return this.scopeOption;
     if (projectHasOwnSkills(projectPath)) return 'project';
-    const fromEnv = process.env.OPENSPEC_SKILLS_SCOPE?.trim();
+    const fromEnv = process.env[ENV_VAR_NAMES.skillsScope]?.trim();
     if (fromEnv) {
       if (!(SKILL_SCOPES as readonly string[]).includes(fromEnv)) {
-        throw new Error(`Invalid OPENSPEC_SKILLS_SCOPE "${fromEnv}". Use global or project.`);
+        throw new Error(`Invalid ${ENV_VAR_NAMES.skillsScope} "${fromEnv}". Use global or project.`);
       }
       return fromEnv as SkillScope;
     }

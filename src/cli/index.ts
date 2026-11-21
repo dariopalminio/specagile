@@ -20,7 +20,7 @@ import type {
   NewChangeOptions,
 } from '../commands/workflow/index.js';
 import { COMMON_FLAGS } from '../core/completions/shared-flags.js';
-import { CLI_NAME, PACKAGE_NAME } from '../core/fork/identity.js';
+import { CLI_NAME, ENV_VAR_NAMES, PACKAGE_NAME } from '../core/fork/identity.js';
 import { getToolDir } from '../core/fork/layout.js';
 
 // Startup cost: every command's implementation, and the packages it uses,
@@ -635,7 +635,7 @@ program
   .option('--type <type>', 'Specify item type when ambiguous: change|spec')
   .option('--strict', 'Enable strict validation mode')
   .option('--json', 'Output validation results as JSON')
-  .option('--concurrency <n>', 'Max concurrent validations (defaults to env OPENSPEC_CONCURRENCY or 6)')
+  .option('--concurrency <n>', `Max concurrent validations (defaults to env ${ENV_VAR_NAMES.concurrency} or 6)`)
   .option('--no-interactive', 'Disable interactive prompts')
   .option('--store <id>', STORE_OPTION_DESCRIPTION)
   .addOption(hiddenStorePathOption())

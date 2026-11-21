@@ -266,7 +266,7 @@ async function projectWithDelta(delta: string) {
     USERPROFILE: home,
     XDG_CONFIG_HOME: path.join(home, '.config'),
     XDG_DATA_HOME: path.join(home, '.local', 'share'),
-    OPENSPEC_NO_ANIMATION: '1',
+    SPECAGILE_NO_ANIMATION: '1',
   };
   const cli = (args: string[]) => runCLI(args, { cwd: project, env, timeoutMs: 60_000 });
   const writeChange = async (name: string, spec: string) => {

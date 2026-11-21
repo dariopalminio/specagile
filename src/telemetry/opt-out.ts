@@ -9,6 +9,8 @@
  * enabling it.
  */
 
+import { ENV_VAR_NAMES } from '../core/fork/identity.js';
+
 const ON_VALUES = new Set(['1', 'true', 'yes', 'on']);
 const OFF_VALUES = new Set(['', '0', 'false', 'no', 'off']);
 
@@ -18,9 +20,9 @@ export function isDoNotTrackSet(env: NodeJS.ProcessEnv = process.env): boolean {
   return value !== undefined && !OFF_VALUES.has(value.trim().toLowerCase());
 }
 
-/** True when `OPENSPEC_TELEMETRY` is set to anything but an explicit on-value. */
+/** True when `SPECAGILE_TELEMETRY` is set to anything but an explicit on-value. */
 export function isTelemetryDisabledByEnv(env: NodeJS.ProcessEnv = process.env): boolean {
-  const value = env.OPENSPEC_TELEMETRY;
+  const value = env[ENV_VAR_NAMES.telemetry];
   return value !== undefined && !ON_VALUES.has(value.trim().toLowerCase());
 }
 

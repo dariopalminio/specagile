@@ -85,7 +85,7 @@ The corresponding `code-insiders` or `code` executable must be installed and ava
 
 ### telemetry
 
-SpecAgile sends no telemetry and writes nothing here. OpenSpec, which reads the same file, stores its anonymous id and whether its first-run notice was shown; `telemetry.enabled: false` turns OpenSpec's telemetry off. In SpecAgile, `telemetry.enabled: false` (like `OPENSPEC_TELEMETRY=0` or `DO_NOT_TRACK=1`) only turns off the background update check in `specagile update`.
+SpecAgile sends no telemetry and writes nothing here. OpenSpec, which reads the same file, stores its anonymous id and whether its first-run notice was shown; `telemetry.enabled: false` turns OpenSpec's telemetry off. In SpecAgile, `telemetry.enabled: false` (like `SPECAGILE_TELEMETRY=0` or `DO_NOT_TRACK=1`) only turns off the background update check in `specagile update`.
 
 ## Example
 

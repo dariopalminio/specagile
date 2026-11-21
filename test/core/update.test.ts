@@ -209,7 +209,7 @@ describe('UpdateCommand', () => {
     git('clone', '--quiet', testDir, checkout);
 
     selectMock.mockClear();
-    delete process.env.OPENSPEC_SKILLS_SCOPE;
+    delete process.env.SPECAGILE_SKILLS_SCOPE;
     // Refreshing an edited skill also rewrites the tool list if it needs repair.
     await fs.appendFile(path.join(checkout, '.agents/skills/sa-propose/SKILL.md'), 'edited');
     await new UpdateCommand().execute(checkout);
@@ -236,7 +236,7 @@ describe('UpdateCommand', () => {
   });
 
   it('lets a teammate skip local skills or choose tools after pulling the removals', async () => {
-    delete process.env.OPENSPEC_SKILLS_SCOPE;
+    delete process.env.SPECAGILE_SKILLS_SCOPE;
     interactiveState.value = true;
     const install = vi.spyOn(globalSkills, 'installGlobalSkills').mockResolvedValue({
       skills: ['sa-propose'], removedSkills: [], unchanged: false,

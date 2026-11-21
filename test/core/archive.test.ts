@@ -8934,9 +8934,9 @@ This change exists to document greeting behavior thoroughly for the team, which 
       setStdinIsTty(true);
       setStdoutIsTty(true);
       const originalCi = process.env.CI;
-      const originalOpenSpecInteractive = process.env.OPEN_SPEC_INTERACTIVE;
+      const originalOpenSpecInteractive = process.env.SPECAGILE_INTERACTIVE;
       delete process.env.CI;
-      delete process.env.OPEN_SPEC_INTERACTIVE;
+      delete process.env.SPECAGILE_INTERACTIVE;
 
       try {
         const { select } = await import('@inquirer/prompts');
@@ -8952,8 +8952,8 @@ This change exists to document greeting behavior thoroughly for the team, which 
       } finally {
         if (originalCi === undefined) delete process.env.CI;
         else process.env.CI = originalCi;
-        if (originalOpenSpecInteractive === undefined) delete process.env.OPEN_SPEC_INTERACTIVE;
-        else process.env.OPEN_SPEC_INTERACTIVE = originalOpenSpecInteractive;
+        if (originalOpenSpecInteractive === undefined) delete process.env.SPECAGILE_INTERACTIVE;
+        else process.env.SPECAGILE_INTERACTIVE = originalOpenSpecInteractive;
       }
     });
 
