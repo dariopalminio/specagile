@@ -33,7 +33,7 @@ import {
   getToolDir,
 } from './fork/layout.js';
 import { getSkillReferenceTransformer, transformToSkillReferences, usesNaturalLanguageSkillReferences } from '../utils/command-references.js';
-import { REPOSITORY_URL, applyForkIdentity } from './fork/identity.js';
+import { REPOSITORY_URL, SPECAGILE_BANNER, applyForkIdentity } from './fork/identity.js';
 import { formerSkillsKeptMessage, migrateFormerSkills } from './fork/former-skills.js';
 import {
   installerAgent,
@@ -939,6 +939,7 @@ export class InitCommand {
       .filter((toolId) => configuredToolIds.has(toolId))
       .map((toolId) => AI_TOOLS.find((t) => t.value === toolId)?.name || toolId);
 
+    console.log(SPECAGILE_BANNER);
     if (configuredNames.length > 0) {
       console.log(`SpecAgile configured: ${configuredNames.join(', ')} (pre-selected)`);
     }

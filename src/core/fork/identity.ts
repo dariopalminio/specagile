@@ -30,6 +30,12 @@ export const PACKAGE_NAME = 'specagile';
 /** SpecAgile's repository, where its links and feedback go. */
 export const REPOSITORY_URL = 'https://github.com/dariopalminio/specagile';
 
+/** The banner `specagile init` prints above its tool picker. */
+export const SPECAGILE_BANNER: string = [
+  '█▀▀ █▀▄ █▀▀ █▀▀  ▄▀█ █▀▀ █ █   █▀▀',
+  '▄▄█ █▀  ██▄ █▄▄  █▀█ █▄█ █ █▄▄ ██▄',
+].join('\n');
+
 /** The name OpenSpec upstream gives its executable. */
 export const FORMER_CLI_NAME = 'openspec';
 

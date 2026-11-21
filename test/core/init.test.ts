@@ -11,6 +11,7 @@ import { ALL_WORKFLOWS } from '../../src/core/profiles.js';
 import { getCommandContents } from '../../src/core/shared/skill-generation.js';
 import { CommandAdapterRegistry, generateCommands } from '../../src/core/command-generation/index.js';
 import { releasedCodexPrompt } from '../helpers/released-codex-prompt.js';
+import { SPECAGILE_BANNER } from '../../src/core/fork/identity.js';
 import { RELATIVE_CHANGES_DIR, RELATIVE_CONFIG_FILE, RELATIVE_SPECS_DIR, RELATIVE_TOOL_DIR, createFormerLayout, getArchiveDir, getChangesDir, getConfigFile, getConfigYmlFile, getSpecsDir, getToolDir } from '../helpers/layout.js';
 
 const { confirmMock, selectMock, installGlobalSkillsMock, showWelcomeScreenMock, searchableMultiSelectMock } = vi.hoisted(() => ({
@@ -2094,6 +2095,32 @@ describe('InitCommand - profile and detection features', () => {
     expect(claude?.preSelected).toBe(true);
     expect(githubCopilot?.preSelected).toBe(false);
     expect(githubCopilot?.detected).toBe(true);
+  });
+
+  // SpecAgile: the banner (src/core/fork/identity.ts) heads the tool picker.
+  it('should print the SpecAgile banner before the configured tools line', async () => {
+    await fs.mkdir(getToolDir(testDir), { recursive: true });
+    const claudeSkillDir = path.join(testDir, '.claude', 'skills', 'sa-explore');
+    await fs.mkdir(claudeSkillDir, { recursive: true });
+    await fs.writeFile(path.join(claudeSkillDir, 'SKILL.md'), 'configured');
+
+    searchableMultiSelectMock.mockResolvedValue(['claude']);
+
+    const initCommand = new InitCommand({ force: true });
+    vi.spyOn(initCommand as any, 'canPromptInteractively').mockReturnValue(true);
+
+    await initCommand.execute(testDir);
+
+    const toolSelectionOrder = searchableMultiSelectMock.mock.invocationCallOrder[0];
+    const consoleLogMock = console.log as ReturnType<typeof vi.fn>;
+    const logsBeforeSelection = consoleLogMock.mock.calls
+      .filter((_, index) => consoleLogMock.mock.invocationCallOrder[index] < toolSelectionOrder)
+      .map((args) => String(args[0]));
+
+    const bannerIndex = logsBeforeSelection.indexOf(SPECAGILE_BANNER);
+    const configuredIndex = logsBeforeSelection.findIndex((line) => line.startsWith('SpecAgile configured:'));
+    expect(bannerIndex).toBeGreaterThanOrEqual(0);
+    expect(configuredIndex).toBeGreaterThan(bannerIndex);
   });
 
   it('should preselect detected tools for first-time interactive setup', async () => {
