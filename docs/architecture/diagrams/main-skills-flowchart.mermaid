@@ -1,7 +1,8 @@
 flowchart TD
     E["sa-explore"] --> S["sa-specify"]
     S --> P["sa-plan"]
-    P --> I["sa-implement"]
+    P --> T["sa-tasks"]
+    T--> I["sa-implement"]
     I -. "verificación opcional" .-> V["sa-verify"]
     I --> A["sa-archive"]
     V --> A
