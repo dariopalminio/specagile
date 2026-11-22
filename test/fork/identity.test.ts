@@ -8,13 +8,16 @@ import {
   CLI_SUBCOMMANDS,
   CLI_WORDS,
   FORMER_SKILL_NAME_BY_WORKFLOW,
+  FORMER_SKILL_NAMES,
   KNOWN_SKILL_NAMES,
   PACKAGE_NAME,
   PRODUCT_TEXT_REPLACEMENTS,
   REPOSITORY_URL,
   SKILL_NAME_BY_WORKFLOW,
+  TEMPLATE_ONLY_SKILL_NAME_BY_WORKFLOW,
   applyForkIdentity,
   applyForkNames,
+  formerSkillNames,
 } from '../../src/core/fork/identity.js';
 import { LAYOUT_TEXT_REPLACEMENTS } from '../../src/core/fork/layout.js';
 import { ALL_WORKFLOWS, type WorkflowId } from '../../src/core/profiles.js';
@@ -25,11 +28,13 @@ import {
 } from '../../src/core/shared/skill-generation.js';
 import { withUpstreamIdentity } from '../helpers/fork-identity.js';
 
-const EXPECTED_SKILL_NAMES: Record<WorkflowId, [former: string, current: string]> = {
+// `former` is undefined only for a workflow the fork added after the rename.
+const EXPECTED_SKILL_NAMES: Record<WorkflowId, [former: string | undefined, current: string]> = {
   explore: ['openspec-explore', 'sa-explore'],
   propose: ['openspec-propose', 'sa-propose'],
   specify: ['openspec-specify', 'sa-specify'],
   plan: ['openspec-plan', 'sa-plan'],
+  tasks: [undefined, 'sa-tasks'],
   apply: ['openspec-apply-change', 'sa-implement'],
   verify: ['openspec-verify-change', 'sa-verify'],
   archive: ['openspec-archive-change', 'sa-archive'],
@@ -63,17 +68,37 @@ describe('fork identity tables', () => {
 
   it('maps every workflow to the names in the spec', () => {
     expect(Object.keys(SKILL_NAME_BY_WORKFLOW).sort()).toEqual([...ALL_WORKFLOWS].sort());
-    expect(Object.keys(FORMER_SKILL_NAME_BY_WORKFLOW).sort()).toEqual([...ALL_WORKFLOWS].sort());
     for (const workflow of ALL_WORKFLOWS) {
       const [former, current] = EXPECTED_SKILL_NAMES[workflow];
       expect(FORMER_SKILL_NAME_BY_WORKFLOW[workflow]).toBe(former);
+      expect(formerSkillNames(workflow)).toEqual(former === undefined ? [] : [former]);
       expect(SKILL_NAME_BY_WORKFLOW[workflow]).toBe(current);
     }
   });
 
+  it('has a former name for every workflow but tasks, which never had one', () => {
+    expect(Object.keys(FORMER_SKILL_NAME_BY_WORKFLOW).sort()).toEqual(
+      ALL_WORKFLOWS.filter((workflow) => workflow !== 'tasks').sort()
+    );
+    expect(formerSkillNames('tasks')).toEqual([]);
+    expect(FORMER_SKILL_NAMES).toHaveLength(14);
+    expect(FORMER_SKILL_NAMES).not.toContain('openspec-tasks');
+    expect(KNOWN_SKILL_NAMES).not.toContain('openspec-tasks');
+  });
+
+  it("translates the tasks template's name without making it a former name", () => {
+    expect(TEMPLATE_ONLY_SKILL_NAME_BY_WORKFLOW).toEqual({ tasks: 'openspec-tasks' });
+    expect(applyForkIdentity('name: openspec-tasks\n')).toBe('name: sa-tasks\n');
+    expect(applyForkIdentity('/openspec-tasks')).toBe('/sa-tasks');
+    expect(applyForkIdentity('$openspec-tasks (Codex) or /openspec-tasks (other agents)')).toBe(
+      '$sa-tasks (Codex) or /sa-tasks (other agents)'
+    );
+    expect(applyForkIdentity('"openspec tasks"')).toBe('"specagile tasks"');
+  });
+
   it('knows both the current and the former names', () => {
     expect(new Set(KNOWN_SKILL_NAMES)).toEqual(
-      new Set(Object.values(EXPECTED_SKILL_NAMES).flat())
+      new Set(Object.values(EXPECTED_SKILL_NAMES).flat().filter((name) => name !== undefined))
     );
   });
 
@@ -87,7 +112,7 @@ describe('fork identity tables', () => {
 });
 
 describe('applyForkIdentity', () => {
-  it.each(Object.entries(EXPECTED_SKILL_NAMES))(
+  it.each(Object.entries(EXPECTED_SKILL_NAMES).filter(([, [former]]) => former !== undefined))(
     'renames the %s skill in every reference form',
     (_workflow, [former, current]) => {
       expect(applyForkIdentity(`/${former}`)).toBe(`/${current}`);

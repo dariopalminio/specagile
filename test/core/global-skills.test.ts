@@ -20,7 +20,7 @@ import { RELATIVE_CHANGES_DIR, RELATIVE_CONFIG_FILE, RELATIVE_SPECS_DIR, RELATIV
 // the `skills` package settles some folders when it loads, so one process
 // cannot stand in for two machines.
 
-// SpecAgile: the core profile adds specify and plan.
+// SpecAgile: the core profile adds specify, plan and tasks.
 const CORE_SKILLS = [
   'sa-archive',
   'sa-explore',
@@ -29,6 +29,7 @@ const CORE_SKILLS = [
   'sa-propose',
   'sa-specify',
   'sa-sync-specs',
+  'sa-tasks',
   'sa-update-change',
 ];
 
@@ -134,7 +135,7 @@ describe('skills installed for this machine', { timeout: 60_000 }, () => {
     const result = await cli(dir, 'init', '--scope', 'global', '--tools', 'claude,codex');
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('8 skills in ~/.agents/skills/ for every project on this machine');
+    expect(result.stdout).toContain(`${CORE_SKILLS.length} skills in ~/.agents/skills/ for every project on this machine`);
     expect(await entries(dir)).toEqual(PLANNING_FOLDERS);
     expect(await globalSkills()).toEqual(CORE_SKILLS);
     // Claude Code reads its own folder, so it gets each skill there too.
@@ -281,7 +282,7 @@ describe('skills installed for this machine', { timeout: 60_000 }, () => {
       const result = await cli(dir, 'update');
 
       expect(result.exitCode).toBe(0);
-      expect(result.stdout).toContain('Updated the 8 skills for this machine in ~/.agents/skills');
+      expect(result.stdout).toContain(`Updated the ${CORE_SKILLS.length} skills for this machine in ~/.agents/skills`);
       expect(result.stdout).not.toContain('No configured tools found');
       expect(readFileSync(globalSkill('sa-propose'), 'utf8')).toBe(original);
     });

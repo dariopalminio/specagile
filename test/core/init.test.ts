@@ -371,12 +371,13 @@ describe('InitCommand', () => {
 
       await initCommand.execute(testDir);
 
-      // Core profile: propose, explore, specify, plan, apply, update, sync, archive
+      // Core profile: propose, explore, specify, plan, tasks, apply, update, sync, archive
       const coreSkillNames = [
         'sa-propose',
         'sa-explore',
         'sa-specify',
         'sa-plan',
+        'sa-tasks',
         'sa-implement',
         'sa-update-change',
         'sa-sync-specs',
@@ -546,6 +547,7 @@ describe('InitCommand', () => {
           'sa-explore',
           'sa-specify',
           'sa-plan',
+          'sa-tasks',
           'sa-implement',
           'sa-update-change',
           'sa-sync-specs',
@@ -823,7 +825,7 @@ describe('InitCommand', () => {
         .map(String);
       const summary = logCalls.find((entry) => /^\d+ skills in /.test(entry));
       expect(summary).toBe(
-        '8 skills in .agents/skills/ (also in .claude/skills/, .minimax/skills/)'
+        '9 skills in .agents/skills/ (also in .claude/skills/, .minimax/skills/)'
       );
     });
 
@@ -1087,6 +1089,7 @@ describe('InitCommand', () => {
         'sa-propose',
         'sa-specify',
         'sa-sync-specs',
+        'sa-tasks',
         'sa-update-change',
       ];
       expect((await fs.readdir(skillsDir)).filter((name) => !name.startsWith('.')).sort()).toEqual(skillNames);
@@ -2439,8 +2442,8 @@ describe('InitCommand - profile and detection features', () => {
     expect(await fileExists(proposeCommand)).toBe(false);
     expect(getConsoleOutput()).toContain('Kept 1 command file that does not match');
 
-    // The core profile's skills, `specify` and `plan` among them.
-    for (const skill of ['sa-explore', 'sa-propose', 'sa-specify', 'sa-plan']) {
+    // The core profile's skills, `specify`, `plan` and `tasks` among them.
+    for (const skill of ['sa-explore', 'sa-propose', 'sa-specify', 'sa-plan', 'sa-tasks']) {
       expect(await fileExists(path.join(testDir, '.claude', 'skills', skill, 'SKILL.md')), skill).toBe(true);
     }
   });

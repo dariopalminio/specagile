@@ -31,6 +31,7 @@ import {
   getPlanSkillTemplate,
   getSpecifySkillTemplate,
   getSyncSpecsSkillTemplate,
+  getTasksSkillTemplate,
   getUpdateChangeSkillTemplate,
   getVerifyChangeSkillTemplate,
 } from '../../../src/core/templates/skill-templates.js';
@@ -97,8 +98,9 @@ const EXPECTED_FUNCTION_HASHES: Record<string, string> = {
   getFeedbackSkillTemplate: 'dabeb5e825b9349abc8156c3e7b8608f27987912a6d9bf47ef29addde6138133',
   getUpdateChangeSkillTemplate: '3f7706b74a21ae5fba964a6589da1cd5ba18991b9ebb06ac3343295226d00ca9',
   getOpsxUpdateCommandTemplate: '2fd741565374d8f26ca26c7428b6ed48e0ed9d0b4b32722b0a2629c7ef2b38b7',
-  getSpecifySkillTemplate: 'f6d691e3966d0189d0b37af69962d7f0e84b5a3d801a79f351a742db61d2573a',
-  getPlanSkillTemplate: '50afed41985d35a22ff731f121a8352568c80bc125bd00c98fd49f3bc08c4ba2',
+  getSpecifySkillTemplate: '4adbf9da1a43f1f3b277bc374e60e3437f40382ef18f34b0191ac68652e0d34a',
+  getPlanSkillTemplate: '71cb887e3ee4843c99dcfa8eae954199d736cbc0f1098cbf67c5e113ba2b2f27',
+  getTasksSkillTemplate: '46e929cea67fc3f58fbfa621e4cb87381c66ba529d2e0937956a30a481d8aad0',
 };
 
 const EXPECTED_GENERATED_SKILL_CONTENT_HASHES: Record<string, string> = {
@@ -114,8 +116,9 @@ const EXPECTED_GENERATED_SKILL_CONTENT_HASHES: Record<string, string> = {
   'sa-onboard': 'fa244d51bdba7a86a5ed1bf5df2db95d9ca2449b3bbe1603fc8f3c1583de2696',
   'sa-propose': 'cf98a1546f7e3c3541d705ee33f431d24916c4db964b6dfcee051be14c80df9c',
   'sa-update-change': '79b2ab90a75a2030efbfb41b30cefc637516ea2e7961c72192c48a9f153755cf',
-  'sa-specify': 'cb14b4e68c2765f18a6d4927e1898a89f7a0af042fb6b8c01d8ab6499d8be8c2',
-  'sa-plan': '175e8c1139e5f6d0ec2b96751e78a7536830dc682d36be817c642aa48b97a477',
+  'sa-specify': '24ad2d7e4832e79e8f19dac9718d82cae5b91349284544d6766e0532e00c7dbe',
+  'sa-plan': '35ee64b8c32c5b4d08f3ce2c497183dfb3dcca1abb9e71f65832bcbe9946e658',
+  'sa-tasks': '305ad5f5e620b94699d1b72da3c0e8322f5734a1047b9b4a08a420a56ab54d5e',
 };
 
 // Intentionally excludes getFeedbackSkillTemplate: this list only models templates
@@ -135,6 +138,7 @@ const GENERATED_SKILL_FACTORIES: Array<[string, () => SkillTemplate]> = [
   ['sa-update-change', getUpdateChangeSkillTemplate],
   ['sa-specify', getSpecifySkillTemplate],
   ['sa-plan', getPlanSkillTemplate],
+  ['sa-tasks', getTasksSkillTemplate],
 ];
 
 function stableStringify(value: unknown): string {
@@ -232,6 +236,7 @@ describe('skill templates split parity', () => {
       getOpsxUpdateCommandTemplate,
       getSpecifySkillTemplate,
       getPlanSkillTemplate,
+      getTasksSkillTemplate,
     };
 
     const actualHashes = Object.fromEntries(

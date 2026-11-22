@@ -3,7 +3,8 @@
  * (by OpenSpec upstream, or by this fork before the rename), once `init` or
  * `update` has installed the `sa-*` ones that replace them.
  *
- * Only the fourteen names in FORMER_SKILL_NAME_BY_WORKFLOW are looked at,
+ * Only the fourteen names in FORMER_SKILL_NAME_BY_WORKFLOW are looked at (a
+ * workflow added after the rename, such as `tasks`, has none),
  * never an `openspec-*` glob. A SKILL.md goes only when it is text OpenSpec
  * wrote: a release's (`isReleasedGeneratedContent`) or what this version
  * generates for the skill once the fork's identity is applied, which covers
@@ -40,7 +41,12 @@ import {
   usesSharedSkills,
 } from '../shared/skill-paths.js';
 import { FileSystemUtils } from '../../utils/file-system.js';
-import { FORMER_SKILL_NAME_BY_WORKFLOW, SKILL_NAME_BY_WORKFLOW, applyForkIdentity } from './identity.js';
+import {
+  FORMER_SKILL_NAME_BY_WORKFLOW,
+  SKILL_NAME_BY_WORKFLOW,
+  applyForkIdentity,
+  formerSkillNames,
+} from './identity.js';
 
 export interface FormerSkillMigrationInput {
   projectPath: string;
@@ -68,7 +74,10 @@ export interface FormerSkillMigrationResult {
   kept: string[];
 }
 
-const WORKFLOWS = Object.keys(FORMER_SKILL_NAME_BY_WORKFLOW) as WorkflowId[];
+/** Each workflow with a former name, and that name (`tasks` has none). */
+const FORMER_SKILLS: ReadonlyArray<{ workflow: WorkflowId; former: string }> = (
+  Object.keys(FORMER_SKILL_NAME_BY_WORKFLOW) as WorkflowId[]
+).flatMap((workflow) => formerSkillNames(workflow).map((former) => ({ workflow, former })));
 const toPosix = (p: string) => p.split(path.sep).join('/');
 const FORMER_RELEASES = new Set<string>(FORMER_RELEASE_FINGERPRINTS);
 
@@ -179,8 +188,7 @@ export async function migrateFormerSkills(input: FormerSkillMigrationInput): Pro
   const anyShared = tools.some(usesSharedSkills);
   const sharedFate = new Map<string, 'remove' | 'stay' | 'absent'>();
   if (anyShared) {
-    for (const workflow of WORKFLOWS) {
-      const former = FORMER_SKILL_NAME_BY_WORKFLOW[workflow];
+    for (const { workflow, former } of FORMER_SKILLS) {
       const skillDir = path.join(sharedDir, former);
       // A link of the user's: not OpenSpec's to touch.
       if (view.linkTarget?.(skillDir) !== undefined) {
@@ -218,8 +226,7 @@ export async function migrateFormerSkills(input: FormerSkillMigrationInput): Pro
     visited.push(path.resolve(ownDir));
     if (shared && (isSameFolderTree(ownDir, sharedDir) || !isWithin(projectPath, ownDir))) continue;
 
-    for (const workflow of WORKFLOWS) {
-      const former = FORMER_SKILL_NAME_BY_WORKFLOW[workflow];
+    for (const { workflow, former } of FORMER_SKILLS) {
       const current = SKILL_NAME_BY_WORKFLOW[workflow];
       const spot = path.join(ownDir, former);
       const sharedTarget = path.join(sharedDir, former);
@@ -264,8 +271,8 @@ export async function migrateFormerSkills(input: FormerSkillMigrationInput): Pro
         visited.push(path.resolve(legacyDir));
         // A whole folder linked somewhere else is not the project's.
         if (!isWithin(projectPath, legacyDir) || view.linkTarget?.(legacyDir) !== undefined) continue;
-        for (const workflow of WORKFLOWS) {
-          const spot = path.join(legacyDir, FORMER_SKILL_NAME_BY_WORKFLOW[workflow]);
+        for (const { workflow, former } of FORMER_SKILLS) {
+          const spot = path.join(legacyDir, former);
           // A link here is the user's.
           if (view.linkTarget?.(spot) !== undefined || !view.exists(spot)) continue;
           if (!view.isDirectory(spot)) {
@@ -282,8 +289,7 @@ export async function migrateFormerSkills(input: FormerSkillMigrationInput): Pro
   }
 
   // 3. The shared copies decided above.
-  for (const workflow of WORKFLOWS) {
-    const former = FORMER_SKILL_NAME_BY_WORKFLOW[workflow];
+  for (const { former } of FORMER_SKILLS) {
     if (sharedFate.get(former) === 'remove') await removeSkillFile(path.join(sharedDir, former), 'openspec');
   }
 

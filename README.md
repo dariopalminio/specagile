@@ -62,6 +62,10 @@ AI:  Created changes/add-dark-mode/
 You: /sa-plan add-dark-mode
 AI:
      ✓ design.md    — technical approach
+     Ready for tasks!
+
+You: /sa-tasks add-dark-mode
+AI:
      ✓ tasks.md     — implementation checklist
      Ready for implementation!
 
@@ -145,7 +149,7 @@ Now talk to your AI:
 
 - **Not sure what to build yet?** Start with `/sa-explore`, a no-stakes thinking partner that reads your code, weighs options, and shapes a plan before any code gets written. ([Quickstart](docs-lab/start/quickstart.md))
 - **Already know what you want?** Go straight to `/sa-propose <what-you-want-to-build>`.
-- **Want to agree on *what* before *how*?** Use the three-step flow: `/sa-specify <what-you-want-to-build>` writes the proposal and specs and stops there, so your team can review them; then `/sa-plan` writes the design and tasks, and `/sa-implement` implements them. `/sa-propose` remains the one-step shortcut for both planning stages.
+- **Want to agree on *what* before *how*?** Use the long flow, `sa-specify` → `sa-plan` → `sa-tasks` → `sa-implement`: `/sa-specify <what-you-want-to-build>` writes the proposal and specs and stops there, so your team can review them; then `/sa-plan` writes the technical design, `/sa-tasks` breaks it into tasks, and `/sa-implement` implements them. `/sa-propose` remains the one-step shortcut that writes every planning artifact at once.
 
 All of these are in the default profile. If you want the expanded workflow (`sa-new-change`, `sa-continue-change`, `sa-ff-change`, `sa-verify`, `sa-bulk-archive-change`, `sa-onboard`), select it with `specagile config profile` and apply with `specagile update`.
 

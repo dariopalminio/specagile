@@ -27,6 +27,23 @@ describe('workflow handoffs with custom profiles', () => {
     expect(skill.template.instructions).toContain('List the OpenSpec workflows available to you in this session');
     expect(skill.template.instructions).not.toContain('| `/opsx:ff');
   });
+  // A skill's text is the same for every profile, so a workflow the profile
+  // leaves out may only be named "if that skill is installed".
+  it.each<[string, readonly string[]]>([
+    ['only plan', ['plan']],
+    ['all but tasks', ALL_WORKFLOWS.filter((workflow) => workflow !== 'tasks')],
+  ])('names no workflow outside the profile as installed (%s)', (_label, workflows) => {
+    const installed = new Set<string>(workflows);
+    const skills = getSkillTemplates(workflows);
+    expect(skills.map((entry) => entry.workflowId).sort()).toEqual([...workflows].sort());
+    for (const { workflowId, template } of skills) {
+      for (const [line, id] of template.instructions.matchAll(/\/opsx:([a-z-]+)[^\n]*/g)) {
+        if (installed.has(id)) continue;
+        expect(line, `${workflowId} names /opsx:${id}`).toContain('if that skill is installed');
+      }
+    }
+  });
+
   it('keeps the core profile as the default workflow set', () => {
     expect([...getProfileWorkflows('core')].sort()).toEqual([...CORE_WORKFLOWS].sort());
   });

@@ -19,6 +19,7 @@ import {
   getOpsxProposeSkillTemplate,
   getSpecifySkillTemplate,
   getPlanSkillTemplate,
+  getTasksSkillTemplate,
   getOpsxExploreCommandTemplate,
   getOpsxNewCommandTemplate,
   getOpsxContinueCommandTemplate,
@@ -99,6 +100,7 @@ function allSkillTemplates(): SkillTemplateEntry[] {
     // SpecAgile's skill-only workflows: no command template (they never had one).
     { template: getSpecifySkillTemplate(), ...dir('specify') },
     { template: getPlanSkillTemplate(), ...dir('plan') },
+    { template: getTasksSkillTemplate(), ...dir('tasks') },
   ];
 }
 
