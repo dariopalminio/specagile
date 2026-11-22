@@ -1,6 +1,6 @@
 ---
 name: sa-plan
-description: Plan an OpenSpec change that is already specified - create or revise its technical plan (design.md and tasks.md) from the proposal and delta specs, without editing the specification or code. Use when the user wants to turn an agreed specification into an implementation plan. Also use when the user says "specagile plan" or "opsx plan".
+description: Plan an OpenSpec change that is already specified - create or revise its technical design (design.md) from the proposal and delta specs, without writing its tasks or editing the specification or code. Use when the user wants to decide how an agreed specification will be built before breaking it into tasks. Also use when the user says "specagile plan" or "opsx plan".
 allowed-tools: Bash(specagile:*)
 license: MIT
 compatibility: Requires specagile CLI.
@@ -9,13 +9,12 @@ metadata:
   version: "1.0"
 ---
 
-Plan a change - create or revise the technical plan of a change whose specification is complete, then stop before implementation.
+Plan a change - create or revise the technical design of a change whose specification is complete, then stop before its tasks.
 
-**Planning boundary**: This workflow writes the planning artifacts of one existing change and nothing else: the artifacts the change needs for implementation that are not part of its specification. With the default spec-driven schema that is:
+**Planning boundary**: This workflow writes the design artifacts of one existing change and nothing else: the artifacts the change needs for implementation that are neither part of its specification nor its tasks. With the default spec-driven schema that is:
 - design.md (how)
-- tasks.md (implementation steps)
 
-It never creates a change, never edits the proposal or the delta specs, never edits project code, and never edits the main specs under `specs/`. The user request that selected or triggered this workflow authorizes planning only, even if it also asks to build or fix something. After the plan is written, stop. Do not start implementation in the same response; wait for a new user request.
+It never creates, revises, or deletes tasks.md (the tasks stage writes it), never creates a change, never edits the proposal or the delta specs, never edits project code, and never edits the main specs under `specs/`. The user request that selected or triggered this workflow authorizes planning only, even if it also asks to write the tasks, build, or fix something. After the design is written, stop. Do not start the tasks or the implementation in the same response; wait for a new user request.
 
 ---
 
@@ -67,8 +66,10 @@ In both branches, never create the root as a side effect: do not run `specagile 
 
    Split the artifacts by explicit id, never by file name or pattern:
    - **Specification set**: the artifact with id `specs` plus every artifact it `requires`, walked transitively (spec-driven: `proposal`, `specs`). This workflow reads these and never edits them.
-   - **Planning set**: `applyRequires` plus every artifact reachable from those by following the `requires` edges, minus the specification set (spec-driven: `design`, `tasks`). These are the only artifacts this workflow writes, whatever their names.
-   - Any other artifact belongs to neither set. Leave it alone, even when it reads `ready`.
+   - **Planning set**: `applyRequires` plus every artifact reachable from those by following the `requires` edges, minus the specification set (spec-driven: `design`, `tasks`).
+   - **Tasks set**: the artifact with id `tasks`, if the schema defines one (spec-driven: `tasks`). The tasks stage writes it; this workflow never creates, revises, or deletes it, even when it reads `ready`.
+   - **Design set**: the planning set minus the tasks set (spec-driven: `design`). These are the only artifacts this workflow writes, whatever their names. When the schema has no `tasks` artifact, the design set is the whole planning set.
+   - Any other artifact belongs to none of these sets. Leave it alone, even when it reads `ready`.
 
    **Schema without a specs artifact**: if no artifact has id `specs`, write nothing. Tell the user this schema does not separate the specification from the plan, and suggest generating all of its artifacts in one step with `sa-propose` if that skill is installed, or otherwise one at a time with `specagile instructions <artifact-id> --change "<name>"`.
 
@@ -83,25 +84,26 @@ In both branches, never create the root as a side effect: do not run `specagile 
 
    If any check fails, stop without writing anything: name what is missing or inconsistent, and explain that the specification stage must be finished first: a proposal, one delta spec for each capability it lists, and none for capabilities it does not list. Suggest `sa-specify <name>` to complete or fix it if that skill is installed.
 
-4. **Find the planning work**
+4. **Find the design work**
 
-   - **Nothing to plan**: if the planning set is empty - every artifact the schema requires for implementation is part of the specification - write nothing. Tell the user the change is already ready to implement, and hand off as in **Output**.
-   - Otherwise, read the proposal and every delta spec from disk - re-read them even if you saw them earlier in the conversation. For each artifact of the planning set, check `artifactPaths.<id>.existingOutputPaths`: an artifact with files is **existing** (step 5 reviews it) and one without is **missing** (step 6 creates it).
+   - **Nothing to design**: if the design set is empty, write nothing. When the schema has a `tasks` artifact, tell the user the change has no design to write, and hand off to the tasks stage as in **Output**. Otherwise every artifact the schema requires for implementation is part of the specification: tell the user the change is already ready to implement, and hand off as in **Output**.
+   - Otherwise, read the proposal and every delta spec from disk - re-read them even if you saw them earlier in the conversation. For each artifact of the design set, check `artifactPaths.<id>.existingOutputPaths`: an artifact with files is **existing** (step 5 reviews it) and one without is **missing** (step 6 creates it).
 
    **If the specification has a problem**: when, at any point, you find a contradiction, a gap, or an infeasible requirement in the proposal or the delta specs, do not edit them. Tell the user what the problem is and suggest resolving it in the specification before continuing (with `sa-specify <name>` if that skill is installed).
 
-5. **Revise the existing planning artifacts**
+   **Change that already has tasks**: if the tasks artifact already has files (spec-driven: `tasks.md`), leave them unchanged, even when they look out of date. When this run creates or revises a design artifact, warn the user that the tasks may now be out of date, and suggest revising them with `sa-tasks <name>` if that skill is installed.
 
-   Skip this step when no planning artifact has files yet.
-   - Read each existing planning artifact from disk and check it against the current proposal and delta specs: requirements the plan does not cover, tasks for behavior the specs no longer require, decisions that contradict a requirement.
-   - If every one is coherent with the specification, tell the user the plan is up to date and write nothing to it.
+5. **Revise the existing design artifacts**
+
+   Skip this step when no design artifact has files yet.
+   - Read each existing design artifact from disk and check it against the current proposal and delta specs: requirements the design does not cover, design for behavior the specs no longer require, decisions that contradict a requirement.
+   - If every one is coherent with the specification, tell the user the design is up to date and write nothing to it.
    - Otherwise, draft each revision in the conversation, not in files. Show what would change in each file and why. Write a revision only after the user confirms it. If the user rejects it, leave that file unchanged.
-   - **Completed tasks**: a revision keeps every task already marked `[x]`, with its mark. Remove or uncheck a completed task only when the user explicitly confirms that in the revision.
    - When a substantial rewrite is needed, get that artifact's rules and template first with `specagile instructions <artifact-id> --change "<name>" --json`.
 
-6. **Create the missing planning artifacts**
+6. **Create the missing design artifacts**
 
-   Create these without asking for confirmation. Use a todo list to track progress, and loop through the missing artifacts of the planning set in dependency order (artifacts with no pending dependencies first):
+   Create these without asking for confirmation. Use a todo list to track progress, and loop through the missing artifacts of the design set in dependency order (artifacts with no pending dependencies first):
 
    a. **For each missing artifact that is `ready` (dependencies satisfied)**:
       - Get instructions:
@@ -117,21 +119,21 @@ In both branches, never create the root as a side effect: do not run `specagile 
         - `dependencies`: Completed artifacts to read for context (entries with `skipped: true` have no files - do not look for them)
       - Read any completed dependency files for context - always re-read them from disk, even if you saw them earlier in the conversation (the user may have edited them)
       - **Inspect the relevant project before drafting**: Read `context` and `rules` first, then inspect relevant implementation, nearby tests, configuration, and documentation outside `specs/`, `changes/` and `specagile/`. Keep inspection read-only and proportional to the change; reuse findings for later artifacts and inspect more only as needed.
-        - Identify the target project from the request and project context; the planning home may be separate from the code. If the target is unclear, ask. For greenfield or non-code changes, inspect the available structure and relevant documents. If source is unavailable, state the limitation and ask when it materially affects the plan.
-        - Ground the approach and tasks in what you find. Distinguish observed behavior from assumptions and proposed additions; surface conflicts with existing specs instead of silently deciding which is correct.
-        - Do this discovery now, rather than leaving generic "explore the codebase" or "make a plan" tasks for implementation. Keep any necessary follow-up investigation specific to an unresolved question.
+        - Identify the target project from the request and project context; the planning home may be separate from the code. If the target is unclear, ask. For greenfield or non-code changes, inspect the available structure and relevant documents. If source is unavailable, state the limitation and ask when it materially affects the design.
+        - Ground the approach in what you find. Distinguish observed behavior from assumptions and proposed additions; surface conflicts with existing specs instead of silently deciding which is correct.
+        - Do this discovery now, rather than leaving generic "explore the codebase" or "make a plan" work for the tasks or the implementation. Keep any necessary follow-up investigation specific to an unresolved question.
       - Choose the output path before creating anything. If `resolvedOutputPath` is a glob, follow `instruction` to choose a concrete path inside `changeRoot` that matches the glob, and verify it remains inside `changeRoot` after resolving symlinks, both in its parent directories and in the file itself if it already exists; if it does not, stop and tell the user. Otherwise the output path is `resolvedOutputPath`
       - If the `instruction` field delegates creation to a specific skill or command, invoke it only if it can write the artifact to that output path; otherwise stop and tell the user. Then verify the artifact file exists at that output path
       - Otherwise create the artifact file using `template` as the structure and write it to that output path
       - Apply `context` and `rules` as constraints - but do NOT copy them into the file
       - Show brief progress: "Created <artifact-id>"
 
-   b. **Continue until every artifact in the planning set exists**
+   b. **Continue until every artifact in the design set exists**
       - After creating each artifact, re-run `specagile status --change "<name>" --json` - creating one can unblock others
       - Skip one only when its own `instruction` says it is conditional: run `specagile instructions <artifact-id> --change "<name>" --json` and skip only if its `instruction` field marks it optional (e.g. "create only if..."). Spec-driven's `design.md` qualifies. Tell the user why you skipped it, and do not reconsider it
-      - Dependencies are enablers, not gates: if a planning artifact is still `blocked` only because you skipped a conditional dependency, write it anyway
-      - Never create an artifact outside the planning set
-      - Stop when every artifact in the planning set is `done` or was deliberately skipped
+      - Dependencies are enablers, not gates: if a design artifact is still `blocked` only because you skipped a conditional dependency, write it anyway
+      - Never create an artifact outside the design set - in particular, never the tasks artifact, even when it reads `ready`
+      - Stop when every artifact in the design set is `done` or was deliberately skipped
 
 7. **Show final status**
    ```bash
@@ -142,9 +144,11 @@ In both branches, never create the root as a side effect: do not run `specagile 
 
 After planning, summarize:
 - Change name and location (`changeRoot`)
-- Planning artifacts created, revised, or skipped (and why), and any revision the user rejected
-- What's ready: "The change is ready to implement."
-- Prompt: "The plan is ready for review. When you’re ready, ask me to implement it."
+- Design artifacts created, revised, or skipped (and why), and any revision the user rejected
+- When the change already has tasks and this run created or revised its design: that the tasks may now be out of date (step 4)
+- What's ready, depending on the schema:
+  - **The schema has a `tasks` artifact**: "The change is ready for its tasks." Then prompt: "The design is ready for review. When you’re ready, ask me to write the tasks." The tasks are written with `sa-tasks <name>` if that skill is installed, or otherwise from the `tasks` artifact's rules and template with `specagile instructions tasks --change "<name>" --json`.
+  - **The schema has no `tasks` artifact**: "The change is ready to implement." Then prompt: "The plan is ready for review. When you’re ready, ask me to implement it."
 
 Then stop.
 
@@ -158,11 +162,11 @@ Then stop.
   - These guide what you write, but should never appear in the output
 
 **Guardrails**
-- The request that invoked this workflow authorizes planning only. Any implementation or apply instruction in that request does not carry forward. Do NOT implement the change, start the apply workflow, or edit project code. After presenting the plan, stop and wait for a new user request
+- The request that invoked this workflow authorizes planning only. Any tasks, implementation, or apply instruction in that request does not carry forward. Do NOT write the tasks, implement the change, start the apply workflow, or edit project code. After presenting the design, stop and wait for a new user request
 - Never create a change, and never edit the proposal, the delta specs, or the main specs under `specs/` - report problems in them instead
 - Plan only a change whose specification is complete: check each listed capability against the files on disk, comparing path identity rather than text
-- Write only artifacts of the planning set, found through `applyRequires`, the `requires` edges, and the explicit `specs` id - never by file name
-- Create missing planning artifacts without asking; confirm every revision of an existing one before writing it, and leave the file unchanged if the user rejects it
-- Keep completed tasks and their marks unless the user explicitly confirms removing or unchecking them
+- Write only artifacts of the design set, found through `applyRequires`, the `requires` edges, and the explicit `specs` and `tasks` ids - never by file name
+- Never create, revise, or delete the tasks artifact (spec-driven: `tasks.md`); warn that it may be out of date instead
+- Create missing design artifacts without asking; confirm every revision of an existing one before writing it, and leave the file unchanged if the user rejects it
 - Always re-read artifacts from disk before planning from them or revising them (files may have changed since you last saw them)
 - Verify each artifact file exists after writing before proceeding to the next

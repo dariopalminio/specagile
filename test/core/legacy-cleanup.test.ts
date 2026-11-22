@@ -417,21 +417,28 @@ ${OPENSPEC_MARKERS.end}`);
       const legacyFile = path.join(dirPath, 'opsx-propose.md');
       const userSpecify = path.join(dirPath, 'opsx-specify.md');
       const userPlan = path.join(dirPath, 'opsx-plan.md');
+      const userTasks = path.join(dirPath, 'opsx-tasks.md');
       await fs.writeFile(legacyFile, 'content');
       await fs.writeFile(userSpecify, 'user content');
       await fs.writeFile(userPlan, 'user content');
+      await fs.writeFile(userTasks, 'user content');
+      // Reported paths are project-relative with `/` on every platform.
+      const reportedTasks = path.posix.join('.kilocode', 'workflows', 'opsx-tasks.md');
 
       const detection = await detectLegacyArtifacts(testDir);
       expect(detection.slashCommandFiles).toContain('.kilocode/workflows/opsx-propose.md');
       expect(detection.slashCommandFiles).not.toContain('.kilocode/workflows/opsx-specify.md');
       expect(detection.slashCommandFiles).not.toContain('.kilocode/workflows/opsx-plan.md');
+      expect(detection.slashCommandFiles).not.toContain(reportedTasks);
 
       const result = await cleanupLegacyArtifacts(testDir, detection);
       expect(result.deletedFiles).not.toContain('.kilocode/workflows/opsx-specify.md');
       expect(result.deletedFiles).not.toContain('.kilocode/workflows/opsx-plan.md');
+      expect(result.deletedFiles).not.toContain(reportedTasks);
       await expect(fs.access(legacyFile)).rejects.toThrow();
       await expect(fs.readFile(userSpecify, 'utf-8')).resolves.toBe('user content');
       await expect(fs.readFile(userPlan, 'utf-8')).resolves.toBe('user content');
+      await expect(fs.readFile(userTasks, 'utf-8')).resolves.toBe('user content');
     });
 
     it('should detect legacy CoStrict command files without claiming their directory', async () => {

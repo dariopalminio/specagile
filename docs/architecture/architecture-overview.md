@@ -104,3 +104,30 @@ sequenceDiagram
     
     Agent->>User: "Propuesta creada. Usa /sa-plan para continuar."
 ```
+
+---
+
+## 3. El flujo de etapas
+
+Cada skill de etapa escribe solo sus artefactos y se detiene; el siguiente paso lo pide el usuario. Con el esquema `spec-driven`:
+
+| Etapa | Skill | Escribe | Plantilla |
+|---|---|---|---|
+| Especificación | `sa-specify` | `proposal.md` y los specs delta | `src/core/templates/workflows/specify.ts` |
+| Diseño | `sa-plan` | `design.md` (condicional en el esquema) | `src/core/templates/workflows/plan.ts` |
+| Tareas | `sa-tasks` | `tasks.md` | `src/core/templates/workflows/tasks.ts` |
+| Implementación | `sa-implement` | código, y marca las tareas `[x]` | `src/core/templates/workflows/apply-change.ts` (upstream) |
+
+`sa-plan` y `sa-tasks` separan el grafo de artefactos por id (`specs` y `tasks`), nunca por nombre de archivo, y comparten los textos de traspaso de `stage-handoffs.ts`. `sa-tasks` escribe `tasks.md` aunque no haya `design.md`, porque el esquema marca el diseño como condicional. `sa-propose` sigue siendo el atajo que escribe todos los artefactos en un paso.
+
+```mermaid
+flowchart LR
+    E["sa-explore"] -.-> S["sa-specify"]
+    S --> P["sa-plan"] --> T["sa-tasks"] --> I["sa-implement"]
+    S -. "sin diseño" .-> T
+    E -.-> PR["sa-propose"] -->|"todos los artefactos"| I
+    I -. "verificación opcional" .-> V["sa-verify"]
+    I --> A["sa-archive"]
+```
+
+Los diagramas completos están en `diagrams/main-skills-flowchart.mermaid` (flujo largo) y `diagrams/skills-flowchart.mermaid` (todos los skills).

@@ -8,7 +8,11 @@ import { createRequire } from 'module';
 import { InitCommand } from '../../src/core/init.js';
 import { UpdateCommand } from '../../src/core/update.js';
 import { CORE_WORKFLOWS, type WorkflowId } from '../../src/core/profiles.js';
-import { FORMER_SKILL_NAME_BY_WORKFLOW, SKILL_NAME_BY_WORKFLOW } from '../../src/core/fork/identity.js';
+import {
+  FORMER_SKILL_NAME_BY_WORKFLOW,
+  SKILL_NAME_BY_WORKFLOW,
+  formerSkillNames,
+} from '../../src/core/fork/identity.js';
 import { migrateFormerSkills } from '../../src/core/fork/former-skills.js';
 import { AI_TOOLS } from '../../src/core/config.js';
 import { realFileOps } from '../../src/core/update-plan.js';
@@ -50,8 +54,10 @@ describe('migration of skills under their former openspec-* names', () => {
 
   const shared = (...parts: string[]) => path.join(testDir, '.agents', 'skills', ...parts);
   const claude = (...parts: string[]) => path.join(testDir, '.claude', 'skills', ...parts);
-  const former = (workflow: WorkflowId) => FORMER_SKILL_NAME_BY_WORKFLOW[workflow];
+  const former = (workflow: WorkflowId) => FORMER_SKILL_NAME_BY_WORKFLOW[workflow]!;
   const current = (workflow: WorkflowId) => SKILL_NAME_BY_WORKFLOW[workflow];
+  /** The core workflows a former release installed (`tasks` came after the rename). */
+  const FORMER_CORE = CORE_WORKFLOWS.filter((workflow) => formerSkillNames(workflow).length > 0);
 
   /** The shared SKILL.md OpenSpec 2.0 wrote for a workflow: this version's text, upstream's names. */
   function upstreamSharedText(workflow: WorkflowId, installed: readonly string[] = CORE_WORKFLOWS): string {
@@ -78,7 +84,7 @@ describe('migration of skills under their former openspec-* names', () => {
    */
   async function openspecProject(claudeSpots: 'links' | 'copies' | 'shared-only' = 'copies'): Promise<void> {
     await fs.mkdir(getToolDir(testDir), { recursive: true });
-    for (const workflow of CORE_WORKFLOWS) {
+    for (const workflow of FORMER_CORE) {
       await write(shared(former(workflow), 'SKILL.md'), upstreamSharedText(workflow));
       if (claudeSpots === 'links') await link(shared(former(workflow)), claude(former(workflow)));
       if (claudeSpots === 'copies') await write(claude(former(workflow), 'SKILL.md'), upstreamSharedText(workflow));
@@ -153,7 +159,7 @@ describe('migration of skills under their former openspec-* names', () => {
 
     await update();
 
-    for (const workflow of CORE_WORKFLOWS) {
+    for (const workflow of FORMER_CORE) {
       expect(existsSync(claude(former(workflow))), former(workflow)).toBe(false);
       expect(existsSync(shared(former(workflow))), former(workflow)).toBe(false);
     }
@@ -231,6 +237,22 @@ describe('migration of skills under their former openspec-* names', () => {
 
     expect(readFileSync(shared('openspec-helpers', 'SKILL.md'), 'utf-8')).toBe('my helpers');
     expect(output).not.toContain('openspec-helpers');
+  });
+
+  it("never touches a user's openspec-tasks skill, and installs sa-tasks beside it", async () => {
+    // `tasks` came after the rename: `openspec-tasks` was never installed, so
+    // it is the user's even when its text is what the tasks template says
+    // with upstream's names.
+    await openspecProject('shared-only');
+    const lookalike = upstreamSharedText('tasks');
+    expect(lookalike).toContain('name: openspec-tasks');
+    await write(shared('openspec-tasks', 'SKILL.md'), lookalike);
+
+    const output = await update();
+
+    expect(readFileSync(shared('openspec-tasks', 'SKILL.md'), 'utf-8')).toBe(lookalike);
+    expect(output).not.toContain('openspec-tasks');
+    expect(existsSync(shared(current('tasks'), 'SKILL.md'))).toBe(true);
   });
 
   it('removes an untouched copy a 1.x release wrote in the tool folder', async () => {

@@ -36,6 +36,7 @@ const NATURAL_VERB_BY_WORKFLOW: Record<string, string> = {
   propose: 'propose',
   specify: 'specify',
   plan: 'plan',
+  tasks: 'tasks',
 };
 
 /**

@@ -8,9 +8,9 @@ import {
 
 describe('skill-generation', () => {
   describe('getSkillTemplates', () => {
-    it('should return all 14 skill templates', () => {
+    it('should return all 15 skill templates', () => {
       const templates = getSkillTemplates();
-      expect(templates).toHaveLength(14);
+      expect(templates).toHaveLength(15);
     });
 
     it('should have unique directory names', () => {
@@ -38,6 +38,8 @@ describe('skill-generation', () => {
       expect(dirNames).toContain('sa-propose');
       expect(dirNames).toContain('sa-specify');
       expect(dirNames).toContain('sa-plan');
+      expect(dirNames).toContain('sa-tasks');
+      expect(dirNames.indexOf('sa-tasks')).toBe(dirNames.indexOf('sa-plan') + 1);
     });
 
     it('should have valid template structure', () => {
@@ -96,11 +98,13 @@ describe('skill-generation', () => {
       expect(templates).toHaveLength(12);
     });
 
-    it('should have no command template for the skill-only specify and plan workflows', () => {
+    it('should have no command template for the skill-only specify, plan and tasks workflows', () => {
       const ids = getCommandTemplates().map(t => t.id);
       expect(ids).not.toContain('specify');
       expect(ids).not.toContain('plan');
+      expect(ids).not.toContain('tasks');
       expect(getCommandTemplates(['specify', 'plan'])).toHaveLength(0);
+      expect(getCommandTemplates(['tasks'])).toHaveLength(0);
     });
 
     it('should have unique IDs', () => {

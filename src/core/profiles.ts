@@ -16,6 +16,7 @@ export const CORE_WORKFLOWS = [
   'explore',
   'specify',
   'plan',
+  'tasks',
   'apply',
   'update',
   'sync',
@@ -25,14 +26,16 @@ export const CORE_WORKFLOWS = [
 /**
  * All available workflows in the system.
  *
- * `specify` and `plan` are SpecAgile's own (see FORK.md). They ship as skills
- * only and never had a command file, so they are absent from COMMAND_IDS.
+ * `specify`, `plan` and `tasks` are SpecAgile's own (see FORK.md). They ship
+ * as skills only and never had a command file, so they are absent from
+ * COMMAND_IDS.
  */
 export const ALL_WORKFLOWS = [
   'propose',
   'explore',
   'specify',
   'plan',
+  'tasks',
   'new',
   'continue',
   'apply',

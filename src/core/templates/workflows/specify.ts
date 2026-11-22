@@ -1,10 +1,10 @@
 /**
  * Specify workflow (SpecAgile fork).
  *
- * The specification stage of the three-step flow (specify -> plan -> apply):
+ * The specification stage of the long flow (specify -> plan -> tasks -> apply):
  * it creates a change, or continues one, and writes only the artifacts that
  * make up its specification - with spec-driven, proposal.md and the delta
- * specs. The technical plan is left to the plan workflow.
+ * specs. The technical plan is left to the plan (design) and tasks workflows.
  *
  * Fork-owned. The context-loading, schema-selection and artifact-loop text is
  * adapted from propose.ts, which is left untouched so upstream syncs do not
@@ -22,9 +22,12 @@ import { PROJECT_ROOT_GUARD } from './project-root.js';
 /** The handoff to the planning stage. */
 const PLAN_HANDOFF = 'When you’re ready, ask me to plan it.';
 
-/** Shown when a re-specified change already has a technical plan. */
+/**
+ * Shown when a re-specified change already has a technical plan: the design
+ * is revised in the plan stage and the tasks in the tasks stage.
+ */
 const STALE_PLAN_NOTE =
-  'Warn the user that the technical plan may now be out of date and should be reviewed against the revised specification';
+  'Warn the user that the technical plan may now be out of date and should be reviewed against the revised specification. For whichever of them the change has, suggest revising the design with `/opsx:plan <name>` if that skill is installed and the tasks with `/opsx:tasks <name>` if that skill is installed, the design first';
 
 /** A complete specification with no plan yet: point at the next stage. */
 const COMPLETE_PLAN_HINT = ' If the change has no planning artifacts yet, suggest planning it as the next step.';

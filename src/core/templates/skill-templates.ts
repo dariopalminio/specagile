@@ -21,3 +21,4 @@ export { getOpsxProposeSkillTemplate, getOpsxProposeCommandTemplate } from './wo
 export { getFeedbackSkillTemplate } from './workflows/feedback.js';
 export { getSpecifySkillTemplate } from './workflows/specify.js';
 export { getPlanSkillTemplate } from './workflows/plan.js';
+export { getTasksSkillTemplate } from './workflows/tasks.js';

@@ -11,7 +11,7 @@ import {
   CommandAdapterRegistry,
   generateCommands,
 } from '../../src/core/command-generation/index.js';
-import { ALL_WORKFLOWS } from '../../src/core/profiles.js';
+import { ALL_WORKFLOWS, CORE_WORKFLOWS } from '../../src/core/profiles.js';
 
 const WORKFLOWS = ['propose', 'apply', 'archive'] as const;
 
@@ -152,6 +152,24 @@ describe('reconcileCommandFiles', () => {
     expect(result.kept).toEqual([]);
     expect(result.unchecked).toEqual([]);
     expect(await fs.readFile(userFull, 'utf-8')).toBe('My own plan command.\n');
+  });
+
+  it('leaves a user file at the command path of the skill-only tasks workflow', async () => {
+    // `tasks` never had a command either: `.claude/commands/opsx/tasks.md` is
+    // the user's, with the core profile (which includes tasks) or without it.
+    await writeGeneratedCommands(projectPath, 'claude', WORKFLOWS);
+    const userPath = path.join('.claude', 'commands', 'opsx', 'tasks.md');
+    const userFull = path.join(projectPath, userPath);
+    await fs.mkdir(path.dirname(userFull), { recursive: true });
+    await fs.writeFile(userFull, 'My own tasks command.\n');
+
+    for (const workflows of [[...CORE_WORKFLOWS], ['propose']]) {
+      const result = await reconcileCommandFiles(projectPath, 'claude', workflows);
+      expect(result.removed).not.toContain(userPath);
+      expect(result.kept).toEqual([]);
+      expect(result.unchecked).toEqual([]);
+      expect(await fs.readFile(userFull, 'utf-8')).toBe('My own tasks command.\n');
+    }
   });
 
   it('keeps and reports a file it cannot read rather than passing over it', async () => {

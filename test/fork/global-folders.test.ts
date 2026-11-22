@@ -59,6 +59,7 @@ const CORE_SKILLS = [
   'sa-propose',
   'sa-specify',
   'sa-sync-specs',
+  'sa-tasks',
   'sa-update-change',
 ];
 
@@ -405,6 +406,7 @@ describe('specagile beside OpenSpec\'s global folders', () => {
     const paths: string[] = JSON.parse(result.stdout).changes.map((change: { path: string }) => change.path);
     expect(paths.some((p) => p.endsWith('sa-specify/SKILL.md')), paths.join('\n')).toBe(true);
     expect(paths.some((p) => p.endsWith('sa-plan/SKILL.md')), paths.join('\n')).toBe(true);
+    expect(paths.some((p) => p.endsWith('sa-tasks/SKILL.md')), paths.join('\n')).toBe(true);
     const configPath = path.relative(dir, s.specagileConfigFile).split(path.sep).join('/');
     expect(paths).not.toContain(configPath);
     expect(paths.filter((p) => p.endsWith('/config.json'))).toEqual([]);
@@ -427,6 +429,7 @@ describe('specagile beside OpenSpec\'s global folders', () => {
     expect(skills).toEqual(expect.arrayContaining(['sa-archive', 'sa-explore', 'sa-implement', 'sa-propose', 'sa-sync-specs']));
     expect(skills).not.toContain('sa-specify');
     expect(skills).not.toContain('sa-plan');
+    expect(skills).not.toContain('sa-tasks');
   }, CLI_TIMEOUT);
 });
 

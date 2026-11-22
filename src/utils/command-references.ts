@@ -63,6 +63,7 @@ const COMMAND_TO_SKILL_NAME: Record<string, string> = {
   'propose': 'openspec-propose',
   'specify': 'openspec-specify',
   'plan': 'openspec-plan',
+  'tasks': 'openspec-tasks',
 };
 
 /**

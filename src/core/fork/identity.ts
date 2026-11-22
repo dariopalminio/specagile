@@ -110,6 +110,7 @@ export const SKILL_NAME_BY_WORKFLOW: Readonly<Record<WorkflowId, string>> = {
   propose: 'sa-propose',
   specify: 'sa-specify',
   plan: 'sa-plan',
+  tasks: 'sa-tasks',
   apply: 'sa-implement',
   verify: 'sa-verify',
   archive: 'sa-archive',
@@ -125,9 +126,11 @@ export const SKILL_NAME_BY_WORKFLOW: Readonly<Record<WorkflowId, string>> = {
 /**
  * The name each workflow's skill had before (OpenSpec upstream and earlier
  * versions of this fork). Migration looks up exactly these names, never a
- * `openspec-*` glob, so a user's `openspec-helpers` is never touched.
+ * `openspec-*` glob, so a user's `openspec-helpers` is never touched. A
+ * workflow the fork added after the rename (`tasks`) never had one: read the
+ * table through `formerSkillNames`.
  */
-export const FORMER_SKILL_NAME_BY_WORKFLOW: Readonly<Record<WorkflowId, string>> = {
+export const FORMER_SKILL_NAME_BY_WORKFLOW: Readonly<Partial<Record<WorkflowId, string>>> = {
   explore: 'openspec-explore',
   propose: 'openspec-propose',
   specify: 'openspec-specify',
@@ -144,11 +147,34 @@ export const FORMER_SKILL_NAME_BY_WORKFLOW: Readonly<Record<WorkflowId, string>>
   sync: 'openspec-sync-specs',
 };
 
+/**
+ * The `openspec-*` name the fork's own template gives a workflow added after
+ * the rename, so its text reads like the others' (`name: openspec-tasks`,
+ * `/opsx:tasks` -> `openspec-tasks`). Generated text translates it to the
+ * `sa-*` name as it does a former name, but no release ever installed it:
+ * migration and detection never look for it, so a user's own
+ * `openspec-tasks` skill is left alone.
+ */
+export const TEMPLATE_ONLY_SKILL_NAME_BY_WORKFLOW: Readonly<Partial<Record<WorkflowId, string>>> = {
+  tasks: 'openspec-tasks',
+};
+
+/**
+ * The names a workflow's skill had before the rename: one `openspec-*` name,
+ * or none for a workflow the fork added later (`tasks`).
+ */
+export function formerSkillNames(workflow: WorkflowId): readonly string[] {
+  const former = FORMER_SKILL_NAME_BY_WORKFLOW[workflow];
+  return former === undefined ? [] : [former];
+}
+
 /** Skills this version writes (`sa-*`). */
 export const CURRENT_SKILL_NAMES: readonly string[] = Object.values(SKILL_NAME_BY_WORKFLOW);
 
 /** Skill names from before the rename (`openspec-*`). */
-export const FORMER_SKILL_NAMES: readonly string[] = Object.values(FORMER_SKILL_NAME_BY_WORKFLOW);
+export const FORMER_SKILL_NAMES: readonly string[] = (
+  Object.keys(FORMER_SKILL_NAME_BY_WORKFLOW) as WorkflowId[]
+).flatMap(formerSkillNames);
 
 /**
  * Every skill name OpenSpec or SpecAgile has installed: used to detect a set-up
@@ -199,6 +225,7 @@ export const TRIGGER_VERBS: readonly string[] = [
   'explore',
   'specify',
   'plan',
+  'tasks',
   'apply',
   'implement',
   'verify',
@@ -217,11 +244,15 @@ export const CLI_WORDS: readonly string[] = [
   ...new Set([...CLI_SUBCOMMANDS, '--version', ...TRIGGER_VERBS]),
 ];
 
+// Text translation only: the former names, and the names fork-owned templates
+// use for workflows that never had one (TEMPLATE_ONLY_SKILL_NAME_BY_WORKFLOW).
 const SKILL_NAME_BY_FORMER: ReadonlyMap<string, string> = new Map(
-  (Object.keys(FORMER_SKILL_NAME_BY_WORKFLOW) as WorkflowId[]).map((workflow) => [
-    FORMER_SKILL_NAME_BY_WORKFLOW[workflow],
-    SKILL_NAME_BY_WORKFLOW[workflow],
-  ])
+  (Object.keys(SKILL_NAME_BY_WORKFLOW) as WorkflowId[]).flatMap((workflow) => {
+    const template = TEMPLATE_ONLY_SKILL_NAME_BY_WORKFLOW[workflow];
+    return [...formerSkillNames(workflow), ...(template === undefined ? [] : [template])].map(
+      (name): [string, string] => [name, SKILL_NAME_BY_WORKFLOW[workflow]]
+    );
+  })
 );
 
 const CLI_WORD_SET: ReadonlySet<string> = new Set(CLI_WORDS);
@@ -244,7 +275,8 @@ const EXACT_REPLACEMENTS: ReadonlyArray<readonly [string, string]> = [
 
 /**
  * Rewrites text written with OpenSpec's names into SpecAgile's: each former
- * skill name in FORMER_SKILL_NAME_BY_WORKFLOW becomes its `sa-*` name, each
+ * skill name in FORMER_SKILL_NAME_BY_WORKFLOW, and each name in
+ * TEMPLATE_ONLY_SKILL_NAME_BY_WORKFLOW, becomes its `sa-*` name, each
  * `openspec <word>` with a word in CLI_WORDS becomes `specagile <word>`, and a
  * few exact frontmatter texts name the `specagile` CLI. Project paths
  * (`openspec/changes/`), internal files (`.openspec-target`), "OpenSpec" in

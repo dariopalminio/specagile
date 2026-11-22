@@ -8,6 +8,7 @@ import {
   CLI_WORDS,
   FORMER_SKILL_NAME_BY_WORKFLOW,
   SKILL_NAME_BY_WORKFLOW,
+  TEMPLATE_ONLY_SKILL_NAME_BY_WORKFLOW,
 } from '../../src/core/fork/identity.js';
 import type { WorkflowId } from '../../src/core/profiles.js';
 import { generateSkillContent, getSkillTemplates } from '../../src/core/shared/skill-generation.js';
@@ -48,7 +49,11 @@ const TARGETS: Target[] = [
   { label: 'shared copy', transformer: transformToSharedSkillReferences, specifyReference: 'sa-specify' },
 ];
 
-const FORMER_NAMES = Object.values(FORMER_SKILL_NAME_BY_WORKFLOW);
+// The names templates are written with: former ones, and the fork's template-only `openspec-tasks`.
+const FORMER_NAMES = [
+  ...Object.values(FORMER_SKILL_NAME_BY_WORKFLOW),
+  ...Object.values(TEMPLATE_ONLY_SKILL_NAME_BY_WORKFLOW),
+] as string[];
 const escapeForRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const FORMER_CLI_INVOCATION = new RegExp(
   `(?<![\\w/.@-])openspec (${CLI_WORDS.map(escapeForRegExp).join('|')})(?![\\w-])`
@@ -90,12 +95,14 @@ describe.each(TARGETS)('skills generated for $label', ({ transformer, specifyRef
   );
 
   // Since upstream 2.1 propose no longer names the apply skill; plan still
-  // names specify ("if that skill is installed").
+  // names specify and tasks ("if that skill is installed").
   it('refers to another skill in the tool form', () => {
     const plan = entries.find((entry) => entry.workflowId === 'plan')!;
     const content = generateSkillContent(plan.template, '9.9.9-test', transformer);
     expect(content).toContain(specifyReference);
     expect(content).not.toContain('openspec-specify');
+    expect(content).toContain(specifyReference.replace('sa-specify', 'sa-tasks'));
+    expect(content).not.toContain('openspec-tasks');
   });
 });
 
