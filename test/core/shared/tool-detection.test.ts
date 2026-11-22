@@ -31,9 +31,10 @@ describe('tool-detection', () => {
 
   describe('SKILL_NAMES', () => {
     it('should contain every workflow skill, including the skill-only ones', () => {
-      expect(SKILL_NAMES).toHaveLength(14);
+      expect(SKILL_NAMES).toHaveLength(15);
       expect(SKILL_NAMES).toContain('sa-specify');
       expect(SKILL_NAMES).toContain('sa-plan');
+      expect(SKILL_NAMES).toContain('sa-tasks');
       expect(SKILL_NAMES).toContain('sa-explore');
       expect(SKILL_NAMES).toContain('sa-new-change');
       expect(SKILL_NAMES).toContain('sa-continue-change');
@@ -70,6 +71,7 @@ describe('tool-detection', () => {
     it('does not include skill-only workflows added after 1.x', () => {
       expect(COMMAND_IDS).not.toContain('specify');
       expect(COMMAND_IDS).not.toContain('plan');
+      expect(COMMAND_IDS).not.toContain('tasks');
     });
   });
 

@@ -15,14 +15,14 @@ import { ALL_WORKFLOWS } from '../../../src/core/profiles.js';
  */
 const WORKFLOW_LISTS: Array<[string, readonly string[]]> = [
   ['the core set', ['propose', 'explore', 'apply', 'update', 'sync', 'archive']],
-  ['all twelve', ALL_WORKFLOWS],
+  ['every workflow', ALL_WORKFLOWS],
   ['a small custom set', ['explore', 'update']],
 ];
 
 describe('one skill text for every workflow profile', () => {
   const unfiltered = new Map(getSkillTemplates().map((entry) => [entry.dirName, entry]));
 
-  it('covers all twelve workflows without a filter', () => {
+  it('covers every workflow without a filter', () => {
     expect([...unfiltered.values()].map((entry) => entry.workflowId).sort()).toEqual(
       [...ALL_WORKFLOWS].sort()
     );

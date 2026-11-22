@@ -471,6 +471,7 @@ describe('UpdateCommand', () => {
             'sa-propose',
             'sa-specify',
             'sa-sync-specs',
+            'sa-tasks',
             'sa-update-change'
           );
           expect(consoleSpy.mock.calls.flat().map(String)
@@ -3663,7 +3664,7 @@ More user content after markers.
     it.each(['skills', 'commands', 'both'] as const)(
       'should repair an archive profile missing sync from a 1.x install with %s',
       async (surfaces) => {
-        const workflows = ['propose', 'explore', 'specify', 'plan', 'apply', 'archive'];
+        const workflows = ['propose', 'explore', 'specify', 'plan', 'tasks', 'apply', 'archive'];
         setMockConfig({ featureFlags: {}, profile: 'custom', delivery: 'both', workflows });
 
         const archiveSkill = path.join(
@@ -3716,7 +3717,7 @@ More user content after markers.
         featureFlags: {},
         profile: 'custom',
         delivery: 'both',
-        workflows: ['propose', 'explore', 'specify', 'plan', 'apply', 'sync', 'archive'],
+        workflows: ['propose', 'explore', 'specify', 'plan', 'tasks', 'apply', 'sync', 'archive'],
       });
 
       const initCommand = new InitCommand({ tools: 'claude', force: true });
@@ -3739,7 +3740,7 @@ More user content after markers.
       consoleSpy.mockRestore();
     });
 
-    it('should point a custom profile with the pre-specify core set at specify and plan without installing them', async () => {
+    it('should point a custom profile with the pre-specify core set at specify, plan and tasks without installing them', async () => {
       setMockConfig({
         featureFlags: {},
         profile: 'custom',
@@ -3758,11 +3759,41 @@ More user content after markers.
         call.map(arg => String(arg)).join(' ')
       );
       expect(calls.some(call =>
-        call.includes('Your custom profile is missing 2 core workflows: specify, plan')
+        call.includes('Your custom profile is missing 3 core workflows: specify, plan, tasks')
       )).toBe(true);
       const skillsDir = path.join(testDir, '.claude', 'skills');
       expect(await FileSystemUtils.fileExists(path.join(skillsDir, 'sa-specify', 'SKILL.md'))).toBe(false);
       expect(await FileSystemUtils.fileExists(path.join(skillsDir, 'sa-plan', 'SKILL.md'))).toBe(false);
+      expect(await FileSystemUtils.fileExists(path.join(skillsDir, 'sa-tasks', 'SKILL.md'))).toBe(false);
+
+      consoleSpy.mockRestore();
+    });
+
+    it('should point a custom profile with the pre-tasks core set at tasks without installing it', async () => {
+      // A custom profile saved as the core set before tasks joined it.
+      setMockConfig({
+        featureFlags: {},
+        profile: 'custom',
+        delivery: 'both',
+        workflows: ['propose', 'explore', 'specify', 'plan', 'apply', 'update', 'sync', 'archive'],
+      });
+
+      const initCommand = new InitCommand({ tools: 'claude', force: true });
+      await initCommand.execute(testDir);
+
+      const consoleSpy = vi.spyOn(console, 'log');
+
+      await updateCommand.execute(testDir);
+
+      const calls = consoleSpy.mock.calls.map(call =>
+        call.map(arg => String(arg)).join(' ')
+      );
+      expect(calls.some(call =>
+        call.includes('Your custom profile is missing 1 core workflow: tasks')
+      )).toBe(true);
+      const skillsDir = path.join(testDir, '.claude', 'skills');
+      expect(await FileSystemUtils.fileExists(path.join(skillsDir, 'sa-plan', 'SKILL.md'))).toBe(true);
+      expect(await FileSystemUtils.fileExists(path.join(skillsDir, 'sa-tasks', 'SKILL.md'))).toBe(false);
 
       consoleSpy.mockRestore();
     });
@@ -3772,7 +3803,7 @@ More user content after markers.
         featureFlags: {},
         profile: 'custom',
         delivery: 'both',
-        workflows: ['propose', 'explore', 'specify', 'plan', 'apply', 'update', 'sync', 'archive', 'verify'],
+        workflows: ['propose', 'explore', 'specify', 'plan', 'tasks', 'apply', 'update', 'sync', 'archive', 'verify'],
       });
 
       const initCommand = new InitCommand({ tools: 'claude', force: true });
@@ -4047,6 +4078,7 @@ More user content after markers.
         'sa-propose',
         'sa-specify',
         'sa-sync-specs',
+        'sa-tasks',
         'sa-update-change',
       ]);
       expect((await fs.readdir(skillsDir)).sort()).toEqual([...(await openspecSkills()), 'openspec-custom'].sort());

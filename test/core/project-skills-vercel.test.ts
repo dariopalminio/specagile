@@ -14,7 +14,7 @@ import { RELATIVE_CHANGES_DIR, RELATIVE_SPECS_DIR, RELATIVE_TOOL_DIR } from '../
 // repository's published skills/ folder. Every case runs the real CLI in a
 // fresh process with its own throwaway home, as the global install's tests do.
 
-// SpecAgile: the core profile adds specify and plan.
+// SpecAgile: the core profile adds specify, plan and tasks.
 const CORE_SKILLS = [
   'sa-archive',
   'sa-explore',
@@ -23,6 +23,7 @@ const CORE_SKILLS = [
   'sa-propose',
   'sa-specify',
   'sa-sync-specs',
+  'sa-tasks',
   'sa-update-change',
 ];
 const CORE_WORKFLOWS = ['propose', 'explore', 'apply', 'update', 'sync', 'archive'];

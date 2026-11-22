@@ -99,18 +99,21 @@ git remote add upstream https://github.com/Fission-AI/OpenSpec.git
 
 ## Workflows added by this fork
 
-The fork adds two workflows upstream does not have. Both ship as skills only and are part of the `core` profile. Their text lives in files of their own, so a sync never edits it:
+The fork adds three workflows upstream does not have, the stages of the long flow `specify` → `plan` → `tasks` → `apply`. All ship as skills only and are part of the `core` profile. Their text lives in files of their own, so a sync never edits it:
 
 | Workflow | Skill | Template | Adapted from (upstream) |
 |---|---|---|---|
 | `specify` | `sa-specify` | `src/core/templates/workflows/specify.ts` | `propose.ts`: context loading, schema selection, artifact loop |
 | `plan` | `sa-plan` | `src/core/templates/workflows/plan.ts` | `continue-change.ts`: change selection; `propose.ts`: artifact loop; `update-change.ts`: confirm before revising |
+| `tasks` | `sa-tasks` | `src/core/templates/workflows/tasks.ts` | Derived from `plan.ts` (so from the same three upstream files) |
+
+`plan` writes the design (spec-driven: `design.md`) and `tasks` writes the artifact with id `tasks` (`tasks.md`); both split the artifact graph by the explicit ids `specs` and `tasks`, never by file name. A schema with no `tasks` artifact gets its whole plan from `plan`. `plan.ts` and `tasks.ts` share their handoff texts (missing change, incomplete specification, schema without `specs`) through `src/core/templates/workflows/stage-handoffs.ts`, also the fork's.
 
 The templates are written with OpenSpec's names (`openspec-specify`, `openspec status`, …), like upstream's; generation gives them SpecAgile's (see [SpecAgile identity](#specagile-identity)).
 
-Since upstream 2.1 a skill says the same thing whatever workflows are installed (`test/core/templates/one-text-per-skill.test.ts`; upstream removed `optional-workflow.ts`). So `specify.ts` and `plan.ts` never assume another workflow is there: they hand off with "ask me to plan it" / "ask me to implement it", as `propose.ts` does, or name a skill only "if that skill is installed", as `archive-change.ts` does.
+Since upstream 2.1 a skill says the same thing whatever workflows are installed (`test/core/templates/one-text-per-skill.test.ts`; upstream removed `optional-workflow.ts`). So `specify.ts`, `plan.ts` and `tasks.ts` never assume another workflow is there: they hand off with "ask me to plan it" / "ask me to write the tasks" / "ask me to implement them", as `propose.ts` does, or name a skill only "if that skill is installed", as `archive-change.ts` does.
 
-When a sync changes `propose.ts`, `continue-change.ts` or `update-change.ts` in `src/core/templates/workflows/`, review the matching passages in `specify.ts` and `plan.ts` and carry over the fixes that apply. Then regenerate and check:
+When a sync changes `propose.ts`, `continue-change.ts` or `update-change.ts` in `src/core/templates/workflows/`, review the matching passages in `specify.ts`, `plan.ts` and `tasks.ts` (and `stage-handoffs.ts`) and carry over the fixes that apply. Then regenerate and check:
 
 ```bash
 pnpm build && pnpm regen:parity-hashes && pnpm generate:skills
@@ -133,6 +136,9 @@ SpecAgile is the npm package `specagile` (`npm install -g specagile`), version 2
 | `archive` | `sa-archive` | `openspec-archive-change` |
 | `new`, `continue`, `ff`, `bulk-archive`, `update` | `sa-<workflow>-change` | `openspec-<workflow>-change` |
 | `sync` | `sa-sync-specs` | `openspec-sync-specs` |
+| `tasks` | `sa-tasks` | — |
+
+`tasks` came after the rename, so it has no former name: `FORMER_SKILL_NAME_BY_WORKFLOW` has no entry for it (read it through `formerSkillNames`), and a user's own `openspec-tasks` skill is never migrated or reported. Its template still says `openspec-tasks`, like the others; `TEMPLATE_ONLY_SKILL_NAME_BY_WORKFLOW` lets generation translate that name without making it a former one.
 
 Workflow ids (`apply`, `verify`, …), internal files (`.openspec-target`, `.openspec-store/`), the suggested store location (`~/openspec/<id>`) and "OpenSpec" in prose keep upstream's names. The project's folders do not (see [Project layout](#project-layout)), neither does each change's metadata file (`.specagile.yaml`, where upstream writes `.openspec.yaml`), and neither do the global folders.
 
@@ -181,7 +187,7 @@ Publishing (`npm publish`) is the maintainer's step. Upstream's release workflow
 [`src/core/fork/identity.ts`](src/core/fork/identity.ts) is the fork's own file, so a sync never conflicts in it. It holds:
 
 - `GLOBAL_FOLDER_NAME` (`CLI_NAME`, so `specagile`): the name of the global config and data folders. `GLOBAL_CONFIG_DIR_NAME` and `GLOBAL_DATA_DIR_NAME` (`src/core/global-config.ts`) take their value from it, and every global path is built from them with `getGlobalConfigDir()` and `getGlobalDataDir()`. Tests build those paths with `test/helpers/global-folders.ts`.
-- `CLI_NAME`, and the two tables `SKILL_NAME_BY_WORKFLOW` (`sa-*`) and `FORMER_SKILL_NAME_BY_WORKFLOW` (`openspec-*`). Both are typed `Record<WorkflowId, …>`, so a workflow upstream adds fails the build until it has a name in each.
+- `CLI_NAME`, and the two tables `SKILL_NAME_BY_WORKFLOW` (`sa-*`) and `FORMER_SKILL_NAME_BY_WORKFLOW` (`openspec-*`). `SKILL_NAME_BY_WORKFLOW` is typed `Record<WorkflowId, …>`, so a workflow upstream adds fails the build until it has a name. `FORMER_SKILL_NAME_BY_WORKFLOW` is `Partial`, since a workflow the fork added after the rename (`tasks`) has none: code reads it through `formerSkillNames(workflow)`, and `test/fork/identity.test.ts` requires a former name for every workflow but `tasks`. `TEMPLATE_ONLY_SKILL_NAME_BY_WORKFLOW` holds the `openspec-*` name such a workflow's template uses (`openspec-tasks`), which generated text translates but migration and detection never look for.
 - `KNOWN_SKILL_NAMES`: current and former names, for detecting a set-up project, never for deciding what to write.
 - `ENV_VAR_NAMES` (`SPECAGILE_*`) and `FORMER_ENV_VAR_NAMES` (OpenSpec's thirteen names), both typed `Record<EnvSetting, string>`. Code reads `process.env[ENV_VAR_NAMES.<setting>]` and builds messages and help with the table (`--concurrency`, an invalid `SPECAGILE_SKILLS_SCOPE`); `FORMER_ENV_VAR_NAMES` is never read from the environment, only used by tests, docs and `installerEnv`. `test/fork/environment-variables.test.ts` pins both, and fails on a former name in `src/` outside `identity.ts` and `src/telemetry/index.ts`, on any `OPENSPEC_*`/`OPEN_SPEC_*` read from the environment in `src/`, and on a former or suite name in the tests' environment.
 - `SPECAGILE_BANNER`: the two-line "SpecAgile" banner `init` prints above its tool picker.

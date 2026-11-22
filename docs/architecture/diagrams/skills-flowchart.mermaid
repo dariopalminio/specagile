@@ -2,6 +2,7 @@ flowchart TD
     IDEA{"Idea o cambio solicitado"}
     CHANGE{"Cambio activo"}
     SPEC{"Especificación completa"}
+    DESIGN{"Diseño técnico listo"}
     READY{"Artefactos listos para implementar"}
     CODE{"Implementación completada"}
     MAIN("Specs principales actualizadas")
@@ -10,6 +11,7 @@ flowchart TD
     EXP["sa-explore"]
     SPECIFY["sa-specify"]
     PLAN["sa-plan"]
+    TASKS["sa-tasks"]
     PROPOSE["sa-propose"]
     NEW["sa-new-change"]
     CONT["sa-continue-change"]
@@ -26,7 +28,8 @@ flowchart TD
     EXP -. "orienta" .-> SPECIFY
     EXP -. "orienta" .-> PROPOSE
 
-    IDEA --> SPECIFY --> SPEC --> PLAN --> READY
+    IDEA --> SPECIFY --> SPEC --> PLAN --> DESIGN --> TASKS --> READY
+    SPEC -. "diseño condicional omitido" .-> TASKS
     IDEA --> PROPOSE -->|"crea todos los artefactos"| READY
 
     IDEA --> NEW -->|"crea el contenedor"| CHANGE

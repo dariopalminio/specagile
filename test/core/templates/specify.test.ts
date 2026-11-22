@@ -54,7 +54,7 @@ describe('specify skill template', () => {
 
   it('names another skill only if that skill is installed', () => {
     expect(withAll).not.toContain('[[opsx:');
-    for (const id of ['propose', 'plan', 'apply', 'continue']) {
+    for (const id of ['propose', 'plan', 'tasks', 'apply', 'continue']) {
       for (const match of withAll.matchAll(new RegExp(`/opsx:${id}\\b[^\\n]*`, 'g'))) {
         expect(match[0], `/opsx:${id}`).toContain('if that skill is installed');
       }
@@ -157,6 +157,16 @@ describe('specify skill template', () => {
       const body = section(withAll, '**Change already planned**', '**Create the missing artifacts');
       expect(body).toContain('do not modify them');
       expect(body).toContain('the technical plan may now be out of date');
+    });
+
+    it('points the design at plan and the tasks at tasks, the design first', () => {
+      const body = section(withAll, '**Change already planned**', '**Create the missing artifacts');
+      const design = body.indexOf('revising the design with `/opsx:plan <name>` if that skill is installed');
+      const tasks = body.indexOf('the tasks with `/opsx:tasks <name>` if that skill is installed');
+      expect(design).toBeGreaterThanOrEqual(0);
+      expect(tasks).toBeGreaterThan(design);
+      expect(body).toContain('For whichever of them the change has');
+      expect(body).toContain('the design first');
     });
   });
 

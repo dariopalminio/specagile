@@ -1,10 +1,11 @@
 import {
   CLI_NAME,
   CLI_WORDS,
-  FORMER_SKILL_NAME_BY_WORKFLOW,
   PRODUCT_TEXT_REPLACEMENTS,
   SKILL_NAME_BY_WORKFLOW,
+  TEMPLATE_ONLY_SKILL_NAME_BY_WORKFLOW,
   applyForkIdentity,
+  formerSkillNames,
 } from '../../src/core/fork/identity.js';
 import { LAYOUT_TEXT_REPLACEMENTS } from '../../src/core/fork/layout.js';
 import type { WorkflowId } from '../../src/core/profiles.js';
@@ -29,7 +30,7 @@ export function withUpstreamIdentity(text: string): string {
   }
   result = result.replace(
     /(?<![\w.-])sa-[a-z0-9]+(?:-[a-z0-9]+)*(?![\w-])/g,
-    (token) => FORMER_BY_CURRENT.get(token) ?? token
+    (token) => UPSTREAM_BY_CURRENT.get(token) ?? token
   );
   result = result.replace(
     new RegExp(`(?<![\\w/.@-])${CLI_NAME} ([\\w-]+)(?![\\w-])`, 'g'),
@@ -49,12 +50,20 @@ export function releasedFixtureSkillName(name: string): string {
   return FORMER_BY_CURRENT.get(name) ?? name;
 }
 
+// Only names a release installed (`tasks` has none).
 const FORMER_BY_CURRENT = new Map(
-  (Object.keys(SKILL_NAME_BY_WORKFLOW) as WorkflowId[]).map((workflow) => [
-    SKILL_NAME_BY_WORKFLOW[workflow],
-    FORMER_SKILL_NAME_BY_WORKFLOW[workflow],
-  ])
+  (Object.keys(SKILL_NAME_BY_WORKFLOW) as WorkflowId[]).flatMap((workflow) =>
+    formerSkillNames(workflow).map((former) => [SKILL_NAME_BY_WORKFLOW[workflow], former] as const)
+  )
 );
+// The names templates are written with: the former ones, and the fork's
+// template-only ones (`openspec-tasks`).
+const UPSTREAM_BY_CURRENT = new Map([
+  ...FORMER_BY_CURRENT,
+  ...(Object.keys(TEMPLATE_ONLY_SKILL_NAME_BY_WORKFLOW) as WorkflowId[]).map(
+    (workflow) => [SKILL_NAME_BY_WORKFLOW[workflow], TEMPLATE_ONLY_SKILL_NAME_BY_WORKFLOW[workflow]!] as const
+  ),
+]);
 const CLI_WORD_SET = new Set(CLI_WORDS);
 // Longest translation first, as the table is applied longest upstream text first.
 const LAYOUT_BY_LENGTH = [...LAYOUT_TEXT_REPLACEMENTS].sort((a, b) => b[1].length - a[1].length);

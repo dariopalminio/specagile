@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Breaking Changes
+
+- **`sa-plan` writes the design only.** It creates or revises the artifacts a change needs for implementation that are neither its specification nor its tasks (spec-driven: `design.md`), and no longer creates or revises `tasks.md`. When the change already has tasks, it leaves them as they are and warns that they may be out of date. It ends by handing off to the tasks stage. With a schema that has no `tasks` artifact, `sa-plan` still writes the whole plan and hands off to implementation.
+- **New `sa-tasks` skill (workflow `tasks`).** On a change whose specification is complete, it creates or revises `tasks.md` from the proposal, the delta specs and the design, and leaves the change ready for `sa-implement`. Without `design.md` it still writes the tasks, since spec-driven marks the design conditional, and says the change has no technical design. It settles the design's open questions with you first, revises existing tasks only after you confirm, and keeps completed tasks marked. Ask for it as "specagile tasks".
+- **The `core` profile has nine workflows (fifteen in all).** `tasks` joins it between `plan` and `apply`. `specagile update` in a project with the `core` profile installs `sa-tasks` and the new `sa-plan`. `specagile config profile` lists `tasks` after `plan`, and `specagile init` suggests `/sa-tasks` between `/sa-plan` and `/sa-implement`.
+- **A `custom` profile does not get `sa-tasks` by itself**, even one saved with the former core set: `specagile update` reports `tasks` as a missing core workflow. Check `tasks` in `specagile config profile`, or reset with `specagile config profile core`, then run `specagile update`. Until then, `sa-plan` points to `specagile instructions tasks --change "<name>" --json` for writing the tasks.
+- `sa-specify`, when it revises a change that already has a plan, points to `sa-plan` for the design and to `sa-tasks` for the tasks, the design first.
+- The long flow is now `sa-explore` → `sa-specify` → `sa-plan` → `sa-tasks` → `sa-implement` → `sa-archive`. `sa-propose` still writes every planning artifact in one step.
+- A skill of your own named `openspec-tasks` is not a former SpecAgile name: `init` and `update` leave it alone. So do your own `.claude/commands/opsx/tasks.md` and `.kilocode/workflows/opsx-tasks.md`.
+
 ## 5.0.0
 
 ### Breaking Changes

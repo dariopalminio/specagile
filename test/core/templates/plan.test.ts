@@ -8,10 +8,11 @@ import { PROJECT_ROOT_GUARD } from '../../../src/core/templates/workflows/projec
 import { applyForkIdentity } from '../../../src/core/fork/identity.js';
 import { CHANGE_METADATA_FILE_NAME } from '../../helpers/layout.js';
 
-// The plan skill is the planning stage of the fork's three-step flow. These
-// guards pin its contract (specs/opsx-plan-skill/spec.md) in the text an agent
-// actually receives. Since upstream 2.1 that text is the same for every set of
-// installed workflows (one-text-per-skill.test.ts).
+// The plan skill is the design stage of the fork's long flow (specify -> plan
+// -> tasks -> apply). These guards pin its contract
+// (specs/opsx-plan-skill/spec.md) in the text an agent actually receives. Since
+// upstream 2.1 that text is the same for every set of installed workflows
+// (one-text-per-skill.test.ts).
 
 const withAll = generateSkillContent(getPlanSkillTemplate(), 'TEST');
 
@@ -25,7 +26,7 @@ function section(body: string, start: string, end: string): string {
 }
 
 const completeness = (body: string) =>
-  section(body, '**Check that the specification is complete**', '**Find the planning work**');
+  section(body, '**Check that the specification is complete**', '**Find the design work**');
 
 describe('plan skill template', () => {
   it('is the sa-plan skill, triggered by its own phrases', () => {
@@ -35,8 +36,9 @@ describe('plan skill template', () => {
     expect(description).toContain('OpenSpec');
     expect(description).toContain('"openspec plan"');
     expect(description).toContain('"opsx plan"');
-    expect(description).toContain('(design.md and tasks.md)');
-    expect(description).toContain('without editing the specification or code');
+    expect(description).toContain('technical design (design.md)');
+    expect(description).toContain('without writing its tasks or editing the specification or code');
+    expect(description).not.toContain('tasks.md');
 
     const frontmatter = /^---\n([\s\S]*?)\n---\n/.exec(withAll)?.[1];
     expect(frontmatter).toBeDefined();
@@ -57,7 +59,7 @@ describe('plan skill template', () => {
 
   it('names another skill only if that skill is installed', () => {
     expect(withAll).not.toContain('[[opsx:');
-    for (const id of ['apply', 'specify', 'propose', 'continue']) {
+    for (const id of ['apply', 'specify', 'propose', 'continue', 'tasks']) {
       for (const match of withAll.matchAll(new RegExp(`/opsx:${id}\\b[^\\n]*`, 'g'))) {
         expect(match[0], `/opsx:${id}`).toContain('if that skill is installed');
       }
@@ -144,81 +146,119 @@ describe('plan skill template', () => {
     });
   });
 
-  describe('planning stage boundary', () => {
-    it('writes whatever planning artifacts the schema defines, found by graph and not by name', () => {
-      expect(withAll).toContain(
+  describe('design stage boundary', () => {
+    const split = section(withAll, '**Get the artifact graph and split it**', '**Schema without a specs artifact**');
+
+    it('writes only the design set, found by graph and by explicit id, not by name', () => {
+      expect(split).toContain(
         '**Planning set**: `applyRequires` plus every artifact reachable from those by following the `requires` edges, minus the specification set'
       );
-      expect(withAll).toContain('These are the only artifacts this workflow writes, whatever their names');
-      expect(withAll).toContain('Never create an artifact outside the planning set');
-      expect(withAll).toContain('Split the artifacts by explicit id, never by file name or pattern');
+      expect(split).toContain('**Tasks set**: the artifact with id `tasks`, if the schema defines one');
+      expect(split).toContain('**Design set**: the planning set minus the tasks set (spec-driven: `design`)');
+      expect(split).toContain('These are the only artifacts this workflow writes, whatever their names');
+      expect(split).toContain('Split the artifacts by explicit id, never by file name or pattern');
+      expect(withAll).toContain('Never create an artifact outside the design set - in particular, never the tasks artifact');
     });
 
-    it('writes nothing and hands off to apply when there is nothing to plan', () => {
-      const work = section(withAll, '**Find the planning work**', '**Revise the existing planning artifacts**');
-      expect(work).toContain('**Nothing to plan**: if the planning set is empty');
-      expect(work).toContain('write nothing');
-      expect(work).toContain('Tell the user the change is already ready to implement, and hand off as in **Output**');
+    it('never creates or revises tasks.md', () => {
+      const boundary = section(withAll, '**Planning boundary**', '---\n');
+      expect(boundary).toContain('- design.md (how)');
+      expect(boundary).not.toContain('- tasks.md');
+      expect(boundary).toContain('It never creates, revises, or deletes tasks.md (the tasks stage writes it)');
+      expect(split).toContain('this workflow never creates, revises, or deletes it, even when it reads `ready`');
+      expect(withAll).toContain('Never create, revise, or delete the tasks artifact (spec-driven: `tasks.md`)');
+      // Keeping completed tasks is the tasks stage's rule now.
+      expect(withAll).not.toContain('[x]');
     });
 
-    it('skips a conditional design and still writes the tasks', () => {
+    it('plans the whole planning set when the schema has no tasks artifact', () => {
+      expect(split).toContain('When the schema has no `tasks` artifact, the design set is the whole planning set');
+    });
+
+    it('writes nothing and hands off to the tasks when there is nothing to design', () => {
+      const work = section(withAll, '**Find the design work**', '**If the specification has a problem**');
+      expect(work).toContain('**Nothing to design**: if the design set is empty, write nothing');
+      expect(work).toContain(
+        'When the schema has a `tasks` artifact, tell the user the change has no design to write, and hand off to the tasks stage as in **Output**'
+      );
+      expect(work).toContain('tell the user the change is already ready to implement, and hand off as in **Output**');
+    });
+
+    it('skips a conditional design', () => {
       expect(withAll).toContain("Spec-driven's `design.md` qualifies. Tell the user why you skipped it");
       expect(withAll).toContain(
-        'if a planning artifact is still `blocked` only because you skipped a conditional dependency, write it anyway'
+        'if a design artifact is still `blocked` only because you skipped a conditional dependency, write it anyway'
       );
     });
 
     it('never edits the specification and reports its problems instead', () => {
-      expect(withAll).toContain('It never creates a change, never edits the proposal or the delta specs, never edits project code');
-      const problem = section(withAll, '**If the specification has a problem**', '**Revise the existing planning artifacts**');
+      expect(withAll).toContain(
+        'never creates a change, never edits the proposal or the delta specs, never edits project code'
+      );
+      const problem = section(withAll, '**If the specification has a problem**', '**Change that already has tasks**');
       expect(problem).toContain('do not edit them');
       expect(problem).toContain('Tell the user what the problem is');
       expect(problem).toContain('(with `/opsx:specify <name>` if that skill is installed)');
     });
 
-    it('stops after the plan even when the request asks to implement', () => {
-      expect(withAll).toContain('authorizes planning only, even if it also asks to build or fix something');
-      expect(withAll).toContain('Do not start implementation in the same response');
-      expect(withAll).toContain('Any implementation or apply instruction in that request does not carry forward');
+    it('stops after the design even when the request asks for the tasks or to implement', () => {
+      expect(withAll).toContain('authorizes planning only, even if it also asks to write the tasks, build, or fix something');
+      expect(withAll).toContain('Do not start the tasks or the implementation in the same response');
+      expect(withAll).toContain('Any tasks, implementation, or apply instruction in that request does not carry forward');
+      expect(withAll).toContain('Do NOT write the tasks, implement the change');
     });
   });
 
-  describe('revising an existing plan', () => {
-    const revise = section(withAll, '**Revise the existing planning artifacts**', '**Create the missing planning artifacts**');
+  describe('revising an existing design', () => {
+    const revise = section(withAll, '**Revise the existing design artifacts**', '**Create the missing design artifacts**');
 
-    it('confirms each revision of design.md or tasks.md before writing it', () => {
+    it('confirms each revision of design.md before writing it', () => {
       expect(revise).toContain('Show what would change in each file and why');
       expect(revise).toContain('Write a revision only after the user confirms it');
       expect(revise).toContain('If the user rejects it, leave that file unchanged');
     });
 
-    it('writes nothing when the plan is already coherent', () => {
-      expect(revise).toContain('tell the user the plan is up to date and write nothing to it');
+    it('writes nothing when the design is already coherent', () => {
+      expect(revise).toContain('tell the user the design is up to date and write nothing to it');
     });
 
-    it('keeps completed tasks unless the user explicitly confirms otherwise', () => {
-      expect(revise).toContain('a revision keeps every task already marked `[x]`, with its mark');
-      expect(revise).toContain('only when the user explicitly confirms that in the revision');
-    });
-
-    it('creates a missing planning artifact without asking', () => {
-      const create = section(withAll, '**Create the missing planning artifacts**', '**Show final status**');
+    it('creates a missing design artifact without asking', () => {
+      const create = section(withAll, '**Create the missing design artifacts**', '**Show final status**');
       expect(create).toContain('Create these without asking for confirmation');
+    });
+
+    it('leaves existing tasks alone and warns they may be out of date', () => {
+      const tasks = section(withAll, '**Change that already has tasks**', '**Revise the existing design artifacts**');
+      expect(tasks).toContain('if the tasks artifact already has files (spec-driven: `tasks.md`), leave them unchanged');
+      expect(tasks).toContain('When this run creates or revises a design artifact, warn the user that the tasks may now be out of date');
+      expect(tasks).toContain('suggest revising them with `/opsx:tasks <name>` if that skill is installed');
+      const output = section(withAll, '**Output**', '**Artifact Creation Guidelines**');
+      expect(output).toContain('that the tasks may now be out of date (step 4)');
     });
   });
 
   describe('handoff', () => {
     const output = section(withAll, '**Output**', '**Artifact Creation Guidelines**');
 
-    it('hands off to implementation without assuming the apply skill is installed', () => {
-      expect(output).toContain('The change is ready to implement.');
-      expect(output).toContain('The plan is ready for review. When you’re ready, ask me to implement it.');
+    it('hands off to the tasks without assuming the tasks skill is installed', () => {
+      const withTasks = section(output, '**The schema has a `tasks` artifact**', '**The schema has no `tasks` artifact**');
+      expect(withTasks).toContain('"The change is ready for its tasks."');
+      expect(withTasks).toContain('The design is ready for review. When you’re ready, ask me to write the tasks.');
+      expect(withTasks).toContain('`/opsx:tasks <name>` if that skill is installed');
+      expect(withTasks).toContain('`specagile instructions tasks --change "<name>" --json`');
+      expect(withTasks).not.toContain('ask me to implement it');
+    });
+
+    it('hands off to implementation only when the schema has no tasks artifact', () => {
+      const withoutTasks = output.slice(output.indexOf('**The schema has no `tasks` artifact**'));
+      expect(withoutTasks).toContain('"The change is ready to implement."');
+      expect(withoutTasks).toContain('The plan is ready for review. When you’re ready, ask me to implement it.');
       expect(withAll).not.toContain('/opsx:apply');
     });
 
     it('stops after summarizing', () => {
       expect(output).toContain('Then stop.');
-      expect(withAll).toContain('After presenting the plan, stop and wait for a new user request');
+      expect(withAll).toContain('After presenting the design, stop and wait for a new user request');
     });
   });
 });

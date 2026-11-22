@@ -12,7 +12,7 @@ import { WORKFLOW_TO_SKILL_DIR } from './profile-sync-drift.js';
 import { COMMAND_IDS } from './shared/tool-detection.js';
 import { ALL_WORKFLOWS, CORE_WORKFLOWS } from './profiles.js';
 import { getSkillReferenceTransformer } from '../utils/command-references.js';
-import { FORMER_SKILL_NAME_BY_WORKFLOW, applyForkIdentity } from './fork/identity.js';
+import { applyForkIdentity, formerSkillNames } from './fork/identity.js';
 import { FileSystemUtils } from '../utils/file-system.js';
 import { isToolListed } from './shared-skill-target.js';
 import { DISK_VIEW, type FileView } from './file-view.js';
@@ -303,10 +303,13 @@ function migrateSkillDirs(
   // with the fork's identity applied, and dropped or kept, never moved.
   const candidates = ALL_WORKFLOWS.flatMap((workflowId) => {
     const current = WORKFLOW_TO_SKILL_DIR[workflowId];
-    const former = FORMER_SKILL_NAME_BY_WORKFLOW[workflowId];
     return [
       { dirName: current, destinationName: current, formerName: false },
-      { dirName: former, destinationName: requireDestination ? current : former, formerName: true },
+      ...formerSkillNames(workflowId).map((former) => ({
+        dirName: former,
+        destinationName: requireDestination ? current : former,
+        formerName: true,
+      })),
     ];
   });
 
@@ -581,7 +584,7 @@ function scanInstalledWorkflowArtifacts(
     for (const skillsDir of skillsDirs) {
       for (const workflowId of ALL_WORKFLOWS) {
         // SpecAgile: under its current name, or its former `openspec-*` one.
-        for (const skillDirName of [WORKFLOW_TO_SKILL_DIR[workflowId], FORMER_SKILL_NAME_BY_WORKFLOW[workflowId]]) {
+        for (const skillDirName of [WORKFLOW_TO_SKILL_DIR[workflowId], ...formerSkillNames(workflowId)]) {
           const skillFile = path.join(skillsDir, skillDirName, 'SKILL.md');
           if (view.exists(skillFile)) {
             installed.add(workflowId);
