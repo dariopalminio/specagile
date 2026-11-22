@@ -44,6 +44,32 @@ Our philosophy:
 
 ## See it in action
 
+### Example of a short workflow
+
+```text
+You: /sa-propose add-dark-mode
+AI:  Created changes/add-dark-mode/
+     ✓ proposal.md — why we're doing this, what's changing
+     ✓ specs/       — requirements and scenarios
+     ✓ design.md    — technical approach
+     ✓ tasks.md     — implementation checklist
+     Ready for implementation!
+
+You: /sa-implement
+AI:  Implementing tasks...
+     ✓ 1.1 Add theme context provider
+     ✓ 1.2 Create toggle component
+     ✓ 2.1 Add CSS variables
+     ✓ 2.2 Wire up localStorage
+     All tasks complete!
+
+You: /sa-archive
+AI:  Archived to changes/archive/2025-01-23-add-dark-mode/
+     Specs updated. Ready for the next feature.
+```
+
+### Example of a long workflow
+
 ```text
 You: /sa-explore
 AI:  What would you like to explore?
@@ -76,6 +102,13 @@ AI:  Implementing tasks...
      ✓ 2.1 Add CSS variables
      ✓ 2.2 Wire up localStorage
      All tasks complete!
+
+You: /sa-verify add-dark-mode
+AI:  Verifying the implementation against the change...
+     ✓ Completeness — 4/4 tasks, 1 requirement
+     ✓ Correctness  — 1/1 requirement covered
+     ✓ Coherence    — follows design.md
+     All checks passed. Ready for archive.
 
 You: /sa-archive
 AI:  Archived to changes/archive/2025-01-23-add-dark-mode/

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 6.0.0
+
 ### Breaking Changes
 
 - **`sa-plan` writes the design only.** It creates or revises the artifacts a change needs for implementation that are neither its specification nor its tasks (spec-driven: `design.md`), and no longer creates or revises `tasks.md`. When the change already has tasks, it leaves them as they are and warns that they may be out of date. It ends by handing off to the tasks stage. With a schema that has no `tasks` artifact, `sa-plan` still writes the whole plan and hands off to implementation.
