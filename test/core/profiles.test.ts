@@ -10,17 +10,21 @@ describe('profiles', () => {
   describe('CORE_WORKFLOWS', () => {
     it('should contain the default core workflows', () => {
       expect(CORE_WORKFLOWS).toEqual([
-        'propose', 'explore', 'specify', 'plan', 'tasks', 'apply', 'update', 'sync', 'archive',
+        'propose', 'explore', 'specify', 'plan', 'tasks', 'apply', 'verify', 'update', 'sync', 'archive',
       ]);
     });
 
     it('should include the specify, plan and tasks stages next to the one-step propose', () => {
-      expect(CORE_WORKFLOWS).toHaveLength(9);
+      expect(CORE_WORKFLOWS).toHaveLength(10);
       expect(CORE_WORKFLOWS).toContain('propose');
       expect(CORE_WORKFLOWS).toContain('specify');
       expect(CORE_WORKFLOWS).toContain('plan');
       expect(CORE_WORKFLOWS).toContain('tasks');
       expect(CORE_WORKFLOWS.indexOf('tasks')).toBe(CORE_WORKFLOWS.indexOf('plan') + 1);
+    });
+
+    it('should include verify (sa-audit) right after apply, in the order of the long flow', () => {
+      expect(CORE_WORKFLOWS.indexOf('verify')).toBe(CORE_WORKFLOWS.indexOf('apply') + 1);
     });
 
     it('should include update in the core profile (default install, not expanded-only)', () => {

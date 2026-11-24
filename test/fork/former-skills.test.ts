@@ -433,6 +433,13 @@ describe('migration of skills under their former openspec-* names', () => {
     });
 
     it('removes sa-verify when the profile does not install verify, without installing sa-audit', async () => {
+      // verify is core, so only a custom profile without it leaves sa-audit out.
+      mockState.config = {
+        featureFlags: {},
+        profile: 'custom',
+        delivery: 'both',
+        workflows: CORE_WORKFLOWS.filter((workflow) => workflow !== 'verify'),
+      };
       await specagileProject(releasedSaVerify('v6.0.0'), 'none');
 
       await update();

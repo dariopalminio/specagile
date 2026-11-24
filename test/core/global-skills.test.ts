@@ -21,9 +21,10 @@ import { RELATIVE_CHANGES_DIR, RELATIVE_CONFIG_FILE, RELATIVE_SPECS_DIR, RELATIV
 // the `skills` package settles some folders when it loads, so one process
 // cannot stand in for two machines.
 
-// SpecAgile: the core profile adds specify, plan and tasks.
+// SpecAgile: the core profile adds specify, plan, tasks and verify (sa-audit).
 const CORE_SKILLS = [
   'sa-archive',
+  'sa-audit',
   'sa-explore',
   'sa-implement',
   'sa-plan',
@@ -107,6 +108,13 @@ describe('skills installed for this machine', { timeout: 60_000 }, () => {
     expect(result.exitCode).toBe(0);
     expect(await entries(dir)).toEqual(PLANNING_FOLDERS);
     expect(await globalSkills()).toEqual(CORE_SKILLS);
+    // The core profile's audit skill, in ~/.agents/skills and in Claude Code's own folder.
+    expect(readFileSync(globalSkill('sa-audit'), 'utf8')).toContain('name: sa-audit');
+    expect(readFileSync(path.join(home, '.claude', 'skills', 'sa-audit', 'SKILL.md'), 'utf8')).toBe(
+      readFileSync(globalSkill('sa-audit'), 'utf8')
+    );
+    expect(result.stdout).toContain(`${CORE_SKILLS.length} skills in ~/.agents/skills/`);
+    expect(CORE_SKILLS).toHaveLength(10);
   });
 
   it('keeps a scripted init in the project when SPECAGILE_SKILLS_SCOPE says so', async () => {

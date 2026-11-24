@@ -18,6 +18,7 @@ export const CORE_WORKFLOWS = [
   'plan',
   'tasks',
   'apply',
+  'verify',
   'update',
   'sync',
   'archive',

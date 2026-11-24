@@ -174,7 +174,7 @@ OpenSpec does not prune archived changes automatically or provide a retention se
 ## Going further
 
 - [Delta specs](../reference/schemas/spec-driven/index.md#delta-specs-specmd): how to write the behavior changes in a delta spec.
-- [Profiles](../customize/profiles.md): optional workflows beyond the core set (an audit before the pull request, incremental planning).
+- [Profiles](../customize/profiles.md): optional workflows beyond the core set (incremental planning, archiving several changes at once).
 
 ## Advanced guides
 

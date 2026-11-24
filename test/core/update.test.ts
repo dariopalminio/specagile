@@ -8,7 +8,7 @@ import { getConfiguredToolsForProfileSync } from '../../src/core/profile-sync-dr
 import { ALL_WORKFLOWS } from '../../src/core/profiles.js';
 import { FileSystemUtils } from '../../src/utils/file-system.js';
 import { OPENSPEC_MARKERS } from '../../src/core/config.js';
-import type { GlobalConfig } from '../../src/core/global-config.js';
+import { saveGlobalConfig, type GlobalConfig } from '../../src/core/global-config.js';
 import { generateCopilotSetupSteps, persistCopilotCloudOptIn } from '../../src/core/github-copilot/cloud-agent.js';
 import { getCommandContents } from '../../src/core/shared/index.js';
 import {
@@ -495,6 +495,7 @@ describe('UpdateCommand', () => {
         } else {
           expectedShared.push(
             'sa-implement',
+            'sa-audit',
             'sa-archive',
             'sa-explore',
             'sa-plan',
@@ -1343,12 +1344,14 @@ metadata:
 
       await updateCommand.execute(testDir);
 
-      // Verify core profile skill files were created/updated (propose, explore, specify, plan, apply, update, sync, archive)
+      // Verify core profile skill files were created/updated (propose, explore, specify, plan, tasks, apply, verify, update, sync, archive)
       const coreSkillNames = [
         'sa-explore',
         'sa-specify',
         'sa-plan',
+        'sa-tasks',
         'sa-implement',
+        'sa-audit',
         'sa-update-change',
         'sa-sync-specs',
         'sa-archive',
@@ -1356,13 +1359,19 @@ metadata:
       ];
 
       for (const skillName of coreSkillNames) {
+        expect(
+          await FileSystemUtils.fileExists(path.join(testDir, '.agents', 'skills', skillName, 'SKILL.md'))
+        ).toBe(true);
+        // The Claude Code entry: a link to the shared folder, or a copy where links are refused.
+        expect(await FileSystemUtils.directoryExists(path.join(skillsDir, skillName))).toBe(true);
+
         const skillFile = path.join(skillsDir, skillName, 'SKILL.md');
         const exists = await FileSystemUtils.fileExists(skillFile);
         expect(exists).toBe(true);
 
         const content = await fs.readFile(skillFile, 'utf-8');
         expect(content).toContain('---');
-        expect(content).toContain('name:');
+        expect(content).toContain(`name: ${skillName}`);
         expect(content).toContain('description:');
       }
 
@@ -1372,7 +1381,7 @@ metadata:
         'sa-continue-change',
         'sa-ff-change',
         'sa-bulk-archive-change',
-        'sa-audit',
+        'sa-onboard',
       ];
 
       for (const skillName of nonCoreSkillNames) {
@@ -3721,7 +3730,7 @@ More user content after markers.
           call.map(arg => String(arg)).join(' ')
         );
         expect(calls.some(call =>
-          call.includes('Your custom profile is missing 1 core workflow: update')
+          call.includes('Your custom profile is missing 2 core workflows: verify, update')
         )).toBe(true);
         expect(calls.some(call =>
           call.includes('specagile config profile core')
@@ -3747,7 +3756,7 @@ More user content after markers.
         featureFlags: {},
         profile: 'custom',
         delivery: 'both',
-        workflows: ['propose', 'explore', 'specify', 'plan', 'tasks', 'apply', 'sync', 'archive'],
+        workflows: ['propose', 'explore', 'specify', 'plan', 'tasks', 'apply', 'verify', 'sync', 'archive'],
       });
 
       const initCommand = new InitCommand({ tools: 'claude', force: true });
@@ -3789,7 +3798,7 @@ More user content after markers.
         call.map(arg => String(arg)).join(' ')
       );
       expect(calls.some(call =>
-        call.includes('Your custom profile is missing 3 core workflows: specify, plan, tasks')
+        call.includes('Your custom profile is missing 4 core workflows: specify, plan, tasks, verify')
       )).toBe(true);
       const skillsDir = path.join(testDir, '.claude', 'skills');
       expect(await FileSystemUtils.fileExists(path.join(skillsDir, 'sa-specify', 'SKILL.md'))).toBe(false);
@@ -3819,11 +3828,45 @@ More user content after markers.
         call.map(arg => String(arg)).join(' ')
       );
       expect(calls.some(call =>
-        call.includes('Your custom profile is missing 1 core workflow: tasks')
+        call.includes('Your custom profile is missing 2 core workflows: tasks, verify')
       )).toBe(true);
       const skillsDir = path.join(testDir, '.claude', 'skills');
       expect(await FileSystemUtils.fileExists(path.join(skillsDir, 'sa-plan', 'SKILL.md'))).toBe(true);
       expect(await FileSystemUtils.fileExists(path.join(skillsDir, 'sa-tasks', 'SKILL.md'))).toBe(false);
+
+      consoleSpy.mockRestore();
+    });
+
+    it('should point a custom profile with the pre-audit core set at verify without installing sa-audit', async () => {
+      // A custom profile saved as the core set before verify joined it.
+      const workflows = ['propose', 'explore', 'specify', 'plan', 'tasks', 'apply', 'update', 'sync', 'archive'];
+      setMockConfig({ featureFlags: {}, profile: 'custom', delivery: 'both', workflows });
+
+      const initCommand = new InitCommand({ tools: 'claude', force: true });
+      await initCommand.execute(testDir);
+
+      const consoleSpy = vi.spyOn(console, 'log');
+      vi.mocked(saveGlobalConfig).mockClear();
+
+      await updateCommand.execute(testDir);
+
+      const calls = consoleSpy.mock.calls.map(call =>
+        call.map(arg => String(arg)).join(' ')
+      );
+      expect(calls.some(call =>
+        call.includes('Your custom profile is missing 1 core workflow: verify')
+      )).toBe(true);
+      expect(calls.some(call =>
+        call.includes('specagile config profile')
+      )).toBe(true);
+      expect(await FileSystemUtils.directoryExists(path.join(testDir, '.agents', 'skills', 'sa-audit'))).toBe(false);
+      expect(await FileSystemUtils.directoryExists(path.join(testDir, '.claude', 'skills', 'sa-audit'))).toBe(false);
+      expect(await FileSystemUtils.fileExists(
+        path.join(testDir, '.agents', 'skills', 'sa-implement', 'SKILL.md')
+      )).toBe(true);
+      // The custom profile stays as the user saved it.
+      expect(saveGlobalConfig).not.toHaveBeenCalled();
+      expect(mockState.config).toEqual({ featureFlags: {}, profile: 'custom', delivery: 'both', workflows });
 
       consoleSpy.mockRestore();
     });
@@ -3870,9 +3913,11 @@ More user content after markers.
       );
       const note = calls.find(call => call.includes('more workflows are available'));
       expect(note).toBeTruthy();
-      for (const workflow of ['new', 'continue', 'ff', 'bulk-archive', 'verify', 'onboard']) {
+      for (const workflow of ['new', 'continue', 'ff', 'bulk-archive', 'onboard']) {
         expect(note).toContain(workflow);
       }
+      // verify is core now: its skill is installed, so the note leaves it out.
+      expect(note).not.toContain('verify');
 
       consoleSpy.mockRestore();
     });
@@ -4102,6 +4147,7 @@ More user content after markers.
 
       expect(await openspecSkills()).toEqual([
         'sa-archive',
+        'sa-audit',
         'sa-explore',
         'sa-implement',
         'sa-plan',
