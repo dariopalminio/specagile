@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 7.0.1
+
+### Patch Changes
+
+- The summary of `specagile init` is headed "SpecAgile Setup Complete" instead of "OpenSpec Setup Complete", and "SpecAgile Setup Incomplete" instead of "OpenSpec Setup Incomplete" when a tool could not be set up. A script that looks for the former heading in the output of `specagile init` needs to look for the new one.
+
 ## 7.0.0
 
 ### Breaking Changes
