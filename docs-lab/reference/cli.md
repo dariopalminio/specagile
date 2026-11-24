@@ -122,7 +122,7 @@ With the skills in the project (`--scope project`), OpenSpec writes them once, t
 ▌ OpenSpec structure created
 ✔ Setup complete for Claude Code
 
-OpenSpec Setup Complete
+SpecAgile Setup Complete
 
 Created: Claude Code
 8 skills in .agents/skills/ (also in .claude/skills/)

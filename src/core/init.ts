@@ -34,7 +34,7 @@ import {
   getToolDir,
 } from './fork/layout.js';
 import { getSkillReferenceTransformer, transformToSkillReferences, usesNaturalLanguageSkillReferences } from '../utils/command-references.js';
-import { ENV_VAR_NAMES, REPOSITORY_URL, SPECAGILE_BANNER, applyForkIdentity } from './fork/identity.js';
+import { ENV_VAR_NAMES, PRODUCT_NAME, REPOSITORY_URL, SPECAGILE_BANNER, applyForkIdentity } from './fork/identity.js';
 import { formerSkillsKeptMessage, migrateFormerSkills } from './fork/former-skills.js';
 import {
   installerAgent,
@@ -1429,7 +1429,7 @@ export class InitCommand {
     console.log();
     console.log(
       chalk.bold(
-        results.failedTools.length > 0 ? 'OpenSpec Setup Incomplete' : 'OpenSpec Setup Complete'
+        results.failedTools.length > 0 ? `${PRODUCT_NAME} Setup Incomplete` : `${PRODUCT_NAME} Setup Complete`
       )
     );
     console.log();

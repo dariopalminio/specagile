@@ -23,7 +23,7 @@ Select the tools you use. In a new project the skills are installed globally. Ru
 With the skills on this machine, which is the default:
 
 ```
-OpenSpec Setup Complete
+SpecAgile Setup Complete
 
 Created: Claude Code
 8 skills in ~/.agents/skills/ for every project on this machine
@@ -33,7 +33,7 @@ Config: specagile/config.yaml (schema: spec-driven)
 With the skills in this project:
 
 ```
-OpenSpec Setup Complete
+SpecAgile Setup Complete
 
 Created: Claude Code
 8 skills in .agents/skills/ (also in .claude/skills/)

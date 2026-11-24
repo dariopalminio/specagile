@@ -465,7 +465,7 @@ describe('InitCommand', () => {
       expect(await fs.readdir(outsideDir)).toEqual([]);
       expect((await fs.lstat(path.join(testDir, '.claude'))).isSymbolicLink()).toBe(true);
       expect(vi.mocked(console.log).mock.calls.flat().join('\n')).toContain(
-        'OpenSpec Setup Incomplete'
+        'SpecAgile Setup Incomplete'
       );
     });
 
@@ -490,7 +490,7 @@ describe('InitCommand', () => {
       expect(await fs.readdir(outsideDir)).toEqual([]);
       expect((await fs.lstat(path.join(testDir, '.github'))).isSymbolicLink()).toBe(true);
       expect(vi.mocked(console.log).mock.calls.flat().join('\n')).toContain(
-        'OpenSpec Setup Incomplete'
+        'SpecAgile Setup Incomplete'
       );
     });
 
@@ -1791,7 +1791,7 @@ describe('InitCommand', () => {
 
       await expect(fs.stat(setupStepsPath)).rejects.toMatchObject({ code: 'ENOENT' });
       expect(vi.mocked(console.log).mock.calls.flat().join('\n')).toContain(
-        'OpenSpec Setup Incomplete'
+        'SpecAgile Setup Incomplete'
       );
     });
 
