@@ -4,6 +4,7 @@ import { existsSync, lstatSync, mkdirSync, readFileSync, realpathSync, rmSync, s
 import { getSupportedAgents } from 'skills';
 import { AI_TOOLS, installerAgent, OPENSPEC_SKILL_NAMES } from './config.js';
 import { getGlobalDataDir } from './global-config.js';
+import { FORMER_SA_SKILL_NAMES } from './fork/identity.js';
 import { getConfiguredTools } from './shared/tool-detection.js';
 import { expectedSkillContents, installReleaseSkills, removeManagedSkills, type SkillScope } from './skill-installer.js';
 
@@ -52,7 +53,9 @@ export async function readGlobalSkills() {
   const agents: string[] = [];
   const skills = new Set<string>();
   for (const [agent, dir] of globalDirectories()) {
-    const names = OPENSPEC_SKILL_NAMES.filter(name => existsSync(path.join(dir, name, 'SKILL.md')));
+    // SpecAgile: also its former `sa-verify`, so an update retires it as a
+    // deselected skill. Never OpenSpec's `openspec-*`: those are its install's.
+    const names = [...OPENSPEC_SKILL_NAMES, ...FORMER_SA_SKILL_NAMES].filter(name => existsSync(path.join(dir, name, 'SKILL.md')));
     if (names.length) agents.push(agent);
     for (const name of names) skills.add(name);
   }

@@ -111,7 +111,7 @@ These are the OpenSpec workflows, the actions you'll use as you work. Here they 
 ├── sa-update-change/        revise a change's plan
 ├── sa-sync-specs/           sync a change's spec updates into specs/
 ├── sa-archive/       move a finished change to the archive
-├── sa-verify/        check the implementation matches the plan (not included by default)
+├── sa-audit/         audit a change against its plan before the PR (not included by default)
 └── sa-bulk-archive-change/  archive several changes at once (not included by default)
 ```
 

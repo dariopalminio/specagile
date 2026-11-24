@@ -10,6 +10,7 @@ import { cliProjectRoot, runCLI } from '../helpers/run-cli.js';
 import { CommandAdapterRegistry, generateCommands } from '../../src/core/command-generation/index.js';
 import { generateSkillContent, getCommandContents, getSkillTemplates } from '../../src/core/shared/skill-generation.js';
 import { transformToSharedSkillReferences } from '../../src/utils/command-references.js';
+import { getVerifyChangeSkillTemplate } from '../../src/core/templates/skill-templates.js';
 import { FORMER_SKILL_NAME_BY_WORKFLOW } from '../../src/core/fork/identity.js';
 import { withUpstreamIdentity } from '../helpers/fork-identity.js';
 import { SPECAGILE_4_0_0_AGENT } from '../helpers/copilot-cloud.js';
@@ -381,6 +382,71 @@ describe('skills installed for this machine', { timeout: 60_000 }, () => {
 
       expect(result.exitCode).toBe(0);
       expect(existsSync(path.join(link, 'SKILL.md'))).toBe(true);
+    });
+
+    // SpecAgile: verify installed as sa-verify from 2.1.1 to 6.0.0.
+    describe('sa-verify, left by SpecAgile 6.0.0', () => {
+      const released = () =>
+        readFileSync(
+          path.join(__dirname, '..', 'fixtures', 'former-sa-skills', 'v6.0.0', 'sa-verify', 'SKILL.md'),
+          'utf8'
+        );
+      const claudeSkill = (name: string) => path.join(home, '.claude', 'skills', name, 'SKILL.md');
+      // What an OpenSpec install with global scope left beside SpecAgile's.
+      const openspecVerify = () =>
+        withUpstreamIdentity(generateSkillContent(getVerifyChangeSkillTemplate(), version, transformToSharedSkillReferences));
+
+      async function machineWith6_0_0Skills(): Promise<string> {
+        const configFile = globalConfigFile(path.join(home, '.config'));
+        await fs.mkdir(path.dirname(configFile), { recursive: true });
+        await fs.writeFile(
+          configFile,
+          JSON.stringify({ profile: 'custom', workflows: ['propose', 'explore', 'apply', 'archive', 'verify'] })
+        );
+        const dir = await project('app');
+        await cli(dir, 'init', '--scope', 'global', '--tools', 'claude');
+        for (const file of [globalSkill('sa-verify'), claudeSkill('sa-verify')]) {
+          await fs.mkdir(path.dirname(file), { recursive: true });
+          await fs.writeFile(file, released());
+        }
+        await fs.mkdir(path.dirname(globalSkill('openspec-verify-change')), { recursive: true });
+        await fs.writeFile(globalSkill('openspec-verify-change'), openspecVerify());
+        return dir;
+      }
+
+      it("replaces it with sa-audit, in ~/.agents/skills and in Claude Code's folder", async () => {
+        const dir = await machineWith6_0_0Skills();
+
+        const result = await cli(dir, 'update');
+
+        expect(result.exitCode, result.stderr).toBe(0);
+        expect(readFileSync(globalSkill('sa-audit'), 'utf8')).toContain('name: sa-audit');
+        expect(existsSync(claudeSkill('sa-audit'))).toBe(true);
+        expect(existsSync(path.dirname(globalSkill('sa-verify')))).toBe(false);
+        expect(existsSync(path.dirname(claudeSkill('sa-verify')))).toBe(false);
+        expect(result.stdout).toContain('sa-verify');
+      });
+
+      it("leaves OpenSpec's openspec-verify-change alone", async () => {
+        const dir = await machineWith6_0_0Skills();
+        const before = readFileSync(globalSkill('openspec-verify-change'), 'utf8');
+
+        await cli(dir, 'update');
+
+        expect(readFileSync(globalSkill('openspec-verify-change'), 'utf8')).toBe(before);
+      });
+
+      it('plans its removal in a dry run and removes nothing', async () => {
+        const dir = await machineWith6_0_0Skills();
+
+        const result = await cli(dir, 'update', '--dry-run', '--json');
+
+        expect(result.exitCode, result.stderr).toBe(0);
+        const notes = (JSON.parse(result.stdout) as { notes: Array<{ code: string; message: string }> }).notes;
+        expect(notes.find((note) => note.code === 'removed-skills')?.message).toContain('sa-verify');
+        expect(readFileSync(globalSkill('sa-verify'), 'utf8')).toBe(released());
+        expect(existsSync(claudeSkill('sa-verify'))).toBe(true);
+      });
     });
 
     it('changes nothing for a machine without the global skills', async () => {

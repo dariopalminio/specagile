@@ -263,6 +263,44 @@ describe('openspec update --dry-run', () => {
     });
   });
 
+  // SpecAgile: verify installed as sa-verify from 2.1.1 to 6.0.0.
+  it('plans the removal of an untouched sa-verify and the install of sa-audit, changing nothing', async () => {
+    await writeGlobalConfig({ profile: 'custom', delivery: 'both', workflows: ['propose', 'explore', 'specify', 'plan', 'tasks', 'apply', 'update', 'sync', 'archive', 'verify'] });
+    const released = await fs.readFile(
+      path.join(__dirname, '..', 'fixtures', 'former-sa-skills', 'v6.0.0', 'sa-verify', 'SKILL.md'),
+      'utf-8'
+    );
+    const sharedSaVerify = path.join(testDir, '.agents', 'skills', 'sa-verify');
+    await fs.mkdir(sharedSaVerify, { recursive: true });
+    await fs.writeFile(path.join(sharedSaVerify, 'SKILL.md'), released);
+    // Claude's spot as 6.0.0 left it: a copy on Windows, a link elsewhere.
+    const claudeSaVerify = path.join(testDir, '.claude', 'skills', 'sa-verify');
+    if (process.platform === 'win32') {
+      await fs.mkdir(claudeSaVerify, { recursive: true });
+      await fs.writeFile(path.join(claudeSaVerify, 'SKILL.md'), released);
+    } else {
+      await fs.symlink(path.join('..', '..', '.agents', 'skills', 'sa-verify'), claudeSaVerify, 'dir');
+    }
+    const before = await snapshotTree(testDir);
+
+    const plan = await new UpdateCommand({ dryRun: true }).plan(testDir);
+
+    expect(plan.changes).toContainEqual(
+      expect.objectContaining({ path: '.agents/skills/sa-verify/SKILL.md', action: 'delete' })
+    );
+    expect(plan.changes).toContainEqual(
+      expect.objectContaining({ path: '.agents/skills/sa-audit/SKILL.md', action: 'add' })
+    );
+    const report = formatUpdatePlan(plan);
+    expect(report).toContain('sa-verify');
+    expect(report).toContain('sa-audit');
+    expect(await snapshotTree(testDir)).toEqual(before);
+    await expect(fs.access(path.join(testDir, '.agents', 'skills', 'sa-audit'))).rejects.toThrow();
+
+    // And the real update does what the plan said.
+    await expectPlanMatchesRealUpdate();
+  });
+
   it('plans additions for newly selected workflows', async () => {
     await writeGlobalConfig({ profile: 'custom', delivery: 'both', workflows: [...ALL_WORKFLOWS] });
 
@@ -270,12 +308,12 @@ describe('openspec update --dry-run', () => {
 
     // The shared skill, and Claude's link to it.
     expect(changes).toContainEqual({
-      path: '.agents/skills/sa-verify/SKILL.md',
+      path: '.agents/skills/sa-audit/SKILL.md',
       action: 'add',
       tool: 'openspec',
     });
     expect(changes).toContainEqual({
-      path: process.platform === 'win32' ? '.claude/skills/sa-verify/SKILL.md' : '.claude/skills/sa-verify',
+      path: process.platform === 'win32' ? '.claude/skills/sa-audit/SKILL.md' : '.claude/skills/sa-audit',
       action: 'add',
       tool: 'claude',
     });
@@ -716,7 +754,7 @@ describe('openspec update --dry-run', () => {
     const changes = await expectPlanMatchesRealUpdate();
 
     expect(changes.map((change) => change.path)).not.toContain(
-      '.kimi-code/skills/sa-verify/SKILL.md'
+      '.kimi-code/skills/sa-audit/SKILL.md'
     );
   });
 

@@ -60,7 +60,7 @@ Invoking a skill by name is always the second case. A project whose `specagile/c
 | [sa-new-change](#sa-new-change) | Start a change proposal as an empty scaffold | Optional |
 | [sa-continue-change](#sa-continue-change) | Create the next planning artifact, one at a time | Optional |
 | [sa-ff-change](#sa-ff-change) | Create a change proposal with every artifact implementation needs, in one pass | Optional |
-| [sa-verify](#sa-verify) | Check the implementation matches the plan | Optional |
+| [sa-audit](#sa-audit) | Audit a change proposal against its artifacts before the pull request | Optional |
 | [sa-bulk-archive-change](#sa-bulk-archive-change) | Archive several change proposals at once | Optional |
 | [sa-onboard](#sa-onboard) | Learn the workflow by doing one real change proposal end to end | Optional |
 
@@ -187,15 +187,15 @@ Create a change proposal and every planning artifact implementation needs, in on
 | **Creates** | `changes/<name>/` and every planning artifact implementation requires, in dependency order (spec-driven: proposal, specs, design, tasks), leaving out only artifacts marked skipped or conditional. Never code. |
 | **Response** | The change proposal's name and location, each artifact created, and any conditional artifact skipped and why. Stops there; implementation waits for `sa-implement`. |
 
-## sa-verify
+## sa-audit
 
-Check that the implementation matches the change proposal's artifacts.
+Audit a change proposal before its pull request: does the implementation match the artifacts (specs, tasks, design), so the change proposal meets its Definition of Done, and has the code drifted from the spec? It is the `verify` workflow; ask for it as "specagile audit".
 
 | Contract | Description |
 |---|---|
-| **Arguments** | A change proposal name, optional. When ambiguous it asks, listing change proposals that have a tasks artifact. |
-| **Creates** | Nothing. It reads the change proposal's artifacts and the codebase. Verification is report-only. |
-| **Response** | A report: a scorecard for Completeness, Correctness, and Coherence, then CRITICAL, WARNING, and SUGGESTION issues with recommendations, and a final archive-readiness assessment. It changes nothing and does not archive. |
+| **Arguments** | A change proposal name, optional. Otherwise it infers one from the conversation, or picks the only active change proposal. When ambiguous it asks, listing every active change proposal, including those with no tasks. |
+| **Creates** | Nothing. The audit is static and read-only: it reads the change proposal's artifacts, the code, and its tests, without running tests or builds, and without editing code or artifacts. |
+| **Response** | An Audit Report: a scorecard for Completeness, Correctness, and Coherence, then CRITICAL, WARNING, and SUGGESTION issues with recommendations, and a verdict on whether the change proposal is ready for its pull request ("Ready for PR", or "Fix before opening the PR"). The findings are advisory: it changes nothing and does not archive, and `sa-archive` keeps its own checks either way. |
 
 ## sa-bulk-archive-change
 

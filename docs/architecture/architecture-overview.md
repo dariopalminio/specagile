@@ -126,7 +126,7 @@ flowchart LR
     S --> P["sa-plan"] --> T["sa-tasks"] --> I["sa-implement"]
     S -. "sin diseño" .-> T
     E -.-> PR["sa-propose"] -->|"todos los artefactos"| I
-    I -. "verificación opcional" .-> V["sa-verify"]
+    I -. "auditoría opcional (antes del PR)" .-> V["sa-audit"]
     I --> A["sa-archive"]
 ```
 

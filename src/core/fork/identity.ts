@@ -112,7 +112,7 @@ export const SKILL_NAME_BY_WORKFLOW: Readonly<Record<WorkflowId, string>> = {
   plan: 'sa-plan',
   tasks: 'sa-tasks',
   apply: 'sa-implement',
-  verify: 'sa-verify',
+  verify: 'sa-audit',
   archive: 'sa-archive',
   new: 'sa-new-change',
   continue: 'sa-continue-change',
@@ -160,18 +160,36 @@ export const TEMPLATE_ONLY_SKILL_NAME_BY_WORKFLOW: Readonly<Partial<Record<Workf
 };
 
 /**
- * The names a workflow's skill had before the rename: one `openspec-*` name,
- * or none for a workflow the fork added later (`tasks`).
+ * The `sa-*` name a workflow's skill had in an earlier SpecAgile release:
+ * `verify` installed as `sa-verify` from 2.1.1 to 6.0.0. Migration retires it
+ * like an `openspec-*` name, but it is SpecAgile's own: the global skills
+ * (src/core/global-skills.ts) manage it, and text never translates it (no
+ * template says `sa-verify`).
+ */
+export const FORMER_SA_SKILL_NAME_BY_WORKFLOW: Readonly<Partial<Record<WorkflowId, string>>> = {
+  verify: 'sa-verify',
+};
+
+/** The former `sa-*` names (FORMER_SA_SKILL_NAME_BY_WORKFLOW). */
+export const FORMER_SA_SKILL_NAMES: readonly string[] = Object.values(FORMER_SA_SKILL_NAME_BY_WORKFLOW).filter(
+  (name): name is string => name !== undefined
+);
+
+/**
+ * The names a workflow's skill had before: its `openspec-*` name, or none for
+ * a workflow the fork added later (`tasks`), then the `sa-*` name an earlier
+ * SpecAgile release gave it, if any (`verify`: `sa-verify`).
  */
 export function formerSkillNames(workflow: WorkflowId): readonly string[] {
-  const former = FORMER_SKILL_NAME_BY_WORKFLOW[workflow];
-  return former === undefined ? [] : [former];
+  return [FORMER_SKILL_NAME_BY_WORKFLOW[workflow], FORMER_SA_SKILL_NAME_BY_WORKFLOW[workflow]].filter(
+    (name): name is string => name !== undefined
+  );
 }
 
 /** Skills this version writes (`sa-*`). */
 export const CURRENT_SKILL_NAMES: readonly string[] = Object.values(SKILL_NAME_BY_WORKFLOW);
 
-/** Skill names from before the rename (`openspec-*`). */
+/** Every former skill name: OpenSpec's (`openspec-*`), then SpecAgile's (`sa-verify`). */
 export const FORMER_SKILL_NAMES: readonly string[] = (
   Object.keys(FORMER_SKILL_NAME_BY_WORKFLOW) as WorkflowId[]
 ).flatMap(formerSkillNames);
@@ -218,7 +236,9 @@ export const CLI_SUBCOMMANDS: readonly string[] = [
 
 /**
  * Trigger phrases in skill descriptions ("openspec apply", "openspec
- * implement", ...) that are not subcommands.
+ * implement", ...) that are not subcommands. `audit` is sa-audit's phrase;
+ * `verify` stays because upstream's verify template, which migration still
+ * generates to recognize OpenSpec's `openspec-verify-change`, says it.
  */
 export const TRIGGER_VERBS: readonly string[] = [
   'propose',
@@ -229,6 +249,7 @@ export const TRIGGER_VERBS: readonly string[] = [
   'apply',
   'implement',
   'verify',
+  'audit',
   'continue',
   'ff',
   'bulk-archive',
@@ -244,15 +265,16 @@ export const CLI_WORDS: readonly string[] = [
   ...new Set([...CLI_SUBCOMMANDS, '--version', ...TRIGGER_VERBS]),
 ];
 
-// Text translation only: the former names, and the names fork-owned templates
-// use for workflows that never had one (TEMPLATE_ONLY_SKILL_NAME_BY_WORKFLOW).
+// Text translation only: OpenSpec's former names, and the names fork-owned
+// templates use for workflows that never had one
+// (TEMPLATE_ONLY_SKILL_NAME_BY_WORKFLOW). Never SpecAgile's former `sa-*`
+// names: no template says them, and 2.1's translation never touched them.
 const SKILL_NAME_BY_FORMER: ReadonlyMap<string, string> = new Map(
-  (Object.keys(SKILL_NAME_BY_WORKFLOW) as WorkflowId[]).flatMap((workflow) => {
-    const template = TEMPLATE_ONLY_SKILL_NAME_BY_WORKFLOW[workflow];
-    return [...formerSkillNames(workflow), ...(template === undefined ? [] : [template])].map(
-      (name): [string, string] => [name, SKILL_NAME_BY_WORKFLOW[workflow]]
-    );
-  })
+  (Object.keys(SKILL_NAME_BY_WORKFLOW) as WorkflowId[]).flatMap((workflow) =>
+    [FORMER_SKILL_NAME_BY_WORKFLOW[workflow], TEMPLATE_ONLY_SKILL_NAME_BY_WORKFLOW[workflow]]
+      .filter((name): name is string => name !== undefined)
+      .map((name): [string, string] => [name, SKILL_NAME_BY_WORKFLOW[workflow]])
+  )
 );
 
 const CLI_WORD_SET: ReadonlySet<string> = new Set(CLI_WORDS);

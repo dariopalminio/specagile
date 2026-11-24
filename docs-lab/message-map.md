@@ -24,7 +24,7 @@ maintain.
 | How do we explain what specs and changes are? | [Guides › Understanding › Concepts](guides/concepts.md) | Skeleton |
 | How should a user think through an idea before proposing? | [Guides › Using › Explore an idea](guides/explore.md) | Skeleton |
 | How should a user review a plan? | [Guides › Using › Review the plan](guides/review-the-plan.md) | Skeleton |
-| How does a user check the implementation matches the plan before archiving? | [Guides › Using › Review the plan](guides/review-the-plan.md), the verify pass | Skeleton |
+| How does a user check the implementation matches the plan before the pull request? | [Guides › Using › Review the plan](guides/review-the-plan.md), the audit pass (`sa-audit`) | Skeleton |
 | How should a user run a plan across sessions and context limits? | [Guides › Using › Apply a change](guides/apply.md) | Skeleton |
 | How should a user pace the plan: draft everything at once, or artifact by artifact? | [Guides › Using › Apply a change](guides/apply.md), continue and fast-forward | Skeleton |
 | How do we explain the standard flow (propose drafts every artifact in one step) vs the iterative flow (new creates the change, continue drafts the next artifact, fast-forward catches up)? | [Start › Quickstart](start/quickstart.md) teaches only the standard flow; [Guides › Using › Apply a change](guides/apply.md) owns pacing once a change exists; [Reference › Skills](reference/skills.md) holds the new/continue/ff contracts; [Customize › Profiles](customize/profiles.md) covers installing them; a [README](README.md) TODO proposes a Using guide | Gap |

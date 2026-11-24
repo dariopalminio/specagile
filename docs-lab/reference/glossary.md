@@ -8,6 +8,7 @@ OpenSpec reuses words that mean something else in git, CI, and agent tooling. Ea
 |---|---|---|
 | **Apply** | Implement the tasks in a change proposal. Skill: `sa-implement`. | [Apply a change](skills.md#sa-implement) |
 | **Archive** | Complete a change proposal: merge its deltas into the main specs and move its folder to `changes/archive/`. | [Quickstart](../start/quickstart.md) |
+| **Audit** | Before the pull request, check that a change proposal's implementation matches its artifacts (specs, tasks, design), without running or editing anything, and report drift between spec and code. Skill: `sa-audit` (the `verify` workflow). | [Skills](skills.md#sa-audit) |
 | **Artifact** | A planning document inside a change proposal: `proposal.md`, delta specs, `design.md`, `tasks.md`. Not a build output. | [Artifacts](schemas/spec-driven/index.md#artifacts) |
 | **Capability** | One behavior area of your system. Each has one spec at `specs/<capability>/spec.md`. | [Capabilities](schemas/spec-driven/index.md#proposalmd) |
 | **Change proposal** | One unit of work: a folder under `changes/<name>/` holding its planning artifacts. Often shortened to "change". Not a git commit. | [Propose](../start/quickstart.md#step-2-propose) |
@@ -35,6 +36,5 @@ OpenSpec reuses words that mean something else in git, CI, and agent tooling. Ea
 | **Sync** | Merge implemented deltas into the main specs without archiving. Skill: `sa-sync-specs`. | [Skills](skills.md) |
 | **Template** | The starting content a schema gives each artifact. | [Schemas](../customize/schemas.md) |
 | **Update** | As a skill (`sa-update-change`): revise a change proposal's planning artifacts. As a CLI command (`specagile update`): refresh OpenSpec's installed files. | [Update a change](skills.md#sa-update-change), [CLI](cli.md) |
-| **Verify** | Check the implementation matches a change proposal's artifacts before archiving. Skill: `sa-verify`. | [Skills](skills.md) |
 | **Workflow** | A named OpenSpec action (propose, apply, archive, ...), installed into your AI tool as a skill. | [Set up your project](../start/setup.md) |
 | **Workset** | A personal, local group of folders opened together in one tool. Not a store, and nothing is shared. | [Worksets (beta)](../multi-repo/worksets.md) |

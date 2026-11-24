@@ -34,6 +34,7 @@ import {
   getTasksSkillTemplate,
   getUpdateChangeSkillTemplate,
   getVerifyChangeSkillTemplate,
+  getAuditSkillTemplate,
 } from '../../../src/core/templates/skill-templates.js';
 import {
   generateSkillContent as generateDeployedSkillContent,
@@ -101,6 +102,7 @@ const EXPECTED_FUNCTION_HASHES: Record<string, string> = {
   getSpecifySkillTemplate: '4adbf9da1a43f1f3b277bc374e60e3437f40382ef18f34b0191ac68652e0d34a',
   getPlanSkillTemplate: '71cb887e3ee4843c99dcfa8eae954199d736cbc0f1098cbf67c5e113ba2b2f27',
   getTasksSkillTemplate: '46e929cea67fc3f58fbfa621e4cb87381c66ba529d2e0937956a30a481d8aad0',
+  getAuditSkillTemplate: '28c4c12a9a179212a97d701891e1361343ed9d79e98dff24d30256eb4a72ebfe',
 };
 
 const EXPECTED_GENERATED_SKILL_CONTENT_HASHES: Record<string, string> = {
@@ -112,7 +114,7 @@ const EXPECTED_GENERATED_SKILL_CONTENT_HASHES: Record<string, string> = {
   'sa-sync-specs': '1015e9da32e670dc6f45736536c3ad74c623779b322e593d62c6d777564ef798',
   'sa-archive': 'd4c33dcf22e849d0441248aeeecb602b787a03d34291450249cc3f719107481f',
   'sa-bulk-archive-change': '9cbfa7a1a4d13f7c83fca50e560d9f8b719a2526fad52c7a9676855e5a29d0ae',
-  'sa-verify': '9be29a01b42140e59dd46cb05e71d2c0e607c0a1450d66038b88d750b4287a6b',
+  'sa-audit': 'c71391980b66ea2fa62c5e8700f2fd5031c99ae868c758243b5388c394e573ad',
   'sa-onboard': 'fa244d51bdba7a86a5ed1bf5df2db95d9ca2449b3bbe1603fc8f3c1583de2696',
   'sa-propose': 'cf98a1546f7e3c3541d705ee33f431d24916c4db964b6dfcee051be14c80df9c',
   'sa-update-change': '79b2ab90a75a2030efbfb41b30cefc637516ea2e7961c72192c48a9f153755cf',
@@ -132,7 +134,7 @@ const GENERATED_SKILL_FACTORIES: Array<[string, () => SkillTemplate]> = [
   ['sa-sync-specs', getSyncSpecsSkillTemplate],
   ['sa-archive', getArchiveChangeSkillTemplate],
   ['sa-bulk-archive-change', getBulkArchiveChangeSkillTemplate],
-  ['sa-verify', getVerifyChangeSkillTemplate],
+  ['sa-audit', getAuditSkillTemplate],
   ['sa-onboard', getOnboardSkillTemplate],
   ['sa-propose', getOpsxProposeSkillTemplate],
   ['sa-update-change', getUpdateChangeSkillTemplate],
@@ -237,6 +239,7 @@ describe('skill templates split parity', () => {
       getSpecifySkillTemplate,
       getPlanSkillTemplate,
       getTasksSkillTemplate,
+      getAuditSkillTemplate,
     };
 
     const actualHashes = Object.fromEntries(

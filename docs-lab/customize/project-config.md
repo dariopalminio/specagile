@@ -70,7 +70,7 @@ Three fields shape what the agent receives. Each field's exact contract (types, 
 
 config.yaml's other fields (`schema`, `store`, `references`) select which schema and which OpenSpec root a project uses. The contract page covers them.
 
-The last column is exact, so a field reaches only the steps listed there. In particular, `verify` never receives `rules`. It checks the implementation against the artifacts as written.
+The last column is exact, so a field reaches only the steps listed there. In particular, the audit (`sa-audit`, the `verify` workflow) never receives `rules`. It checks the implementation against the artifacts as written.
 
 ### context
 

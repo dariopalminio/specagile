@@ -103,12 +103,12 @@ AI:  Implementing tasks...
      ✓ 2.2 Wire up localStorage
      All tasks complete!
 
-You: /sa-verify add-dark-mode
-AI:  Verifying the implementation against the change...
+You: /sa-audit add-dark-mode
+AI:  Auditing the change before its pull request...
      ✓ Completeness — 4/4 tasks, 1 requirement
      ✓ Correctness  — 1/1 requirement covered
      ✓ Coherence    — follows design.md
-     All checks passed. Ready for archive.
+     All checks passed. Ready for PR.
 
 You: /sa-archive
 AI:  Archived to changes/archive/2025-01-23-add-dark-mode/
@@ -184,7 +184,7 @@ Now talk to your AI:
 - **Already know what you want?** Go straight to `/sa-propose <what-you-want-to-build>`.
 - **Want to agree on *what* before *how*?** Use the long flow, `sa-specify` → `sa-plan` → `sa-tasks` → `sa-implement`: `/sa-specify <what-you-want-to-build>` writes the proposal and specs and stops there, so your team can review them; then `/sa-plan` writes the technical design, `/sa-tasks` breaks it into tasks, and `/sa-implement` implements them. `/sa-propose` remains the one-step shortcut that writes every planning artifact at once.
 
-All of these are in the default profile. If you want the expanded workflow (`sa-new-change`, `sa-continue-change`, `sa-ff-change`, `sa-verify`, `sa-bulk-archive-change`, `sa-onboard`), select it with `specagile config profile` and apply with `specagile update`.
+All of these are in the default profile. If you want the expanded workflow (`sa-new-change`, `sa-continue-change`, `sa-ff-change`, `sa-audit`, `sa-bulk-archive-change`, `sa-onboard`), select it with `specagile config profile` and apply with `specagile update`.
 
 These are skills. Most tools invoke them as `/sa-propose` and Codex as `$sa-propose`, or you can ask for the work in plain words. `specagile init` prints the right form for the tools you picked — see [Supported Tools](docs-lab/reference/supported-tools.md). Coming from 1.x and its `/opsx:*` commands? See [Upgrade to 2.0](docs-lab/help/upgrade-to-2.md).
 

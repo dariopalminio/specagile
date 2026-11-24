@@ -33,7 +33,7 @@ Six more workflows are available beyond the core set. Three of them (`new`, `con
 | [`new`](../reference/skills.md#sa-new-change) | Start a change proposal as an empty scaffold |
 | [`continue`](../reference/skills.md#sa-continue-change) | Create the next planning artifact in a change proposal, one at a time |
 | [`ff`](../reference/skills.md#sa-ff-change) | Create a change proposal and every planning artifact implementation needs, in one pass |
-| [`verify`](../reference/skills.md#sa-verify) | Check that the implementation matches the change proposal's artifacts |
+| [`verify`](../reference/skills.md#sa-audit) | Audit a change proposal against its artifacts before the pull request (installs `sa-audit`) |
 | [`bulk-archive`](../reference/skills.md#sa-bulk-archive-change) | Archive several change proposals at once |
 | [`onboard`](../reference/skills.md#sa-onboard) | Learn the workflow by doing one real change proposal end to end |
 

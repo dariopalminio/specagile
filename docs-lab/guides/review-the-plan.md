@@ -12,10 +12,10 @@
 
 ## Pushing back
 
-## Advanced: verify after apply
+## Advanced: audit before the pull request
 
-Before archiving, check that the code does what the scenarios describe. The optional
-[verify skill](../reference/skills.md#sa-verify) can help find gaps.
+Before opening the pull request, check that the code does what the scenarios describe. The optional
+[audit skill](../reference/skills.md#sa-audit) can help find gaps: it reports drift between spec and code without changing anything.
 
 ### Keep a record when checks are hard to track
 

@@ -44,7 +44,7 @@ describe('tool-detection', () => {
       expect(SKILL_NAMES).toContain('sa-sync-specs');
       expect(SKILL_NAMES).toContain('sa-archive');
       expect(SKILL_NAMES).toContain('sa-bulk-archive-change');
-      expect(SKILL_NAMES).toContain('sa-verify');
+      expect(SKILL_NAMES).toContain('sa-audit');
       expect(SKILL_NAMES).toContain('sa-onboard');
       expect(SKILL_NAMES).toContain('sa-propose');
     });
@@ -562,6 +562,32 @@ Content here
       await fs.writeFile(path.join(claudeSkill, 'SKILL.md'), 'content');
 
       expect(getConfiguredTools(testDir)).toContain('claude');
+    });
+
+    // SpecAgile: a project SpecAgile 2.1.1-6.0.0 set up with only verify's skill.
+    it('detects a listed tool whose only skill is sa-verify, the former name of verify', async () => {
+      const sharedSkills = path.join(testDir, '.agents', 'skills');
+      await fs.mkdir(path.join(sharedSkills, 'sa-verify'), { recursive: true });
+      await fs.writeFile(path.join(sharedSkills, 'sa-verify', 'SKILL.md'), 'content');
+      await fs.writeFile(path.join(sharedSkills, '.openspec-target'), 'claude own-files\n');
+      const claudeSkills = path.join(testDir, '.claude', 'skills');
+      await fs.mkdir(claudeSkills, { recursive: true });
+      await fs.symlink(
+        path.join(sharedSkills, 'sa-verify'),
+        path.join(claudeSkills, 'sa-verify'),
+        process.platform === 'win32' ? 'junction' : 'dir'
+      );
+
+      expect(getConfiguredTools(testDir)).toContain('claude');
+      expect(getToolVersionStatus(testDir, 'claude', '6.0.0').needsUpdate).toBe(true);
+    });
+
+    it('does not count a user skill that only shares the sa-verify prefix', async () => {
+      const own = path.join(testDir, '.claude', 'skills', 'sa-verify-security');
+      await fs.mkdir(own, { recursive: true });
+      await fs.writeFile(path.join(own, 'SKILL.md'), 'content');
+
+      expect(getConfiguredTools(testDir)).not.toContain('claude');
     });
 
     it('does not count a user skill that only shares the prefix', async () => {
