@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 7.0.0
+
 ### Breaking Changes
 
 - **The `verify` workflow installs as `sa-audit` instead of `sa-verify`.** The skill audits a change before its pull request: it checks the implementation against the change's artifacts (specs, tasks, design) and reports drift between spec and code. Invoke it as `/sa-audit` (`$sa-audit` in Codex) or ask for it as "specagile audit"; after `specagile update`, `/sa-verify` and "specagile verify" no longer exist.
