@@ -18,6 +18,7 @@ import { AI_TOOLS } from '../../src/core/config.js';
 import { realFileOps } from '../../src/core/update-plan.js';
 import { DISK_VIEW } from '../../src/core/file-view.js';
 import { generateSkillContent, getSkillTemplates } from '../../src/core/shared/skill-generation.js';
+import { getVerifyChangeSkillTemplate } from '../../src/core/templates/skill-templates.js';
 import { transformToSharedSkillReferences } from '../../src/utils/command-references.js';
 import type { GlobalConfig } from '../../src/core/global-config.js';
 import { withUpstreamIdentity } from '../helpers/fork-identity.js';
@@ -40,6 +41,9 @@ vi.mock('../../src/core/global-config.js', async (importOriginal) => {
 const require = createRequire(import.meta.url);
 const { version: VERSION } = require('../../package.json') as { version: string };
 const RELEASED_SKILLS = path.join(__dirname, '..', 'fixtures', 'released-output', 'v1.16.0-claude-skills');
+/** The sa-verify SKILL.md a SpecAgile release installed (2.1.2's text differs from 6.0.0's). */
+const releasedSaVerify = (tag: 'v2.1.2' | 'v6.0.0') =>
+  readFileSync(path.join(__dirname, '..', 'fixtures', 'former-sa-skills', tag, 'sa-verify', 'SKILL.md'), 'utf-8');
 
 /**
  * SpecAgile renamed its skills from `openspec-*` to `sa-*`. A project set up
@@ -59,10 +63,17 @@ describe('migration of skills under their former openspec-* names', () => {
   /** The core workflows a former release installed (`tasks` came after the rename). */
   const FORMER_CORE = CORE_WORKFLOWS.filter((workflow) => formerSkillNames(workflow).length > 0);
 
-  /** The shared SKILL.md OpenSpec 2.0 wrote for a workflow: this version's text, upstream's names. */
+  /**
+   * The shared SKILL.md OpenSpec 2.0 wrote for a workflow: this version's text,
+   * upstream's names. For verify that is upstream's own template: SpecAgile
+   * writes sa-audit's text instead.
+   */
   function upstreamSharedText(workflow: WorkflowId, installed: readonly string[] = CORE_WORKFLOWS): string {
-    const entry = getSkillTemplates(installed).find((candidate) => candidate.workflowId === workflow)!;
-    return withUpstreamIdentity(generateSkillContent(entry.template, VERSION, transformToSharedSkillReferences));
+    const template =
+      workflow === 'verify'
+        ? getVerifyChangeSkillTemplate()
+        : getSkillTemplates(installed).find((candidate) => candidate.workflowId === workflow)!.template;
+    return withUpstreamIdentity(generateSkillContent(template, VERSION, transformToSharedSkillReferences));
   }
 
   async function write(file: string, content: string): Promise<void> {
@@ -151,7 +162,9 @@ describe('migration of skills under their former openspec-* names', () => {
     expect(existsSync(claude('openspec-propose'))).toBe(false);
     expect(existsSync(shared('sa-propose', 'SKILL.md'))).toBe(true);
     expect(existsSync(claude('sa-propose', 'SKILL.md'))).toBe(true);
-    expect(output).toContain('Removed:');
+    // Named, as in an up-to-date run.
+    expect(output).toContain('former name (replaced by sa-*)');
+    expect(output).toContain('.agents/skills/openspec-propose');
   });
 
   it('removes untouched copies made where links could not be, and their empty folders', async () => {
@@ -361,5 +374,110 @@ describe('migration of skills under their former openspec-* names', () => {
     });
     expect(existsSync(legacy('openspec-propose'))).toBe(false);
     expect(readFileSync(legacy('openspec-explore', 'SKILL.md'), 'utf-8')).toBe(edited);
+  });
+
+  describe('sa-verify, the name verify had in SpecAgile 2.1.1 to 6.0.0', () => {
+    const WITH_VERIFY: GlobalConfig = {
+      featureFlags: {},
+      profile: 'custom',
+      delivery: 'both',
+      workflows: [...CORE_WORKFLOWS, 'verify'],
+    };
+
+    /** A project SpecAgile set up with verify: sa-verify shared, and Claude's link or copy of it. */
+    async function specagileProject(text: string, claudeSpot: 'link' | 'copy' | 'none'): Promise<void> {
+      await fs.mkdir(getToolDir(testDir), { recursive: true });
+      await write(shared('sa-verify', 'SKILL.md'), text);
+      if (claudeSpot === 'link') await link(shared('sa-verify'), claude('sa-verify'));
+      if (claudeSpot === 'copy') await write(claude('sa-verify', 'SKILL.md'), text);
+      await write(shared('.openspec-target'), claudeSpot === 'none' ? 'agents\n' : 'claude own-files\n');
+    }
+
+    it('removes an untouched sa-verify from 6.0.0 and its link, leaving sa-audit and its link', async () => {
+      mockState.config = WITH_VERIFY;
+      await specagileProject(releasedSaVerify('v6.0.0'), 'link');
+      expect(await isLink(claude('sa-verify'))).toBe(true);
+
+      const output = await update();
+
+      expect(existsSync(shared('sa-verify'))).toBe(false);
+      expect(await isLink(claude('sa-verify'))).toBe(false);
+      expect(existsSync(claude('sa-verify'))).toBe(false);
+      expect(readFileSync(shared('sa-audit', 'SKILL.md'), 'utf-8')).toContain('name: sa-audit');
+      expect(existsSync(claude('sa-audit', 'SKILL.md'))).toBe(true);
+      expect(output).toContain('.agents/skills/sa-verify');
+      expect(output).toContain('former name (replaced by sa-*)');
+    });
+
+    it('removes an untouched sa-verify from 2.1.2, whose text differs from 6.0.0\'s', async () => {
+      expect(releasedSaVerify('v2.1.2').replace(/\r\n/g, '\n')).not.toBe(releasedSaVerify('v6.0.0').replace(/\r\n/g, '\n'));
+      mockState.config = WITH_VERIFY;
+      await specagileProject(releasedSaVerify('v2.1.2'), 'none');
+
+      await update();
+
+      expect(existsSync(shared('sa-verify'))).toBe(false);
+      expect(existsSync(shared('sa-audit', 'SKILL.md'))).toBe(true);
+    });
+
+    it('removes an untouched copy in Claude Code\'s folder and its empty folder', async () => {
+      mockState.config = WITH_VERIFY;
+      await specagileProject(releasedSaVerify('v6.0.0'), 'copy');
+      await write(claude('sa-verify', 'SKILL.md'), releasedSaVerify('v6.0.0').replace(/\r?\n/g, '\r\n'));
+
+      await update();
+
+      expect(existsSync(claude('sa-verify'))).toBe(false);
+      expect(existsSync(shared('sa-verify'))).toBe(false);
+      expect(existsSync(claude('sa-audit', 'SKILL.md'))).toBe(true);
+    });
+
+    it('removes sa-verify when the profile does not install verify, without installing sa-audit', async () => {
+      await specagileProject(releasedSaVerify('v6.0.0'), 'none');
+
+      await update();
+
+      expect(existsSync(shared('sa-verify'))).toBe(false);
+      expect(existsSync(shared('sa-audit'))).toBe(false);
+    });
+
+    it('keeps and reports an edited sa-verify under its former name, and installs sa-audit', async () => {
+      mockState.config = WITH_VERIFY;
+      const edited = `${releasedSaVerify('v6.0.0')}\nOur team step.\n`;
+      await specagileProject(edited, 'none');
+
+      const output = await update();
+
+      expect(readFileSync(shared('sa-verify', 'SKILL.md'), 'utf-8')).toBe(edited);
+      expect(output).toContain('.agents/skills/sa-verify');
+      expect(output).toContain('Kept 1 skill under its former name that differs from what OpenSpec or SpecAgile wrote');
+      expect(existsSync(shared('sa-audit', 'SKILL.md'))).toBe(true);
+    });
+
+    it("removes the openspec-verify-change OpenSpec wrote with upstream's verify template", async () => {
+      mockState.config = WITH_VERIFY;
+      const written = upstreamSharedText('verify');
+      expect(written).toContain('name: openspec-verify-change');
+      expect(written).toContain('## Verification Report: <change-name>');
+      await fs.mkdir(getToolDir(testDir), { recursive: true });
+      await write(shared('openspec-verify-change', 'SKILL.md'), written);
+      await write(shared('.openspec-target'), 'agents\n');
+
+      await update();
+
+      expect(existsSync(shared('openspec-verify-change'))).toBe(false);
+      expect(existsSync(shared('sa-audit', 'SKILL.md'))).toBe(true);
+    });
+
+    it("never touches a user's skill that only shares the sa-verify prefix", async () => {
+      mockState.config = WITH_VERIFY;
+      await specagileProject(releasedSaVerify('v6.0.0'), 'none');
+      await write(shared('sa-verify-security', 'SKILL.md'), 'my security checks');
+
+      const output = await update();
+
+      expect(readFileSync(shared('sa-verify-security', 'SKILL.md'), 'utf-8')).toBe('my security checks');
+      expect(output).not.toContain('sa-verify-security');
+    });
   });
 });

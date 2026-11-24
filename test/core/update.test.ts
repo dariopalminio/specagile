@@ -321,6 +321,36 @@ describe('UpdateCommand', () => {
 
   describe('skill updates', () => {
 
+    // SpecAgile: verify installed as sa-verify from 2.1.1 to 6.0.0.
+    it('replaces an untouched sa-verify with sa-audit and says so', async () => {
+      setMockConfig({ featureFlags: {}, profile: 'custom', delivery: 'both', workflows: [...ALL_WORKFLOWS] });
+      await new InitCommand({ tools: 'claude', force: true }).execute(testDir);
+      const released = await fs.readFile(
+        path.join(__dirname, '..', 'fixtures', 'former-sa-skills', 'v6.0.0', 'sa-verify', 'SKILL.md'),
+        'utf-8'
+      );
+      const sharedSaVerify = path.join(testDir, '.agents', 'skills', 'sa-verify');
+      const claudeSaVerify = path.join(testDir, '.claude', 'skills', 'sa-verify');
+      await fs.mkdir(sharedSaVerify, { recursive: true });
+      await fs.writeFile(path.join(sharedSaVerify, 'SKILL.md'), released);
+      await fs.mkdir(claudeSaVerify, { recursive: true });
+      await fs.writeFile(path.join(claudeSaVerify, 'SKILL.md'), released);
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+      await new UpdateCommand({ force: true }).execute(testDir);
+
+      const output = consoleSpy.mock.calls.flat().map(String).join('\n');
+      expect(await FileSystemUtils.directoryExists(sharedSaVerify)).toBe(false);
+      expect(await FileSystemUtils.directoryExists(claudeSaVerify)).toBe(false);
+      expect(await fs.readFile(path.join(testDir, '.agents', 'skills', 'sa-audit', 'SKILL.md'), 'utf-8')).toContain(
+        'name: sa-audit'
+      );
+      expect(await FileSystemUtils.fileExists(path.join(testDir, '.claude', 'skills', 'sa-audit', 'SKILL.md'))).toBe(true);
+      expect(output).toContain('.agents/skills/sa-verify');
+      expect(output).toContain('.claude/skills/sa-verify');
+      expect(output).toContain('former name (replaced by sa-*)');
+    });
+
     it('keeps a tool with no folder of its own set up when delivery is later set to both', async () => {
       // Cursor reads the shared copy and gets no commands, so it has no folder
       // of its own; a delivery change must not take it for a deleted tool.
@@ -1342,7 +1372,7 @@ metadata:
         'sa-continue-change',
         'sa-ff-change',
         'sa-bulk-archive-change',
-        'sa-verify',
+        'sa-audit',
       ];
 
       for (const skillName of nonCoreSkillNames) {

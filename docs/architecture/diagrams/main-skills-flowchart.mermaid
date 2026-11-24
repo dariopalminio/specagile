@@ -3,7 +3,7 @@ flowchart TD
     S --> P["sa-plan"]
     P --> T["sa-tasks"]
     T--> I["sa-implement"]
-    I -. "verificación opcional" .-> V["sa-verify"]
+    I -. "auditoría opcional (antes del PR)" .-> V["sa-audit"]
     I --> A["sa-archive"]
     V --> A
     A -. "sincroniza deltas cuando corresponde" .-> Y["sa-sync-specs"]

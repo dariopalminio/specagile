@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Breaking Changes
+
+- **The `verify` workflow installs as `sa-audit` instead of `sa-verify`.** The skill audits a change before its pull request: it checks the implementation against the change's artifacts (specs, tasks, design) and reports drift between spec and code. Invoke it as `/sa-audit` (`$sa-audit` in Codex) or ask for it as "specagile audit"; after `specagile update`, `/sa-verify` and "specagile verify" no longer exist.
+- **Its report is an Audit Report**, headed `## Audit Report: <change>`, and its verdict says whether the change is ready for its pull request: "All checks passed. Ready for PR.", "Ready for PR (with noted improvements).", or "X critical issue(s) found. Fix before opening the PR." instead of "Ready for archive" and "Fix before archiving".
+- **The checks and their inputs don't change.** The audit evaluates Completeness, Correctness and Coherence with the same rules as before (REMOVED and RENAMED requirements, *Not applicable* and *Not verified*, `skip_specs`) and reads the same inputs: the change's artifacts and the code. It is still read-only and advisory: it runs no tests or builds, edits nothing, doesn't archive, and `sa-archive` keeps its own checks.
+- **The workflow id is still `verify`.** A saved configuration with `"workflows": [..., "verify"]` keeps working; `specagile config profile` lists it as "Audit change". `verify` is still outside the `core` profile.
+- **Run `specagile update` in each project with `sa-verify`, then commit the change.** It installs `sa-audit` (when the profile has `verify`) and removes the `sa-verify` that SpecAgile 2.1.1 to 6.0.0 installed, with its links, as long as you didn't edit it; the output names what it removed. `specagile update --dry-run` shows both first. An `sa-verify` you edited is kept and listed in the output: copy what you need into `sa-audit` or your own skill, then delete it. A skill of your own with a similar name, such as `sa-verify-security`, is left alone.
+- **The skills installed for the machine lose `sa-verify` too.** When `specagile update` (or `specagile init`) refreshes the global skills, it removes `sa-verify` from `~/.agents/skills` and from each tool's global folder, even if you edited it, as it does with any global skill your profile no longer installs; `specagile update --dry-run` lists it first. The `openspec-*` skills an OpenSpec install put there are left alone.
+- **Update SpecAgile on every machine before committing the skills.** A teammate on 6.0.0 or earlier doesn't know `sa-audit`: their `specagile update` installs `sa-verify` again, and the next `update` with this version removes it again.
+
 ## 6.0.0
 
 ### Breaking Changes

@@ -31,7 +31,8 @@ const NATURAL_VERB_BY_WORKFLOW: Record<string, string> = {
   sync: 'sync',
   archive: 'archive',
   'bulk-archive': 'bulk-archive',
-  verify: 'verify',
+  // SpecAgile: verify installs as sa-audit, triggered by "specagile audit".
+  verify: 'audit',
   onboard: 'onboard',
   propose: 'propose',
   specify: 'specify',
@@ -141,6 +142,12 @@ describe('workflow verb triggers', () => {
       expect(description).toContain(`"opsx ${workflowId}"`);
     }
   );
+
+  it('names "specagile audit" for sa-audit, never "specagile verify"', () => {
+    const description = descriptionOf('verify');
+    expect(description).toContain('"specagile audit"');
+    expect(description).not.toContain('specagile verify');
+  });
 
   it.each(Object.keys(NATURAL_VERB_BY_WORKFLOW))(
     '%s names no "openspec <verb>" phrase',

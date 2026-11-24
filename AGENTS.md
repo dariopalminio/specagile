@@ -1,8 +1,10 @@
 # AGENTS.md
 
 Guía para agentes (Claude Code, Codex, OpenCode) que trabajen en **SpecAgile**,
-el fork de [OpenSpec](https://github.com/Fission-AI/OpenSpec) con flujo de tres
-comandos (`specify` → `plan` → `implement`) y specs vivas en `.feature`.
+el fork de [OpenSpec](https://github.com/Fission-AI/OpenSpec) con flujo largo
+comandos (`explore` → `specify` → `plan` → `tasks` → `implement` → `audit` → `archive`) y
+flujo corto comandos (`propose` → `implement` → `archive`)
+
 
 ## Entorno
 

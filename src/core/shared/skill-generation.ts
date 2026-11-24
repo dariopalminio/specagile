@@ -14,12 +14,12 @@ import {
   getSyncSpecsSkillTemplate,
   getArchiveChangeSkillTemplate,
   getBulkArchiveChangeSkillTemplate,
-  getVerifyChangeSkillTemplate,
   getOnboardSkillTemplate,
   getOpsxProposeSkillTemplate,
   getSpecifySkillTemplate,
   getPlanSkillTemplate,
   getTasksSkillTemplate,
+  getAuditSkillTemplate,
   getOpsxExploreCommandTemplate,
   getOpsxNewCommandTemplate,
   getOpsxContinueCommandTemplate,
@@ -94,7 +94,9 @@ function allSkillTemplates(): SkillTemplateEntry[] {
     { template: getSyncSpecsSkillTemplate(), ...dir('sync') },
     { template: getArchiveChangeSkillTemplate(), ...dir('archive') },
     { template: getBulkArchiveChangeSkillTemplate(), ...dir('bulk-archive') },
-    { template: getVerifyChangeSkillTemplate(), ...dir('verify') },
+    // SpecAgile: verify installs as sa-audit, upstream's verify text framed as
+    // an audit before the PR (src/core/templates/workflows/audit.ts).
+    { template: getAuditSkillTemplate(), ...dir('verify') },
     { template: getOnboardSkillTemplate(), ...dir('onboard') },
     { template: getOpsxProposeSkillTemplate(), ...dir('propose') },
     // SpecAgile's skill-only workflows: no command template (they never had one).

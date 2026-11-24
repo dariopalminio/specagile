@@ -7,6 +7,9 @@ import {
   CLI_NAME,
   CLI_SUBCOMMANDS,
   CLI_WORDS,
+  CURRENT_SKILL_NAMES,
+  FORMER_SA_SKILL_NAME_BY_WORKFLOW,
+  FORMER_SA_SKILL_NAMES,
   FORMER_SKILL_NAME_BY_WORKFLOW,
   FORMER_SKILL_NAMES,
   KNOWN_SKILL_NAMES,
@@ -36,7 +39,7 @@ const EXPECTED_SKILL_NAMES: Record<WorkflowId, [former: string | undefined, curr
   plan: ['openspec-plan', 'sa-plan'],
   tasks: [undefined, 'sa-tasks'],
   apply: ['openspec-apply-change', 'sa-implement'],
-  verify: ['openspec-verify-change', 'sa-verify'],
+  verify: ['openspec-verify-change', 'sa-audit'],
   archive: ['openspec-archive-change', 'sa-archive'],
   new: ['openspec-new-change', 'sa-new-change'],
   continue: ['openspec-continue-change', 'sa-continue-change'],
@@ -45,6 +48,11 @@ const EXPECTED_SKILL_NAMES: Record<WorkflowId, [former: string | undefined, curr
   onboard: ['openspec-onboard', 'sa-onboard'],
   update: ['openspec-update-change', 'sa-update-change'],
   sync: ['openspec-sync-specs', 'sa-sync-specs'],
+};
+
+// The sa-* name a workflow had in an earlier SpecAgile release (2.1.1 to 6.0.0).
+const FORMER_SA_SKILL_NAMES_BY_WORKFLOW_EXPECTED: Partial<Record<WorkflowId, string>> = {
+  verify: 'sa-verify',
 };
 
 describe('fork identity tables', () => {
@@ -71,7 +79,9 @@ describe('fork identity tables', () => {
     for (const workflow of ALL_WORKFLOWS) {
       const [former, current] = EXPECTED_SKILL_NAMES[workflow];
       expect(FORMER_SKILL_NAME_BY_WORKFLOW[workflow]).toBe(former);
-      expect(formerSkillNames(workflow)).toEqual(former === undefined ? [] : [former]);
+      const formerSa = FORMER_SA_SKILL_NAMES_BY_WORKFLOW_EXPECTED[workflow];
+      expect(FORMER_SA_SKILL_NAME_BY_WORKFLOW[workflow]).toBe(formerSa);
+      expect(formerSkillNames(workflow)).toEqual([former, formerSa].filter((name) => name !== undefined));
       expect(SKILL_NAME_BY_WORKFLOW[workflow]).toBe(current);
     }
   });
@@ -81,9 +91,29 @@ describe('fork identity tables', () => {
       ALL_WORKFLOWS.filter((workflow) => workflow !== 'tasks').sort()
     );
     expect(formerSkillNames('tasks')).toEqual([]);
-    expect(FORMER_SKILL_NAMES).toHaveLength(14);
+    // OpenSpec's fourteen, then SpecAgile's own former name.
+    expect(Object.values(FORMER_SKILL_NAME_BY_WORKFLOW)).toHaveLength(14);
+    expect([...FORMER_SKILL_NAMES].sort()).toEqual([...Object.values(FORMER_SKILL_NAME_BY_WORKFLOW), 'sa-verify'].sort());
     expect(FORMER_SKILL_NAMES).not.toContain('openspec-tasks');
     expect(KNOWN_SKILL_NAMES).not.toContain('openspec-tasks');
+  });
+
+  it('knows sa-verify as the former name of verify, and no other former sa-* name', () => {
+    expect(formerSkillNames('verify')).toEqual(['openspec-verify-change', 'sa-verify']);
+    expect(FORMER_SA_SKILL_NAME_BY_WORKFLOW).toEqual({ verify: 'sa-verify' });
+    expect(FORMER_SA_SKILL_NAMES).toEqual(['sa-verify']);
+    for (const workflow of ALL_WORKFLOWS.filter((id) => id !== 'verify')) {
+      expect(formerSkillNames(workflow).filter((name) => name.startsWith('sa-')), workflow).toEqual([]);
+    }
+    expect(KNOWN_SKILL_NAMES).toContain('sa-verify');
+    expect(CURRENT_SKILL_NAMES).not.toContain('sa-verify');
+  });
+
+  it('leaves sa-verify as written: no template says it', () => {
+    expect(applyForkNames('sa-verify')).toBe('sa-verify');
+    expect(applyForkNames('/sa-verify add-auth')).toBe('/sa-verify add-auth');
+    expect(applyForkIdentity('name: sa-verify\n')).toBe('name: sa-verify\n');
+    expect(applyForkIdentity('/openspec-verify-change')).toBe('/sa-audit');
   });
 
   it("translates the tasks template's name without making it a former name", () => {
@@ -98,7 +128,10 @@ describe('fork identity tables', () => {
 
   it('knows both the current and the former names', () => {
     expect(new Set(KNOWN_SKILL_NAMES)).toEqual(
-      new Set(Object.values(EXPECTED_SKILL_NAMES).flat().filter((name) => name !== undefined))
+      new Set([
+        ...Object.values(EXPECTED_SKILL_NAMES).flat().filter((name) => name !== undefined),
+        ...Object.values(FORMER_SA_SKILL_NAMES_BY_WORKFLOW_EXPECTED),
+      ])
     );
   });
 

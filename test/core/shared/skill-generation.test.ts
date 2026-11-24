@@ -33,7 +33,7 @@ describe('skill-generation', () => {
       expect(dirNames).toContain('sa-sync-specs');
       expect(dirNames).toContain('sa-archive');
       expect(dirNames).toContain('sa-bulk-archive-change');
-      expect(dirNames).toContain('sa-verify');
+      expect(dirNames).toContain('sa-audit');
       expect(dirNames).toContain('sa-onboard');
       expect(dirNames).toContain('sa-propose');
       expect(dirNames).toContain('sa-specify');

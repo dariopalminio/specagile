@@ -22,3 +22,4 @@ export { getFeedbackSkillTemplate } from './workflows/feedback.js';
 export { getSpecifySkillTemplate } from './workflows/specify.js';
 export { getPlanSkillTemplate } from './workflows/plan.js';
 export { getTasksSkillTemplate } from './workflows/tasks.js';
+export { AUDIT_DESCRIPTION, AUDIT_TEXT_REPLACEMENTS, getAuditSkillTemplate } from './workflows/audit.js';

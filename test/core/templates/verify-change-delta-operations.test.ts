@@ -6,8 +6,9 @@ import {
   getVerifyChangeSkillTemplate,
   getOpsxVerifyCommandTemplate,
 } from '../../../src/core/templates/skill-templates.js';
-// SpecAgile: the committed skills.sh copy names `sa-*` and `specagile`.
-import { withUpstreamIdentity } from '../../helpers/fork-identity.js';
+// SpecAgile: the committed skills.sh copy names `sa-*` and `specagile`, and
+// verify installs as sa-audit, upstream's text framed as an audit.
+import { withUpstreamIdentity, withUpstreamVerifyText } from '../../helpers/fork-identity.js';
 
 // #1959: verify treated every "### Requirement:" in a change's delta specs as
 // behavior that must exist, whichever section it sat under. A REMOVED
@@ -20,7 +21,9 @@ const bodies: Array<[string, string]> = [
   // The committed skills.sh mirror is what `npx skills add` installs.
   [
     'committed skill file',
-    withUpstreamIdentity(readFileSync(new URL('../../../skills/sa-verify/SKILL.md', import.meta.url), 'utf8')),
+    withUpstreamVerifyText(
+      withUpstreamIdentity(readFileSync(new URL('../../../skills/sa-audit/SKILL.md', import.meta.url), 'utf8'))
+    ),
   ],
 ];
 

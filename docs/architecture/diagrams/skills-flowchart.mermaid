@@ -18,7 +18,7 @@ flowchart TD
     FF["sa-ff-change"]
     UPDATE["sa-update-change"]
     IMPLEMENT["sa-implement"]
-    VERIFY["sa-verify"]
+    AUDIT["sa-audit"]
     SYNC["sa-sync-specs"]
     ARCHIVE["sa-archive"]
     BULK["sa-bulk-archive-change"]
@@ -43,8 +43,8 @@ flowchart TD
     UPDATE -. "deja el cambio revisado" .-> CHANGE
 
     READY --> IMPLEMENT --> CODE
-    CODE -. "verificación opcional" .-> VERIFY
-    VERIFY -. "hallazgos por corregir" .-> IMPLEMENT
+    CODE -. "auditoría opcional (antes del PR)" .-> AUDIT
+    AUDIT -. "hallazgos por corregir" .-> IMPLEMENT
 
     SPEC -. "sin archivar" .-> SYNC --> MAIN
     CODE --> ARCHIVE --> DONE

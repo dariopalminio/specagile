@@ -400,7 +400,7 @@ describe('InitCommand', () => {
         'sa-continue-change',
         'sa-ff-change',
         'sa-bulk-archive-change',
-        'sa-verify',
+        'sa-audit',
       ];
 
       for (const skillName of nonCoreSkillNames) {

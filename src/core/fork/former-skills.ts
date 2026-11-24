@@ -1,17 +1,21 @@
 /**
- * SpecAgile: retires skills installed under their former `openspec-*` names
- * (by OpenSpec upstream, or by this fork before the rename), once `init` or
- * `update` has installed the `sa-*` ones that replace them.
+ * SpecAgile: retires skills installed under their former names, once `init`
+ * or `update` has installed the `sa-*` ones that replace them: the
+ * `openspec-*` names OpenSpec upstream (and this fork before the rename)
+ * used, and `sa-verify`, `verify`'s name in SpecAgile 2.1.1 to 6.0.0.
  *
- * Only the fourteen names in FORMER_SKILL_NAME_BY_WORKFLOW are looked at (a
- * workflow added after the rename, such as `tasks`, has none),
- * never an `openspec-*` glob. A SKILL.md goes only when it is text OpenSpec
- * wrote: a release's (`isReleasedGeneratedContent`) or what this version
- * generates for the skill once the fork's identity is applied, which covers
- * OpenSpec 2.0.0 and the fork before the rename (see FORMER_RELEASE_FINGERPRINTS).
- * Anything else is the user's: kept and reported. A link of the user's is left
- * alone without a word. Every change goes through the run's `ops` and is read
- * through its `view`, so `update --dry-run` plans it.
+ * Only the names `formerSkillNames` lists are looked at (a workflow added
+ * after the rename, such as `tasks`, has none), never an `openspec-*` or
+ * `sa-*` glob. A SKILL.md goes only when it is text OpenSpec or SpecAgile
+ * wrote: a release's (`isReleasedGeneratedContent`, FORMER_RELEASE_FINGERPRINTS
+ * for OpenSpec 2.0.0 and the fork before the rename,
+ * FORMER_SA_SKILL_FINGERPRINTS for the `sa-verify` SpecAgile released), or
+ * what this version generates for the skill once the fork's identity is
+ * applied, which for a workflow in FORMER_TEMPLATE_BY_WORKFLOW includes the
+ * upstream template the fork's replaces. Anything else is the user's: kept and
+ * reported. A link of the user's is left alone without a word. Every change
+ * goes through the run's `ops` and is read through its `view`, so
+ * `update --dry-run` plans it.
  */
 import path from 'path';
 import * as fs from 'fs';
@@ -30,8 +34,10 @@ import {
 } from '../shared/generated-fingerprint.js';
 import { generateSkillContent, getSkillTemplates, stripVolatileFrontmatter } from '../shared/skill-generation.js';
 import { classifySkillLinkSpot, isCheckedOutLink } from '../shared/skill-links.js';
+import { getVerifyChangeSkillTemplate, type SkillTemplate } from '../templates/skill-templates.js';
 import { getTransformerForTool, transformToSharedSkillReferences } from '../../utils/command-references.js';
 import { FORMER_RELEASE_FINGERPRINTS } from './former-release-fingerprints.js';
+import { FORMER_SA_SKILL_FINGERPRINTS } from './former-sa-skill-fingerprints.js';
 import {
   resolveFormerOwnSkillsDir,
   resolveSharedSkillsDir,
@@ -41,12 +47,7 @@ import {
   usesSharedSkills,
 } from '../shared/skill-paths.js';
 import { FileSystemUtils } from '../../utils/file-system.js';
-import {
-  FORMER_SKILL_NAME_BY_WORKFLOW,
-  SKILL_NAME_BY_WORKFLOW,
-  applyForkIdentity,
-  formerSkillNames,
-} from './identity.js';
+import { FORMER_SKILL_NAME_BY_WORKFLOW, applyForkIdentity, formerSkillNames } from './identity.js';
 
 export interface FormerSkillMigrationInput {
   projectPath: string;
@@ -74,12 +75,22 @@ export interface FormerSkillMigrationResult {
   kept: string[];
 }
 
-/** Each workflow with a former name, and that name (`tasks` has none). */
+/** Each workflow with a former name, and each of its names (`tasks` has none). */
 const FORMER_SKILLS: ReadonlyArray<{ workflow: WorkflowId; former: string }> = (
   Object.keys(FORMER_SKILL_NAME_BY_WORKFLOW) as WorkflowId[]
 ).flatMap((workflow) => formerSkillNames(workflow).map((former) => ({ workflow, former })));
 const toPosix = (p: string) => p.split(path.sep).join('/');
-const FORMER_RELEASES = new Set<string>(FORMER_RELEASE_FINGERPRINTS);
+const FORMER_RELEASES = new Set<string>([...FORMER_RELEASE_FINGERPRINTS, ...FORMER_SA_SKILL_FINGERPRINTS]);
+
+/**
+ * The upstream template a fork-owned one replaces, for each workflow whose
+ * skill OpenSpec wrote with it: OpenSpec 2.1's `openspec-verify-change` is
+ * upstream's verify text, while this version writes sa-audit's
+ * (src/core/templates/workflows/audit.ts).
+ */
+const FORMER_TEMPLATE_BY_WORKFLOW: Readonly<Partial<Record<WorkflowId, () => SkillTemplate>>> = {
+  verify: getVerifyChangeSkillTemplate,
+};
 
 /**
  * A skill's text as it compares across releases and install paths: line
@@ -89,13 +100,11 @@ const FORMER_RELEASES = new Set<string>(FORMER_RELEASE_FINGERPRINTS);
 const comparable = (text: string) => stripVolatileFrontmatter(normalizeGeneratedContent(text));
 
 /**
- * What this version writes for skill `dirName` in `.agents/skills`, and, given
- * a tool, the forms of it that tool's own folder can hold.
+ * What `template` generates in `.agents/skills`, and, given a tool, the forms
+ * of it that tool's own folder can hold.
  */
-function currentSkillTexts(dirName: string, version: string, toolId?: string): string[] {
-  const entry = getSkillTemplates().find((candidate) => candidate.dirName === dirName);
-  if (!entry) return [];
-  const shared = generateSkillContent(entry.template, version, transformToSharedSkillReferences);
+function templateTexts(template: SkillTemplate, version: string, toolId?: string): string[] {
+  const shared = generateSkillContent(template, version, transformToSharedSkillReferences);
   if (!toolId) return [shared];
   const transformer = getTransformerForTool(
     toolId,
@@ -103,13 +112,28 @@ function currentSkillTexts(dirName: string, version: string, toolId?: string): s
     resolveCommandSurfaceCapability(toolId),
     resolveCommandInvocation(toolId)
   );
-  return [shared, projectSkillText(toolId, shared), generateSkillContent(entry.template, version, transformer)];
+  return [shared, projectSkillText(toolId, shared), generateSkillContent(template, version, transformer)];
 }
 
 /**
- * Whether a SKILL.md is OpenSpec's: a release's text (upstream's fingerprints,
- * and this fork's for OpenSpec 2.0.0 and the fork before the rename), or one
- * of `texts` once the fork's identity is applied.
+ * What this version writes for `workflow`'s skill (templateTexts), and, for a
+ * workflow in FORMER_TEMPLATE_BY_WORKFLOW, what the upstream template the
+ * fork's replaces writes.
+ */
+function currentSkillTexts(workflow: WorkflowId, version: string, toolId?: string): string[] {
+  const entry = getSkillTemplates().find((candidate) => candidate.workflowId === workflow);
+  const former = FORMER_TEMPLATE_BY_WORKFLOW[workflow];
+  return [
+    ...(entry ? templateTexts(entry.template, version, toolId) : []),
+    ...(former ? templateTexts(former(), version, toolId) : []),
+  ];
+}
+
+/**
+ * Whether a SKILL.md is OpenSpec's or SpecAgile's: a release's text
+ * (upstream's fingerprints, this fork's for OpenSpec 2.0.0 and the fork before
+ * the rename, and the `sa-verify` SpecAgile released), or one of `texts` once
+ * the fork's identity is applied.
  */
 function classifyFormerSkill(
   skillDir: string,
@@ -204,7 +228,7 @@ export async function migrateFormerSkills(input: FormerSkillMigrationInput): Pro
         kept.add(display(skillDir));
         continue;
       }
-      const verdict = classifyFormerSkill(skillDir, currentSkillTexts(SKILL_NAME_BY_WORKFLOW[workflow], version), view);
+      const verdict = classifyFormerSkill(skillDir, currentSkillTexts(workflow, version), view);
       if (verdict === 'ours') {
         sharedFate.set(former, 'remove');
       } else {
@@ -227,7 +251,6 @@ export async function migrateFormerSkills(input: FormerSkillMigrationInput): Pro
     if (shared && (isSameFolderTree(ownDir, sharedDir) || !isWithin(projectPath, ownDir))) continue;
 
     for (const { workflow, former } of FORMER_SKILLS) {
-      const current = SKILL_NAME_BY_WORKFLOW[workflow];
       const spot = path.join(ownDir, former);
       const sharedTarget = path.join(sharedDir, former);
       // OpenSpec's link (or what git checked out for it) goes with the shared
@@ -255,7 +278,7 @@ export async function migrateFormerSkills(input: FormerSkillMigrationInput): Pro
       }
       // A copy: of the shared copy (made where a link couldn't be), or one an
       // earlier version wrote in the tool's own folder.
-      const texts = currentSkillTexts(current, version, tool.value);
+      const texts = currentSkillTexts(workflow, version, tool.value);
       const verdict = classifyFormerSkill(spot, texts, view);
       if (verdict === 'ours') await removeSkillFile(spot, tool.value);
       else if (verdict === 'user') kept.add(display(spot));
@@ -279,7 +302,7 @@ export async function migrateFormerSkills(input: FormerSkillMigrationInput): Pro
             kept.add(display(spot));
             continue;
           }
-          const texts = currentSkillTexts(SKILL_NAME_BY_WORKFLOW[workflow], version, tool.value);
+          const texts = currentSkillTexts(workflow, version, tool.value);
           const verdict = classifyFormerSkill(spot, texts, view);
           if (verdict === 'ours') await removeSkillFile(spot, tool.value);
           else if (verdict === 'user') kept.add(display(spot));
@@ -318,7 +341,7 @@ export function formatFormerSkillMigration(
     lines.push(
       `Removed ${removed.length} unchanged skill${removed.length === 1 ? '' : 's'} under ${
         removed.length === 1 ? 'its' : 'their'
-      } former OpenSpec name (replaced by sa-*): ${removed.join(', ')}.`
+      } former name (replaced by sa-*): ${removed.join(', ')}.`
     );
   }
   if ((options.reportKept ?? true) && kept.length > 0) {
@@ -331,8 +354,8 @@ export function formatFormerSkillMigration(
 export function formerSkillsKeptMessage(kept: readonly string[]): string {
   const one = kept.length === 1;
   return (
-    `Kept ${kept.length} skill${one ? '' : 's'} under ${one ? 'its' : 'their'} former OpenSpec name ` +
-    `that ${one ? 'differs' : 'differ'} from what OpenSpec wrote (edited, or not recognized): ${kept.join(', ')}. ` +
+    `Kept ${kept.length} skill${one ? '' : 's'} under ${one ? 'its' : 'their'} former name ` +
+    `that ${one ? 'differs' : 'differ'} from what OpenSpec or SpecAgile wrote (edited, or not recognized): ${kept.join(', ')}. ` +
     `Nothing was changed there; the sa-* skills replace ${one ? 'it' : 'them'}. ` +
     `Delete ${one ? 'it' : 'them'} once you have kept what you need.`
   );

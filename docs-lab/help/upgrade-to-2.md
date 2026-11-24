@@ -66,7 +66,7 @@ Each 1.x command has a skill with the same instructions:
 | `/opsx:new` | `sa-new-change` |
 | `/opsx:continue` | `sa-continue-change` |
 | `/opsx:ff` | `sa-ff-change` |
-| `/opsx:verify` | `sa-verify` |
+| `/opsx:verify` | `sa-audit` |
 | `/opsx:bulk-archive` | `sa-bulk-archive-change` |
 | `/opsx:onboard` | `sa-onboard` |
 

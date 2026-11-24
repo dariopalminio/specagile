@@ -234,9 +234,10 @@ export const WORKFLOW_PROMPT_META: Record<string, WorkflowPromptMeta> = {
     name: 'Bulk archive',
     description: 'Archive multiple completed changes together',
   },
+  // SpecAgile: verify installs as sa-audit (src/core/fork/identity.ts).
   verify: {
-    name: 'Verify change',
-    description: 'Run verification checks against a change',
+    name: 'Audit change',
+    description: 'Audit a change before its pull request',
   },
   onboard: {
     name: 'Onboard',

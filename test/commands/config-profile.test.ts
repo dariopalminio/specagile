@@ -132,7 +132,7 @@ describe('config profile interactive flow', () => {
 
   function addExtraVerifyWorkflowArtifacts(projectDir: string): void {
     // As 2.0 writes it: the shared copy and Claude's link to it.
-    const dirName = 'sa-verify';
+    const dirName = 'sa-audit';
     const sharedDir = path.join(projectDir, '.agents', 'skills', dirName);
     fs.mkdirSync(sharedDir, { recursive: true });
     fs.writeFileSync(path.join(sharedDir, 'SKILL.md'), `name: ${dirName}\n`, 'utf-8');
@@ -254,8 +254,8 @@ describe('config profile interactive flow', () => {
       }),
       expect.objectContaining({
         value: 'verify',
-        name: 'Verify change',
-        description: 'Run verification checks against a change',
+        name: 'Audit change',
+        description: 'Audit a change before its pull request',
       }),
     ]));
   });

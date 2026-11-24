@@ -661,14 +661,14 @@ export class UpdateCommand {
       }
     }
 
-    // SpecAgile: skills under their former `openspec-*` names, now that the
-    // `sa-*` ones are in place; before the sweep, so nothing is told twice.
+    // SpecAgile: skills under their former names (`openspec-*`, `sa-verify`),
+    // now that the `sa-*` ones are in place; before the sweep, so nothing is
+    // told twice. The summary names them, as an up-to-date run does.
     const formerSkills = await this.migrateFormerSkillsForRun(
       resolvedProjectPath,
       configuredAndNewTools,
       failedTools.length > 0
     );
-    removedSkillCount += formerSkills.removed.length;
 
     await this.removeEarlierReleaseLeftovers(
       resolvedProjectPath,
@@ -700,7 +700,10 @@ export class UpdateCommand {
     if (removedSkillCount > 0) {
       this.log(chalk.dim(`Removed: ${removedSkillCount} skill directories`));
     }
-    // SpecAgile: skills kept under their former `openspec-*` names.
+    // SpecAgile: skills removed, and kept, under their former names.
+    for (const line of formatFormerSkillMigration(formerSkills, { reportKept: false })) {
+      this.log(chalk.dim(line));
+    }
     if (formerSkills.kept.length > 0) {
       this.log(chalk.yellow(formerSkillsKeptMessage(formerSkills.kept)));
     }
