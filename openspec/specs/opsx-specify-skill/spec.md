@@ -83,7 +83,8 @@ Cuando el pedido nombra un change activo, `/opsx:specify` SHALL continuar o revi
 #### Scenario: El change ya tiene plan técnico
 - **WHEN** `/opsx:specify` revisa la especificación de un change que ya tiene `design.md` o `tasks.md`
 - **THEN** no modifica esos archivos
-- **AND** avisa que el plan técnico puede haber quedado desactualizado y, cuando `plan` está instalado, sugiere `/opsx:plan` para revisarlo
+- **AND** avisa que el plan técnico puede haber quedado desactualizado
+- **AND** sugiere revisar el diseño con `/opsx:plan` cuando `plan` está instalado y las tareas con `/opsx:tasks` cuando `tasks` está instalado, empezando por el diseño si el change tiene ambos
 
 ### Requirement: Specify Handoff
 Al terminar, `/opsx:specify` SHALL resumir los artefactos escritos y detenerse, indicando cómo continuar con la etapa de planificación sin iniciarla en la misma respuesta.

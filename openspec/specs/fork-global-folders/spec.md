@@ -55,7 +55,7 @@ SpecAgile SHALL ignorar las carpetas globales `openspec` de configuración y de 
 - **GIVEN** la config global de OpenSpec tiene `"profile": "custom"` con los workflows `propose`, `explore`, `apply` y `archive`
 - **AND** SpecAgile todavía no tiene config global
 - **WHEN** el usuario ejecuta `specagile init --tools claude` en un proyecto nuevo
-- **THEN** quedan instalados `sa-propose`, `sa-explore`, `sa-specify`, `sa-plan`, `sa-implement`, `sa-update-change`, `sa-sync-specs` y `sa-archive`
+- **THEN** quedan instalados `sa-propose`, `sa-explore`, `sa-specify`, `sa-plan`, `sa-tasks`, `sa-implement`, `sa-update-change`, `sa-sync-specs` y `sa-archive`
 - **AND** la config global de OpenSpec queda sin cambios
 
 #### Scenario: Un ajuste de SpecAgile no cambia OpenSpec
