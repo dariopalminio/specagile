@@ -371,7 +371,7 @@ describe('InitCommand', () => {
 
       await initCommand.execute(testDir);
 
-      // Core profile: propose, explore, specify, plan, tasks, apply, update, sync, archive
+      // Core profile: propose, explore, specify, plan, tasks, apply, verify, update, sync, archive
       const coreSkillNames = [
         'sa-propose',
         'sa-explore',
@@ -379,18 +379,24 @@ describe('InitCommand', () => {
         'sa-plan',
         'sa-tasks',
         'sa-implement',
+        'sa-audit',
         'sa-update-change',
         'sa-sync-specs',
         'sa-archive',
       ];
 
       for (const skillName of coreSkillNames) {
+        const sharedSkillFile = path.join(testDir, '.agents', 'skills', skillName, 'SKILL.md');
+        expect(await fileExists(sharedSkillFile)).toBe(true);
+        // The Claude Code entry: a link to the shared folder, or a copy where links are refused.
+        expect(await directoryExists(path.join(testDir, '.claude', 'skills', skillName))).toBe(true);
+
         const skillFile = path.join(testDir, '.claude', 'skills', skillName, 'SKILL.md');
         expect(await fileExists(skillFile)).toBe(true);
 
         const content = await fs.readFile(skillFile, 'utf-8');
         expect(content).toContain('---');
-        expect(content).toContain('name:');
+        expect(content).toContain(`name: ${skillName}`);
         expect(content).toContain('description:');
       }
 
@@ -400,7 +406,7 @@ describe('InitCommand', () => {
         'sa-continue-change',
         'sa-ff-change',
         'sa-bulk-archive-change',
-        'sa-audit',
+        'sa-onboard',
       ];
 
       for (const skillName of nonCoreSkillNames) {
@@ -825,7 +831,7 @@ describe('InitCommand', () => {
         .map(String);
       const summary = logCalls.find((entry) => /^\d+ skills in /.test(entry));
       expect(summary).toBe(
-        '9 skills in .agents/skills/ (also in .claude/skills/, .minimax/skills/)'
+        '10 skills in .agents/skills/ (also in .claude/skills/, .minimax/skills/)'
       );
     });
 
@@ -1083,6 +1089,7 @@ describe('InitCommand', () => {
       const skillsDir = path.join(testDir, '.agents', 'skills');
       const skillNames = [
         'sa-archive',
+        'sa-audit',
         'sa-explore',
         'sa-implement',
         'sa-plan',
@@ -2557,11 +2564,12 @@ describe('InitCommand - profile and detection features', () => {
     const logCalls = (console.log as unknown as { mock: { calls: unknown[][] } }).mock.calls.flat().map(String);
     const note = logCalls.find((entry) => entry.includes('more workflows are available'));
     expect(note).toBeTruthy();
-    for (const workflow of ['new', 'continue', 'ff', 'bulk-archive', 'verify', 'onboard']) {
+    for (const workflow of ['new', 'continue', 'ff', 'bulk-archive', 'onboard']) {
       expect(note).toContain(workflow);
     }
     // Workflows that were installed must not be advertised as missing
     expect(note).not.toContain('propose,');
+    expect(note).not.toContain('verify');
     expect(logCalls.some((entry) => entry.includes('specagile config profile'))).toBe(true);
   });
 

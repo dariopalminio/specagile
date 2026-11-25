@@ -6,7 +6,7 @@ A profile is your preference for which OpenSpec workflows (the [skills](../start
 
 ## The core set
 
-The `core` profile installs nine workflows, covering the whole loop from idea to archive:
+The `core` profile installs ten workflows, covering the whole loop from idea to archive:
 
 | Workflow | What it's for |
 |---|---|
@@ -16,6 +16,7 @@ The `core` profile installs nine workflows, covering the whole loop from idea to
 | [`plan`](../reference/skills.md#sa-plan) | Create or revise the technical design of a change proposal whose specification is complete |
 | [`tasks`](../reference/skills.md#sa-tasks) | Create or revise the tasks of a specified change proposal, leaving it ready to implement |
 | [`apply`](../reference/skills.md#sa-implement) | Implement a change proposal's tasks |
+| [`verify`](../reference/skills.md#sa-audit) | Audit a change proposal against its artifacts before the pull request (installs `sa-audit`) |
 | [`update`](../reference/skills.md#sa-update-change) | Revise a change proposal's existing planning artifacts |
 | [`sync`](../reference/skills.md#sa-sync-specs) | Merge a change proposal's spec updates into `specs/` without archiving it |
 | [`archive`](../reference/skills.md#sa-archive) | Move a finished change proposal to the archive |
@@ -24,16 +25,17 @@ Each links to its full contract: arguments, what it creates, and what it respond
 
 `specify`, `plan` and `tasks` split what `propose` does in one step into three stages: agree on *what* the change does, then design *how* to build it, then break it into tasks, then `apply`. Use `propose` when you don't need the pauses in between.
 
+`verify` comes installed so the audit is at hand before the pull request, but running it stays your call: nothing in the flow requires it, and `archive` makes its own checks.
+
 ## Expanding the set: optional workflows
 
-Six more workflows are available beyond the core set. Three of them (`new`, `continue`, `ff`) create a change proposal artifact by artifact, instead of all at once like `propose`.
+Five more workflows are available beyond the core set. Three of them (`new`, `continue`, `ff`) create a change proposal artifact by artifact, instead of all at once like `propose`.
 
 | Workflow | What it's for |
 |---|---|
 | [`new`](../reference/skills.md#sa-new-change) | Start a change proposal as an empty scaffold |
 | [`continue`](../reference/skills.md#sa-continue-change) | Create the next planning artifact in a change proposal, one at a time |
 | [`ff`](../reference/skills.md#sa-ff-change) | Create a change proposal and every planning artifact implementation needs, in one pass |
-| [`verify`](../reference/skills.md#sa-audit) | Audit a change proposal against its artifacts before the pull request (installs `sa-audit`) |
 | [`bulk-archive`](../reference/skills.md#sa-bulk-archive-change) | Archive several change proposals at once |
 | [`onboard`](../reference/skills.md#sa-onboard) | Learn the workflow by doing one real change proposal end to end |
 
@@ -43,7 +45,7 @@ To change the set, run the interactive picker:
 specagile config profile
 ```
 
-The picker lists all fifteen workflows as checkboxes, with the installed ones checked. Any selection that isn't exactly the core nine is saved as the `custom` profile, so you can also uncheck core workflows you don't use. A `custom` profile saved before `tasks` joined the core set does not get it: check `tasks` in the picker, or reset with `specagile config profile core`.
+The picker lists all fifteen workflows as checkboxes, with the installed ones checked. Any selection that isn't exactly the core ten is saved as the `custom` profile, so you can also uncheck core workflows you don't use. A `custom` profile saved before `tasks` or `verify` joined the core set does not get them: check them in the picker, or reset with `specagile config profile core`.
 
 ## Delivery (retired in 2.0)
 
@@ -59,7 +61,7 @@ Switching is two steps: change the profile on your machine, then update each pro
 
    ```bash
    specagile config profile        # interactive
-   specagile config profile core   # reset to the core nine
+   specagile config profile core   # reset to the core ten
    ```
 
 2. Run the update in each project you work in:

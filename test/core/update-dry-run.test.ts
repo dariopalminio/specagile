@@ -263,9 +263,42 @@ describe('openspec update --dry-run', () => {
     });
   });
 
+  /**
+   * The project as a core install from before verify joined the core profile
+   * left it: the beforeEach init installs sa-audit, so take it out again.
+   */
+  async function withoutSaAudit(): Promise<void> {
+    await fs.rm(path.join(testDir, '.claude', 'skills', 'sa-audit'), { recursive: true, force: true });
+    await fs.rm(path.join(testDir, '.agents', 'skills', 'sa-audit'), { recursive: true, force: true });
+  }
+
+  // SpecAgile: verify joined the core profile after 7.0.
+  it('plans sa-audit, and nothing else, for a core project without it', async () => {
+    await withoutSaAudit();
+    const before = await snapshotTree(testDir);
+
+    const plan = await new UpdateCommand({ dryRun: true }).plan(testDir);
+
+    expect(formatUpdatePlan(plan)).toContain('sa-audit');
+    expect(await snapshotTree(testDir)).toEqual(before);
+    await expect(fs.access(path.join(testDir, '.agents', 'skills', 'sa-audit'))).rejects.toThrow();
+
+    // The real update adds sa-audit and leaves the other skills as they were.
+    const changes = await expectPlanMatchesRealUpdate();
+    expect([...changes].sort((a, b) => a.path.localeCompare(b.path))).toEqual([
+      { path: '.agents/skills/sa-audit/SKILL.md', action: 'add', tool: 'openspec' },
+      {
+        path: process.platform === 'win32' ? '.claude/skills/sa-audit/SKILL.md' : '.claude/skills/sa-audit',
+        action: 'add',
+        tool: 'claude',
+      },
+    ]);
+  });
+
   // SpecAgile: verify installed as sa-verify from 2.1.1 to 6.0.0.
   it('plans the removal of an untouched sa-verify and the install of sa-audit, changing nothing', async () => {
     await writeGlobalConfig({ profile: 'custom', delivery: 'both', workflows: ['propose', 'explore', 'specify', 'plan', 'tasks', 'apply', 'update', 'sync', 'archive', 'verify'] });
+    await withoutSaAudit();
     const released = await fs.readFile(
       path.join(__dirname, '..', 'fixtures', 'former-sa-skills', 'v6.0.0', 'sa-verify', 'SKILL.md'),
       'utf-8'
@@ -308,12 +341,12 @@ describe('openspec update --dry-run', () => {
 
     // The shared skill, and Claude's link to it.
     expect(changes).toContainEqual({
-      path: '.agents/skills/sa-audit/SKILL.md',
+      path: '.agents/skills/sa-new-change/SKILL.md',
       action: 'add',
       tool: 'openspec',
     });
     expect(changes).toContainEqual({
-      path: process.platform === 'win32' ? '.claude/skills/sa-audit/SKILL.md' : '.claude/skills/sa-audit',
+      path: process.platform === 'win32' ? '.claude/skills/sa-new-change/SKILL.md' : '.claude/skills/sa-new-change',
       action: 'add',
       tool: 'claude',
     });

@@ -26,7 +26,7 @@ With the skills on this machine, which is the default:
 SpecAgile Setup Complete
 
 Created: Claude Code
-8 skills in ~/.agents/skills/ for every project on this machine
+10 skills in ~/.agents/skills/ for every project on this machine
 Config: specagile/config.yaml (schema: spec-driven)
 ```
 
@@ -36,7 +36,7 @@ With the skills in this project:
 SpecAgile Setup Complete
 
 Created: Claude Code
-8 skills in .agents/skills/ (also in .claude/skills/)
+10 skills in .agents/skills/ (also in .claude/skills/)
 Config: specagile/config.yaml (schema: spec-driven)
 ```
 
@@ -108,14 +108,14 @@ These are the OpenSpec workflows, the actions you'll use as you work. Here they 
 ├── sa-plan/                 design a specified change
 ├── sa-tasks/                write a specified change's tasks
 ├── sa-implement/         implement a change's tasks
+├── sa-audit/         audit a change against its plan before the PR
 ├── sa-update-change/        revise a change's plan
 ├── sa-sync-specs/           sync a change's spec updates into specs/
 ├── sa-archive/       move a finished change to the archive
-├── sa-audit/         audit a change against its plan before the PR (not included by default)
 └── sa-bulk-archive-change/  archive several changes at once (not included by default)
 ```
 
-This is the default set plus two optional workflows. [Profiles](../customize/profiles.md) lists all fifteen.
+This is the default set plus one optional workflow. [Profiles](../customize/profiles.md) lists all fifteen.
 
 Each skill is written once, here, no matter how many tools you set up. A tool that doesn't read `.agents/skills/` (Claude Code, Kiro, and others) gets a link to each skill in its own folder, such as `.claude/skills/sa-propose`. Windows project installs use copies that Git can carry to another checkout. [Supported tools](../reference/supported-tools.md#where-skills-go) shows the layout and which tools get links.
 

@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Minor Changes
+
+- **`sa-audit` comes with the `core` profile.** The `verify` workflow joins it after `apply`, so the `core` profile has ten workflows (fifteen in all), and `specagile init` installs `sa-audit` with the other skills, in the project or for the machine. `specagile config profile` shows "Audit change" checked for `core`, `specagile config profile core` selects it, and `specagile config list` lists `verify` among the workflows from the core profile. Running the audit is still up to you: no other skill needs it, and `sa-archive` keeps its own checks.
+- **Run `specagile update` in each project with the `core` profile.** It installs `sa-audit` and leaves the other skills as they are; `specagile update --dry-run` shows it first. With the skills in the project, it adds `.agents/skills/sa-audit/` and its entry in each tool's folder (such as `.claude/skills/sa-audit`): commit them. With the skills for the machine, it adds `sa-audit` to `~/.agents/skills/` and each tool's global folder.
+- **A `custom` profile does not change.** Without `verify`, `specagile update` doesn't install `sa-audit` and notes that the profile is missing the core workflow `verify`. To add it, check "Audit change" in `specagile config profile`, or reset with `specagile config profile core`, then run `specagile update`. To leave it out of a `core` profile, uncheck "Audit change" in `specagile config profile`: that saves a `custom` profile, and the next `specagile update` removes `sa-audit`.
+- **Update SpecAgile on every machine before committing `sa-audit`.** For a teammate on 7.0.x, `verify` is not in `core`: their `specagile update` removes `sa-audit` as a deselected workflow, and the next `update` with this version installs it again.
+
 ## 7.0.1
 
 ### Patch Changes

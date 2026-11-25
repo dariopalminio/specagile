@@ -71,7 +71,7 @@ Then, in your terminal:
 specagile update
 ```
 
-When a newer CLI is out, [`specagile update`](../reference/cli.md#specagile-update) says so, and for an npm install it can run the upgrade for you. Every run refreshes your skills, which never update on their own. With global skills, running it once from any folder is enough, and it prints `✓ The 8 skills for this machine are up to date (v2.1.0)`. With skills kept in a project, run it in each project; a current one prints `✓ All 2 tool(s) up to date (v2.1.0)`.
+When a newer CLI is out, [`specagile update`](../reference/cli.md#specagile-update) says so, and for an npm install it can run the upgrade for you. Every run refreshes your skills, which never update on their own. With global skills, running it once from any folder is enough, and it prints `✓ The 10 skills for this machine are up to date (v2.1.0)`. With skills kept in a project, run it in each project; a current one prints `✓ All 2 tool(s) up to date (v2.1.0)`.
 
 > [!NOTE]
 > A global npm install belongs to one Node installation. Switch Node versions with nvm and the `specagile` command doesn't come along, so install it again under the new version.

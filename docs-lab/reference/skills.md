@@ -54,13 +54,13 @@ Invoking a skill by name is always the second case. A project whose `specagile/c
 | [sa-plan](#sa-plan) | Create or revise the technical design of a specified change proposal | Core |
 | [sa-tasks](#sa-tasks) | Create or revise the tasks of a specified change proposal | Core |
 | [sa-implement](#sa-implement) | Implement a change proposal's tasks | Core |
+| [sa-audit](#sa-audit) | Audit a change proposal against its artifacts before the pull request | Core |
 | [sa-update-change](#sa-update-change) | Revise a change proposal's plan | Core |
 | [sa-sync-specs](#sa-sync-specs) | Merge a change proposal's spec updates into `specs/` | Core |
 | [sa-archive](#sa-archive) | Move a finished change proposal to the archive | Core |
 | [sa-new-change](#sa-new-change) | Start a change proposal as an empty scaffold | Optional |
 | [sa-continue-change](#sa-continue-change) | Create the next planning artifact, one at a time | Optional |
 | [sa-ff-change](#sa-ff-change) | Create a change proposal with every artifact implementation needs, in one pass | Optional |
-| [sa-audit](#sa-audit) | Audit a change proposal against its artifacts before the pull request | Optional |
 | [sa-bulk-archive-change](#sa-bulk-archive-change) | Archive several change proposals at once | Optional |
 | [sa-onboard](#sa-onboard) | Learn the workflow by doing one real change proposal end to end | Optional |
 

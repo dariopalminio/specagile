@@ -125,14 +125,14 @@ With the skills in the project (`--scope project`), OpenSpec writes them once, t
 SpecAgile Setup Complete
 
 Created: Claude Code
-8 skills in .agents/skills/ (also in .claude/skills/)
+10 skills in .agents/skills/ (also in .claude/skills/)
 Config: specagile/config.yaml (schema: spec-driven)
 
 Getting started:
   Start your first change: /sa-propose "your idea"
 ```
 
-With the skills on this machine, the summary line reads `8 skills in ~/.agents/skills/ for every project on this machine` and the project holds only `specs/`, `changes/` and `specagile/`.
+With the skills on this machine, the summary line reads `10 skills in ~/.agents/skills/ for every project on this machine` and the project holds only `specs/`, `changes/` and `specagile/`.
 
 `--tools none` creates only the `specs/`, `changes/` and `specagile/` folders and sets up no tool. On an already-initialized project, init rewrites the installed files in place and the summary reads `Refreshed: Claude Code` with `Config: specagile/config.yaml (exists)`.
 

@@ -53,6 +53,7 @@ vi.mock('@inquirer/prompts', () => ({
 
 const CORE_SKILLS = [
   'sa-archive',
+  'sa-audit',
   'sa-explore',
   'sa-implement',
   'sa-plan',
