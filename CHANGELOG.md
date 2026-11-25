@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 7.1.0
+
 ### Minor Changes
 
 - **`sa-audit` comes with the `core` profile.** The `verify` workflow joins it after `apply`, so the `core` profile has ten workflows (fifteen in all), and `specagile init` installs `sa-audit` with the other skills, in the project or for the machine. `specagile config profile` shows "Audit change" checked for `core`, `specagile config profile core` selects it, and `specagile config list` lists `verify` among the workflows from the core profile. Running the audit is still up to you: no other skill needs it, and `sa-archive` keeps its own checks.
